@@ -1,9 +1,9 @@
 "use client";
 
-import { gerarPdfDre } from "@/lib/pdf/gerarPdfDre";
 import Link from "next/link";
+import { gerarPdfDre } from "@/lib/pdf/gerarPdfDre";
 
-export interface Simulacao {
+export type Simulacao = {
   id: string;
   nome: string;
 
@@ -19,28 +19,18 @@ export interface Simulacao {
 
   origem?: "upload" | "calculadora";
   arquivo_nome?: string | null;
-}
+};
 
-export default function HistoricoSimulacoes({
-  simulacoes,
-}: {
+type Props = {
   simulacoes: Simulacao[];
-}) {
-  if (!simulacoes?.length) {
-    return (
-      <div className="bg-white rounded-xl shadow p-6 text-gray-500">
-        Nenhuma simulação salva ainda.
-      </div>
-    );
-  }
+};
 
+export default function HistoricoSimulacoes({ simulacoes }: Props) {
   return (
     <div className="bg-white rounded-xl shadow">
       <div className="p-5 border-b flex items-center justify-between gap-3">
         <div>
-          <h3 className="text-lg font-semibold">
-            Histórico de Simulações (PRO)
-          </h3>
+          <h3 className="text-lg font-semibold">Histórico de Simulações (PRO)</h3>
           <p className="text-sm text-gray-500">
             Reabra uma simulação ou exporte PDF em 1 clique.
           </p>
@@ -74,6 +64,7 @@ export default function HistoricoSimulacoes({
               </Link>
 
               <button
+                type="button"
                 onClick={() =>
                   gerarPdfDre({
                     nome: sim.nome,

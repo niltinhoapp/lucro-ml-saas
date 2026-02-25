@@ -1,5 +1,6 @@
 "use client";
 
+import { redirect }  from "next/navigation";
 import Link from "next/link";
 import { ReactNode } from "react";
 import { usePathname } from "next/navigation";
@@ -15,9 +16,9 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
 
   return (
-    <div className="min-h-screen flex bg-gray-100">
+    <div className="flex min-h-screen bg-gray-100">
       {/* SIDEBAR */}
-      <aside className="w-64 bg-gray-900 text-gray-200 flex flex-col">
+      <aside className="flex flex-col w-64 text-gray-200 bg-gray-900">
         {/* LOGO / BRAND */}
         <div className="px-6 py-5 border-b border-gray-800">
           <h1 className="text-xl font-bold tracking-wide text-white">
@@ -51,7 +52,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         </nav>
 
         {/* FOOTER SIDEBAR */}
-        <div className="px-6 py-4 border-t border-gray-800 text-xs text-gray-400">
+        <div className="px-6 py-4 text-xs text-gray-400 border-t border-gray-800">
           © {new Date().getFullYear()} Lucro ML
         </div>
       </aside>
@@ -62,4 +63,8 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
       </main>
     </div>
   );
+ 
+
 }
+
+

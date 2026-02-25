@@ -1,121 +1,87 @@
 "use client";
 
-import { useMemo } from "react";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import UploadCaixa from "@/components/UploadCaixa";
 
-interface Fluxo {
-  data: string;
-  entrada: number;
-  saida: number;
-}
+type Result = { id?: string; nome?: string; arquivo_nome?: string; total_lancamentos?: number; error?: string };
 
-const fluxoData: Fluxo[] = [
-  { data: "01/02", entrada: 5000, saida: 2000 },
-  { data: "02/02", entrada: 7000, saida: 3000 },
-  { data: "03/02", entrada: 6000, saida: 1000 },
-];
-
-export default function FluxoCaixaPage() {
-  const resumo = useMemo(() => {
-    const entradas = fluxoData.reduce((a, b) => a + b.entrada, 0);
-    const saidas = fluxoData.reduce((a, b) => a + b.saida, 0);
-    return {
-      entradas,
-      saidas,
-      saldo: entradas - saidas,
-    };
-  }, []);
+export default function FluxoCaixaHome() {
+  const router = useRouter();
+  const [last, setLast] = useState<Result | null>(null);
 
   return (
-    <div className="page">
-      {/* HEADER */}
-      <header className="page-header">
-        <h2>Fluxo de Caixa</h2>
-        <p>Controle diário de entradas e saídas</p>
-      </header>
+    <div className="page-wrap">
+      <section className="hero">
+        <div className="hero-inner" style={{ gridTemplateColumns: "1.2fr .8fr" }}>
+          <div>
+            <div className="hero-badge">
+              <span className="dot" />
+              PRO • Fluxo de Caixa
+            </div>
 
-      {/* RESUMO */}
-      <section className="grid-3">
-        <div className="summary-card">
-          <p>Entradas</p>
-          <div className="value" style={{ color: "var(--success)" }}>
-            R$ {resumo.entradas.toLocaleString("pt-BR")}
+            <h1 style={{ fontSize: 28, marginTop: 12 }}>Fluxo de Caixa</h1>
+
+            <p style={{ marginTop: 8 }}>
+              Importe o extrato de repasses/MP do Mercado Livre e veja entradas, saídas e saldo por dia.
+            </p>
           </div>
-        </div>
 
-        <div className="summary-card">
-          <p>Saídas</p>
-          <div className="value" style={{ color: "var(--danger)" }}>
-            R$ {resumo.saidas.toLocaleString("pt-BR")}
-          </div>
-        </div>
+          <div className="actions" style={{ justifyContent: "flex-end", alignItems: "flex-start" }}>
+            <button className="btn-dark" onClick={() => router.push("/dashboard")}>
+              ← Painel
+            </button>
 
-        <div className="summary-card">
-          <p>Saldo Total</p>
-          <div
-            className="value"
-            style={{
-              color:
-                resumo.saldo >= 0
-                  ? "var(--success)"
-                  : "var(--danger)",
-            }}
-          >
-            R$ {resumo.saldo.toLocaleString("pt-BR")}
+            <button className="btn-primary" onClick={() => router.push("/dashboard/fluxo-caixa/historico")}>
+              Histórico
+            </button>
           </div>
         </div>
       </section>
 
-      {/* TABELA */}
-      <section className="table-card">
-        <div className="table-card-header">
-          Movimentações
-        </div>
+      <section className="card-premium" style={{ padding: 16 }}>
+       <UploadCaixa
+  onResult={(data: any) => {
+    const normalized: Result = {
+      id: data?.id,
+      nome: data?.nome,
+      arquivo_nome: data?.arquivo_nome,
+      total_lancamentos: data?.total_lancamentos,
+      error: data?.error,
+    };
 
-        <div className="table-wrapper">
-          <table>
-            <thead>
-              <tr>
-                <th>Data</th>
-                <th>Entrada</th>
-                <th>Saída</th>
-                <th>Saldo</th>
-              </tr>
-            </thead>
+    setLast(normalized);
 
-            <tbody>
-              {fluxoData.map((f, i) => {
-                const saldo = f.entrada - f.saida;
+    if (normalized.id) {
+      router.push(`/dashboard/fluxo-caixa/relatorio?id=${normalized.id}`);
+    }
+  }}
+/>
 
-                return (
-                  <tr key={i}>
-                    <td>{f.data}</td>
-
-                    <td style={{ color: "var(--success)", fontWeight: 500 }}>
-                      + R$ {f.entrada.toLocaleString("pt-BR")}
-                    </td>
-
-                    <td style={{ color: "var(--danger)", fontWeight: 500 }}>
-                      - R$ {f.saida.toLocaleString("pt-BR")}
-                    </td>
-
-                    <td
-                      style={{
-                        fontWeight: 600,
-                        color:
-                          saldo >= 0
-                            ? "var(--success)"
-                            : "var(--danger)",
-                      }}
-                    >
-                      R$ {saldo.toLocaleString("pt-BR")}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
       </section>
+
+      {last?.id ? (
+        <section className="card-premium" style={{ padding: 18 }}>
+          <h3 style={{ fontWeight: 950 }}>Último relatório importado</h3>
+          <p className="muted" style={{ marginTop: 6 }}>
+            {last.arquivo_nome ? <>Arquivo: <strong>{last.arquivo_nome}</strong></> : "Arquivo importado."}
+            {typeof last.total_lancamentos === "number" ? <> • {last.total_lancamentos} lançamentos</> : null}
+          </p>
+
+          <div style={{ marginTop: 12, display: "flex", gap: 10, flexWrap: "wrap" }}>
+            <button className="btn-primary" onClick={() => router.push(`/dashboard/fluxo-caixa/relatorio?id=${last.id}`)}>
+              Abrir relatório →
+            </button>
+            <button className="btn" onClick={() => router.push("/dashboard/fluxo-caixa/historico")}>
+              Ver histórico
+            </button>
+          </div>
+        </section>
+      ) : null}
+
+      <div className="small" style={{ textAlign: "center" }}>
+        Lucro ML • PRO • {new Date().toLocaleDateString("pt-BR")}
+      </div>
     </div>
   );
 }

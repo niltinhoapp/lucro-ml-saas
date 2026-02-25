@@ -1,37 +1,99 @@
-import { createClient } from "@supabase/supabase-js";
-import DashboardHomeClient from "@/components/DashboardHomeClient";
-import type { SimulacaoRow } from "@/types/simulacoes";
+"use client";
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+import { useRouter } from "next/navigation";
+import UploadPlanilha from "@/components/UploadPlanilha";
+import type { UploadResult } from "@/components/UploadPlanilha";
 
-export default async function DashboardHome() {
-  const { data, error } = await supabase
-    .from("simulacoes")
-    .select(
-      "id,nome,created_at,receita_total,custo_produtos,taxas,logistica,lucro,margem,origem,arquivo_nome"
-    )
-    .order("created_at", { ascending: false })
-    .limit(30);
+export default function DashboardHome() {
+  const router = useRouter();
 
-  const simulacoes = ((data ?? []) as SimulacaoRow[]).map((s) => ({
-    id: s.id,
-    nome: s.nome,
-    created_at: s.created_at,
-    receitaTotal: Number(s.receita_total ?? 0),
-    custoProdutos: Number(s.custo_produtos ?? 0),
-    taxas: Number(s.taxas ?? 0),
-    logistica: Number(s.logistica ?? 0),
-    lucro: Number(s.lucro ?? 0),
-    margem: Number(s.margem ?? 0),
-    origem: s.origem ?? "upload",
-    arquivoNome: s.arquivo_nome ?? null,
-  }));
+  function handleResult(data: UploadResult) {
+    // ✅ aqui fica a navegação (a Home decide para onde ir)
+    if (data?.id) {
+      router.push(`/dashboard/dre?id=${data.id}`);
+      return;
+    }
 
-  // Em PROD: trate error com UI; aqui só evita quebrar.
-  if (error) console.error("Supabase list error:", error.message);
+    // se não veio id (não deveria), cai pro histórico
+    router.push("/dashboard/historico");
+  }
 
-  return <DashboardHomeClient simulacoes={simulacoes} />;
+  return (
+    <div className="page-wrap">
+      <section className="hero">
+        <div className="hero-inner">
+          <div>
+            <div className="hero-badge">
+              <span className="dot" />
+              Lucro ML — Inteligência de Margem
+            </div>
+
+            <h1>DRE Automático</h1>
+
+            <p>
+              Faça upload da planilha do Mercado Livre e gere um relatório DRE automático,
+              com alertas e insights prontos para decisão.
+            </p>
+
+            <div className="kpis">
+              <div className="kpi">
+                <div className="label">⚡ Upload PRO</div>
+                <div className="value">Processamento automático</div>
+              </div>
+              <div className="kpi">
+                <div className="label">Compatível</div>
+                <div className="value">.xlsx e .csv</div>
+              </div>
+              <div className="kpi">
+                <div className="label">Relatório</div>
+                <div className="value">Abre sozinho no DRE</div>
+              </div>
+            </div>
+          </div>
+
+          <div className="hero-features">
+            <div className="feature">
+              <div className="t">Upload simples</div>
+              <div className="d">Sem campos, sem confusão. Só subir e pronto.</div>
+            </div>
+            <div className="feature">
+              <div className="t">Diagnóstico do arquivo</div>
+              <div className="d">Mostra colunas reconhecidas e avisos do que faltou.</div>
+            </div>
+            <div className="feature">
+              <div className="t">Decisão rápida</div>
+              <div className="d">Margem, lucro e alertas em um relatório limpo.</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="card">
+        <div className="card-head">
+          <div>
+            <h2>Importar planilha</h2>
+            <p>Envie sua planilha e abra o DRE automaticamente.</p>
+          </div>
+
+          <div className="actions">
+            <button
+              type="button"
+              className="btn-dark"
+              onClick={() => router.push("/dashboard/historico")}
+            >
+              Histórico de simulações
+            </button>
+          </div>
+        </div>
+
+        <div className="card-body">
+          <UploadPlanilha onResult={handleResult} />
+        </div>
+      </section>
+
+      <div className="small" style={{ textAlign: "center" }}>
+        © {new Date().getFullYear()} Lucro ML • PRO
+      </div>
+    </div>
+  );
 }

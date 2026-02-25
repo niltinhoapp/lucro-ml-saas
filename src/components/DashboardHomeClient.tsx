@@ -1,13 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import UploadPlanilha, { UploadResult } from "@/components/UploadPlanilha";
-import HistoricoSimulacoes, { SimulacaoUI } from "@/components/HistoricoSimulacoes";
+import UploadPlanilha, { type UploadResult } from "@/components/UploadPlanilha";
+import HistoricoSimulacoes, { type Simulacao } from "@/components/HistoricoSimulacoes";
 
 export default function DashboardHomeClient({
   simulacoes,
 }: {
-  simulacoes: SimulacaoUI[];
+  simulacoes: Simulacao[];
 }) {
   const [lastUpload, setLastUpload] = useState<UploadResult | null>(null);
 
@@ -74,7 +74,8 @@ export default function DashboardHomeClient({
       </div>
 
       {/* HISTÓRICO */}
-      <HistoricoSimulacoes simulacoes={simulacoes} />
+     <HistoricoSimulacoes simulacoes={simulacoes} />
+
     </div>
   );
 }

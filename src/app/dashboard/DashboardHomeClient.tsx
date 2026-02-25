@@ -1,12 +1,15 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import UploadPlanilha, { UploadResult } from "@/components/UploadPlanilha";
-import HistoricoSimulacoes, { Simulacao } from "@/components/HistoricoSimulacoes";
+import UploadPlanilha from "@/components/UploadPlanilha";
+import type { UploadResult } from "@/components/UploadPlanilha";
+
+import HistoricoSimulacoes, { type Simulacao } from "@/components/HistoricoSimulacoes";
 
 type Props = {
   simulacoes: Simulacao[];
 };
+
 
 export default function DashboardHomeClient({ simulacoes }: Props) {
   const router = useRouter();

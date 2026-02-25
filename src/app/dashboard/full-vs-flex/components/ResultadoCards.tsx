@@ -1,34 +1,107 @@
+"use client";
+
+type Resultado = {
+  receita: number;
+  despesas: number;
+  lucro: number;
+  margem: number;
+};
+
+type ResultadoComparativo = {
+  full: Resultado;
+  flex: Resultado;
+  melhor: "FULL" | "FLEX";
+  diferencaLucro: number; // FULL - FLEX (com sinal)
+};
+
+function moeda(v: number) {
+  return Number(v || 0).toLocaleString("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+  });
+}
+
+function pct(v: number) {
+  return `${Number(v || 0).toFixed(2)}%`;
+}
+
+function toneMargem(m: number): "good" | "warn" | "bad" {
+  if (m >= 12) return "good";
+  if (m >= 0) return "warn";
+  return "bad";
+}
+
 export default function ResultadoCards({
   resultado,
+  destaque,
 }: {
-  resultado: {
-    receita: number;
-    lucroFull: number;
-    lucroFlex: number;
-  };
+  resultado: ResultadoComparativo;
+  destaque: "FULL" | "FLEX";
 }) {
+  const r = destaque === "FULL" ? resultado.full : resultado.flex;
+
+  const margemTone = toneMargem(r.margem);
+  const lucroTone = r.lucro >= 0 ? "good" : "bad";
+
+  // ✅ Diferença com sinal: FULL - FLEX
+  const diff = Number(resultado.diferencaLucro || 0);
+  const diffAbs = Math.abs(diff);
+  const diffSide = diff >= 0 ? "a favor do FULL" : "a favor do FLEX";
+  const diffArrow = diff >= 0 ? "⬆️" : "⬇️";
+
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-      <div className="bg-white rounded-xl shadow p-5">
-        <p className="text-gray-500">Receita Total</p>
-        <p className="text-2xl font-bold">
-          R$ {resultado.receita.toLocaleString()}
-        </p>
+    <section className="grid-3">
+      <div className="kpi-card kpi-receita">
+        <div className="kpi-label">Receita ({destaque})</div>
+        <div className="kpi-value">{moeda(r.receita)}</div>
+
+        <div className="muted" style={{ marginTop: 8, fontWeight: 900 }}>
+          Melhor no momento: <b>{resultado.melhor}</b>
+        </div>
       </div>
 
-      <div className="bg-white rounded-xl shadow p-5">
-        <p className="text-gray-500">Lucro FULL</p>
-        <p className="text-2xl font-bold text-blue-600">
-          R$ {resultado.lucroFull.toLocaleString()}
-        </p>
+      <div className="kpi-card kpi-despesas">
+        <div className="kpi-label">Despesas ({destaque})</div>
+        <div className="kpi-value">{moeda(r.despesas)}</div>
+
+        <div className="muted" style={{ marginTop: 8, fontWeight: 900 }}>
+          Diferença de lucro: <b>{moeda(diffAbs)}</b> {diffArrow} <span style={{ opacity: 0.9 }}>{diffSide}</span>
+        </div>
       </div>
 
-      <div className="bg-white rounded-xl shadow p-5">
-        <p className="text-gray-500">Lucro FLEX</p>
-        <p className="text-2xl font-bold text-orange-500">
-          R$ {resultado.lucroFlex.toLocaleString()}
-        </p>
+      <div
+        className={`kpi-card ${
+          margemTone === "good"
+            ? "kpi-margem-good"
+            : margemTone === "warn"
+            ? "kpi-margem-warn"
+            : "kpi-margem-bad"
+        }`}
+      >
+        <div className="kpi-label">Lucro / Margem ({destaque})</div>
+        <div className="kpi-value">
+          {moeda(r.lucro)}{" "}
+          <span style={{ opacity: 0.85, fontSize: 16 }}>• {pct(r.margem)}</span>
+        </div>
+
+        <div className="pills" style={{ marginTop: 10, justifyContent: "flex-start" }}>
+          <span className={`pill ${lucroTone === "good" ? "good" : "bad"}`}>
+            {r.lucro >= 0 ? "Lucro positivo" : "Lucro negativo"}
+          </span>
+
+          <span
+            className={`pill ${
+              margemTone === "good" ? "good" : margemTone === "warn" ? "warn" : "bad"
+            }`}
+          >
+            {margemTone === "good"
+              ? "Margem boa"
+              : margemTone === "warn"
+              ? "Margem apertada"
+              : "Margem negativa"}
+          </span>
+        </div>
       </div>
-    </div>
+    </section>
   );
 }
