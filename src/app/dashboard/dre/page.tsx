@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 
 import DreResumo from "@/components/DreResumo";
@@ -25,7 +24,6 @@ type ApiSimulacao = {
   created_at?: string | null;
 
   dre: Dre;
-
   avisos?: string[];
 
   // debug (opcional)
@@ -67,8 +65,7 @@ export default function DrePage() {
 
   useEffect(() => {
     async function load() {
-      // ✅ sem id: não mostra “tela sem sentido”.
-      // Apenas manda voltar pro painel.
+      // ✅ Se entrar sem id, volta pro painel (evita tela “sem sentido”)
       if (!id) {
         router.replace("/dashboard");
         return;
@@ -140,7 +137,7 @@ export default function DrePage() {
   if (erro) {
     return (
       <div className="page-wrap">
-        <section className="card" >
+        <section className="card">
           <div className="card-head">
             <div>
               <h2 style={{ color: "#7f1d1d" }}>Não foi possível abrir o DRE</h2>
@@ -148,8 +145,11 @@ export default function DrePage() {
             </div>
 
             <div className="actions">
+              <button className="btn-ghost" onClick={() => router.push("/")}>
+                🏠 Home
+              </button>
               <button className="btn-dark" onClick={() => router.push("/dashboard")}>
-                Voltar ao painel
+                ← Painel
               </button>
             </div>
           </div>
@@ -171,9 +171,13 @@ export default function DrePage() {
               <h2>Relatório indisponível</h2>
               <p>Não encontramos dados de DRE nesta simulação.</p>
             </div>
+
             <div className="actions">
+              <button className="btn-ghost" onClick={() => router.push("/")}>
+                🏠 Home
+              </button>
               <button className="btn-dark" onClick={() => router.push("/dashboard")}>
-                Voltar ao painel
+                ← Painel
               </button>
             </div>
           </div>
@@ -185,7 +189,7 @@ export default function DrePage() {
   // ===== RELATÓRIO =====
   return (
     <div className="page-wrap">
-      {/* TOP HERO (mesmo estilo PRO da Home) */}
+      {/* TOP HERO */}
       <section className="hero">
         <div className="hero-inner" style={{ gridTemplateColumns: "1.2fr .8fr" }}>
           <div>
@@ -199,7 +203,8 @@ export default function DrePage() {
             <p style={{ marginTop: 8 }}>
               {data?.arquivo_nome ? (
                 <>
-                  Arquivo: <strong style={{ color: "rgba(255,255,255,.95)" }}>{data.arquivo_nome}</strong>
+                  Arquivo:{" "}
+                  <strong style={{ color: "rgba(255,255,255,.95)" }}>{data.arquivo_nome}</strong>
                 </>
               ) : (
                 "Relatório gerado a partir de simulação salva."
@@ -214,18 +219,22 @@ export default function DrePage() {
           </div>
 
           <div className="actions" style={{ justifyContent: "flex-end", alignItems: "flex-start" }}>
+            <button className="btn-ghost" onClick={() => router.push("/")}>
+              🏠 Home
+            </button>
+
             <button className="btn-dark" onClick={() => router.push("/dashboard")}>
               ← Painel
             </button>
 
-           <button
-  type="button"
-  onClick={() => router.push("/dashboard")}
-  className="btn btn-success"
->
-  + Nova simulação
-</button>
-
+            <button
+              type="button"
+              onClick={() => router.push("/dashboard")}
+              className="btn btn-success"
+              title="Voltar ao painel para fazer um novo upload"
+            >
+              + Nova simulação
+            </button>
 
             <div style={{ display: "inline-flex" }}>
               <ExportarPDF nome={nomeRelatorio} dre={dre} />
@@ -234,7 +243,7 @@ export default function DrePage() {
         </div>
       </section>
 
-      {/* Avisos (apenas se existir) */}
+      {/* Avisos */}
       {data?.avisos?.length ? (
         <section className="card">
           <div className="card-head">
@@ -245,10 +254,16 @@ export default function DrePage() {
           </div>
 
           <div className="card-body">
-            <div className="alert" style={{ background: "rgba(251,188,5,.16)", borderColor: "rgba(251,188,5,.25)" }}>
+            <div
+              className="alert"
+              style={{
+                background: "rgba(251,188,5,.16)",
+                borderColor: "rgba(251,188,5,.25)",
+              }}
+            >
               <ul style={{ margin: 0, paddingLeft: 18, display: "grid", gap: 6 }}>
                 {data.avisos.map((a, i) => (
-                  <li key={i} style={{ color: "#6a4b00", fontWeight: 900 }}>
+                  <li key={i} style={{ color: "#ffedd5", fontWeight: 900 }}>
                     {a}
                   </li>
                 ))}
@@ -258,7 +273,7 @@ export default function DrePage() {
         </section>
       ) : null}
 
-      {/* KPIs (cores) */}
+      {/* KPIs */}
       <section className="kpis">
         <Kpi tone="good" label="Receita total" value={moeda(dre.receitaTotal)} />
         <Kpi tone="neutral" label="Custos + Taxas + Logística" value={moeda(totalDespesas)} />
@@ -269,7 +284,7 @@ export default function DrePage() {
         />
       </section>
 
-      {/* Resultado principal (lucro) destacado */}
+      {/* Resultado */}
       <section className="card">
         <div className="card-head">
           <div>
@@ -282,9 +297,9 @@ export default function DrePage() {
             <span
               className="badge"
               style={{
-                background: dre.lucro >= 0 ? "rgba(34,197,94,.12)" : "rgba(234,67,53,.12)",
-                borderColor: dre.lucro >= 0 ? "rgba(34,197,94,.22)" : "rgba(234,67,53,.22)",
-                color: dre.lucro >= 0 ? "#14532d" : "#7f1d1d",
+                background: dre.lucro >= 0 ? "rgba(34,197,94,.12)" : "rgba(239,68,68,.12)",
+                borderColor: dre.lucro >= 0 ? "rgba(34,197,94,.22)" : "rgba(239,68,68,.22)",
+                color: dre.lucro >= 0 ? "#dcfce7" : "#fee2e2",
               }}
             >
               {dre.lucro >= 0 ? "Lucro positivo" : "Lucro negativo"}
@@ -311,18 +326,20 @@ export default function DrePage() {
         </div>
       </section>
 
-      {/* Diagnóstico: só se debug=1 */}
+      {/* Diagnóstico (debug=1) */}
       {debug && (data?.camposDetectados || data?.sheetHeaders?.length || data?.headersNormalizados?.length) ? (
         <section className="card">
           <div className="card-head">
             <div>
               <h3>🔎 Diagnóstico (modo técnico)</h3>
-              <p>Visível apenas com <code>?debug=1</code>.</p>
+              <p>
+                Visível apenas com <code>?debug=1</code>.
+              </p>
             </div>
           </div>
 
           <div className="card-body">
-           <pre style={{ fontSize: 12, whiteSpace: "pre-wrap", wordBreak: "break-word", margin: 0 }}>
+            <pre style={{ fontSize: 12, whiteSpace: "pre-wrap", wordBreak: "break-word", margin: 0 }}>
               {JSON.stringify(
                 {
                   arquivo_nome: data?.arquivo_nome,
@@ -364,7 +381,6 @@ function Kpi({
   const style =
     tone === "good"
       ? {
-          // verde vivo no dark
           bg: "radial-gradient(900px 260px at 20% 0%, rgba(34,197,94,.22), transparent 60%), rgba(255,255,255,.06)",
           border: "rgba(34,197,94,.28)",
           label: "rgba(220,252,231,.92)",
@@ -372,7 +388,6 @@ function Kpi({
         }
       : tone === "warn"
       ? {
-          // âmbar vivo no dark
           bg: "radial-gradient(900px 260px at 20% 0%, rgba(245,158,11,.22), transparent 60%), rgba(255,255,255,.06)",
           border: "rgba(245,158,11,.30)",
           label: "rgba(255,237,213,.92)",
@@ -380,14 +395,12 @@ function Kpi({
         }
       : tone === "bad"
       ? {
-          // vermelho vivo no dark
           bg: "radial-gradient(900px 260px at 20% 0%, rgba(239,68,68,.22), transparent 60%), rgba(255,255,255,.06)",
           border: "rgba(239,68,68,.30)",
           label: "rgba(254,226,226,.92)",
           value: "rgba(254,226,226,.98)",
         }
       : {
-          // neutro (azulado/clean)
           bg: "radial-gradient(900px 260px at 20% 0%, rgba(59,130,246,.20), transparent 60%), rgba(255,255,255,.05)",
           border: "rgba(255,255,255,.14)",
           label: "rgba(229,231,235,.82)",
@@ -411,5 +424,4 @@ function Kpi({
       </div>
     </div>
   );
-  
 }
