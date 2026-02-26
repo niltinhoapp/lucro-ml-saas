@@ -3,9 +3,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
-import DreResumo from "@/components/DreResumo";
-import DreInsights from "@/components/DreInsights";
-import ExportarPDF from "@/components/ExportarPDF";
+import DreResumo from "@/features/dre/components/DreResumo";
+import DreInsights from "@/features/dre/components/DreInsights";
+import ExportarPDF from "@/features/dre/components/ExportarPDF";
 import { gerarInsightsDre } from "@/lib/dre/insights";
 
 type Dre = {
@@ -26,7 +26,6 @@ type ApiSimulacao = {
   dre: Dre;
   avisos?: string[];
 
-  // debug (opcional)
   camposDetectados?: Record<string, string> | null;
   camposIgnorados?: string[] | null;
   sheetHeaders?: string[] | null;
@@ -40,10 +39,7 @@ type ApiSimulacao = {
 };
 
 function moeda(v: number) {
-  return Number(v || 0).toLocaleString("pt-BR", {
-    style: "currency",
-    currency: "BRL",
-  });
+  return Number(v || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 }
 
 function fmtDateBR(iso?: string | null) {
@@ -65,7 +61,6 @@ export default function DrePage() {
 
   useEffect(() => {
     async function load() {
-      // ✅ Se entrar sem id, volta pro painel (evita tela “sem sentido”)
       if (!id) {
         router.replace("/dashboard");
         return;
@@ -77,9 +72,7 @@ export default function DrePage() {
       try {
         const res = await fetch(`/api/simulacoes/${id}`, { cache: "no-store" });
         const json = (await res.json()) as ApiSimulacao;
-
         if (!res.ok) throw new Error(json?.error || "Falha ao carregar o relatório.");
-
         setData(json);
       } catch (e: any) {
         setErro(e?.message || "Erro ao carregar relatório.");
@@ -110,23 +103,19 @@ export default function DrePage() {
     return "Relatório DRE";
   }, [data?.nome, data?.id]);
 
-  // ===== STATES =====
   if (loading) {
     return (
       <div className="page-wrap">
         <section className="card">
           <div className="card-head">
             <div>
-              <h2>Carregando relatório…</h2>
-              <p>Buscando os dados desta simulação.</p>
+              <h2>Carregando…</h2>
+              <p>Buscando dados do relatório.</p>
             </div>
           </div>
           <div className="card-body">
             <div className="progress">
               <div className="progress-bar" style={{ width: "55%" }} />
-            </div>
-            <div className="small" style={{ marginTop: 10 }}>
-              Aguarde alguns segundos…
             </div>
           </div>
         </section>
@@ -140,20 +129,14 @@ export default function DrePage() {
         <section className="card">
           <div className="card-head">
             <div>
-              <h2 style={{ color: "#7f1d1d" }}>Não foi possível abrir o DRE</h2>
-              <p style={{ color: "#991b1b" }}>{erro}</p>
+              <h2 style={{ color: "#fee2e2" }}>Não foi possível abrir</h2>
+              <p style={{ color: "#fecaca" }}>{erro}</p>
             </div>
-
             <div className="actions">
-              <button className="btn-ghost" onClick={() => router.push("/")}>
-                🏠 Home
-              </button>
-              <button className="btn-dark" onClick={() => router.push("/dashboard")}>
-                ← Painel
-              </button>
+              <button className="btn btn-ghost" onClick={() => router.push("/")}>🏠 Home</button>
+              <button className="btn-dark" onClick={() => router.push("/dashboard")}>← Painel</button>
             </div>
           </div>
-
           <div className="card-body">
             <div className="alert danger">Verifique se esta simulação existe no histórico.</div>
           </div>
@@ -169,16 +152,11 @@ export default function DrePage() {
           <div className="card-head">
             <div>
               <h2>Relatório indisponível</h2>
-              <p>Não encontramos dados de DRE nesta simulação.</p>
+              <p>Não encontramos dados nesta simulação.</p>
             </div>
-
             <div className="actions">
-              <button className="btn-ghost" onClick={() => router.push("/")}>
-                🏠 Home
-              </button>
-              <button className="btn-dark" onClick={() => router.push("/dashboard")}>
-                ← Painel
-              </button>
+              <button className="btn btn-ghost" onClick={() => router.push("/")}>🏠 Home</button>
+              <button className="btn-dark" onClick={() => router.push("/dashboard")}>← Painel</button>
             </div>
           </div>
         </section>
@@ -189,83 +167,68 @@ export default function DrePage() {
   // ===== RELATÓRIO =====
   return (
     <div className="page-wrap">
-      {/* TOP HERO */}
-      <section className="hero">
-        <div className="hero-inner" style={{ gridTemplateColumns: "1.2fr .8fr" }}>
-          <div>
-            <div className="hero-badge">
-              <span className="dot" />
-              Relatório DRE (PRO)
-            </div>
+      {/* Topbar curto (sem parágrafo grande) */}
+      <section className="topbar">
+        <div style={{ minWidth: 0 }}>
+          <span className="badge pro">📄 DRE</span>
+          <h2 style={{ marginTop: 10, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+            {nomeRelatorio}
+          </h2>
 
-            <h1 style={{ fontSize: 28, marginTop: 12 }}>{nomeRelatorio}</h1>
-
-            <p style={{ marginTop: 8 }}>
-              {data?.arquivo_nome ? (
-                <>
-                  Arquivo:{" "}
-                  <strong style={{ color: "rgba(255,255,255,.95)" }}>{data.arquivo_nome}</strong>
-                </>
-              ) : (
-                "Relatório gerado a partir de simulação salva."
-              )}
-              {data?.created_at ? (
-                <>
-                  {" "}
-                  • <span style={{ color: "rgba(229,231,235,.70)" }}>{fmtDateBR(data.created_at)}</span>
-                </>
-              ) : null}
-            </p>
+          <div className="subtitle" style={{ marginTop: 8 }}>
+            {data?.arquivo_nome ? (
+              <>
+                <strong style={{ color: "rgba(229,231,235,.92)" }}>{data.arquivo_nome}</strong>
+              </>
+            ) : (
+              <span style={{ color: "rgba(229,231,235,.70)" }}>Simulação salva</span>
+            )}
+            {data?.created_at ? (
+              <>
+                {" "}
+                • <span style={{ color: "rgba(229,231,235,.55)" }}>{fmtDateBR(data.created_at)}</span>
+              </>
+            ) : null}
           </div>
 
-          <div className="actions" style={{ justifyContent: "flex-end", alignItems: "flex-start" }}>
-            <button className="btn-ghost" onClick={() => router.push("/")}>
-              🏠 Home
-            </button>
+          <div style={{ marginTop: 10, display: "flex", gap: 8, flexWrap: "wrap" }}>
+            <span className="pill">ID: {data.id.slice(0, 6).toUpperCase()}</span>
+            {dre.margem >= 10 ? (
+              <span className="pill good">Margem OK</span>
+            ) : dre.margem >= 0 ? (
+              <span className="pill warn">Margem baixa</span>
+            ) : (
+              <span className="pill bad">Negativo</span>
+            )}
+          </div>
+        </div>
 
-            <button className="btn-dark" onClick={() => router.push("/dashboard")}>
-              ← Painel
-            </button>
-
-            <button
-              type="button"
-              onClick={() => router.push("/dashboard")}
-              className="btn btn-success"
-              title="Voltar ao painel para fazer um novo upload"
-            >
-              + Nova simulação
-            </button>
-
-            <div style={{ display: "inline-flex" }}>
-              <ExportarPDF nome={nomeRelatorio} dre={dre} />
-            </div>
+        <div className="actions">
+          <button className="btn btn-ghost" onClick={() => router.push("/")}>🏠 Home</button>
+          <button className="btn-dark" onClick={() => router.push("/dashboard")}>← Painel</button>
+          <button className="btn btn-success" onClick={() => router.push("/dashboard")}>
+            + Nova simulação
+          </button>
+          <div style={{ display: "inline-flex" }}>
+            <ExportarPDF nome={nomeRelatorio} dre={dre} />
           </div>
         </div>
       </section>
 
-      {/* Avisos */}
+      {/* Alertas do arquivo (só se existir) */}
       {data?.avisos?.length ? (
         <section className="card">
           <div className="card-head">
             <div>
-              <h3>⚠️ Alertas do arquivo</h3>
-              <p>Esses pontos podem deixar o lucro “otimista” se estiverem faltando na planilha.</p>
+              <h3>⚠️ Alertas</h3>
+              <p>Itens que podem afetar o resultado.</p>
             </div>
           </div>
-
           <div className="card-body">
-            <div
-              className="alert"
-              style={{
-                background: "rgba(251,188,5,.16)",
-                borderColor: "rgba(251,188,5,.25)",
-              }}
-            >
+            <div className="alert warn">
               <ul style={{ margin: 0, paddingLeft: 18, display: "grid", gap: 6 }}>
                 {data.avisos.map((a, i) => (
-                  <li key={i} style={{ color: "#ffedd5", fontWeight: 900 }}>
-                    {a}
-                  </li>
+                  <li key={i} style={{ fontWeight: 900 }}>{a}</li>
                 ))}
               </ul>
             </div>
@@ -275,7 +238,7 @@ export default function DrePage() {
 
       {/* KPIs */}
       <section className="kpis">
-        <Kpi tone="good" label="Receita total" value={moeda(dre.receitaTotal)} />
+        <Kpi tone="good" label="Receita" value={moeda(dre.receitaTotal)} />
         <Kpi tone="neutral" label="Custos + Taxas + Logística" value={moeda(totalDespesas)} />
         <Kpi
           tone={dre.margem >= 10 ? "good" : dre.margem >= 0 ? "warn" : "bad"}
@@ -289,19 +252,12 @@ export default function DrePage() {
         <div className="card-head">
           <div>
             <h2>Resultado</h2>
-            <p>Resumo do lucro e componentes do DRE.</p>
+            <p>Lucro, custos e composição do DRE.</p>
           </div>
 
           <div className="badges">
             <span className="badge pro">PRO</span>
-            <span
-              className="badge"
-              style={{
-                background: dre.lucro >= 0 ? "rgba(34,197,94,.12)" : "rgba(239,68,68,.12)",
-                borderColor: dre.lucro >= 0 ? "rgba(34,197,94,.22)" : "rgba(239,68,68,.22)",
-                color: dre.lucro >= 0 ? "#dcfce7" : "#fee2e2",
-              }}
-            >
+            <span className={dre.lucro >= 0 ? "badge ok" : "badge"} style={dre.lucro < 0 ? { background: "rgba(239,68,68,.14)", borderColor: "rgba(239,68,68,.25)", color: "#fee2e2" } : undefined}>
               {dre.lucro >= 0 ? "Lucro positivo" : "Lucro negativo"}
             </span>
           </div>
@@ -317,7 +273,7 @@ export default function DrePage() {
         <div className="card-head">
           <div>
             <h2>Insights</h2>
-            <p>Alertas e oportunidades com base nos números desta simulação.</p>
+            <p>Alertas e oportunidades.</p>
           </div>
         </div>
 
@@ -327,37 +283,27 @@ export default function DrePage() {
       </section>
 
       {/* Diagnóstico (debug=1) */}
-      {debug && (data?.camposDetectados || data?.sheetHeaders?.length || data?.headersNormalizados?.length) ? (
-        <section className="card">
-          <div className="card-head">
-            <div>
-              <h3>🔎 Diagnóstico (modo técnico)</h3>
-              <p>
-                Visível apenas com <code>?debug=1</code>.
-              </p>
-            </div>
-          </div>
-
-          <div className="card-body">
-            <pre style={{ fontSize: 12, whiteSpace: "pre-wrap", wordBreak: "break-word", margin: 0 }}>
-              {JSON.stringify(
-                {
-                  arquivo_nome: data?.arquivo_nome,
-                  sheetName: data?.sheetName,
-                  headerIdx: data?.headerIdx,
-                  totalLinhasBrutas: data?.totalLinhasBrutas,
-                  totalLinhasValidas: data?.totalLinhasValidas,
-                  camposDetectados: data?.camposDetectados,
-                  camposIgnorados: data?.camposIgnorados,
-                  sheetHeaders: data?.sheetHeaders,
-                  headersNormalizados: data?.headersNormalizados,
-                },
-                null,
-                2
-              )}
-            </pre>
-          </div>
-        </section>
+      {debug ? (
+        <details style={{ marginTop: 12 }}>
+          <summary>Diagnóstico técnico</summary>
+          <pre style={{ marginTop: 12, fontSize: 12, whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
+{JSON.stringify(
+  {
+    arquivo_nome: data?.arquivo_nome,
+    sheetName: data?.sheetName,
+    headerIdx: data?.headerIdx,
+    totalLinhasBrutas: data?.totalLinhasBrutas,
+    totalLinhasValidas: data?.totalLinhasValidas,
+    camposDetectados: data?.camposDetectados,
+    camposIgnorados: data?.camposIgnorados,
+    sheetHeaders: data?.sheetHeaders,
+    headersNormalizados: data?.headersNormalizados,
+  },
+  null,
+  2
+)}
+          </pre>
+        </details>
       ) : null}
 
       <div className="small" style={{ textAlign: "center" }}>
@@ -367,8 +313,7 @@ export default function DrePage() {
   );
 }
 
-/* ===== KPI (cores) ===== */
-
+/* ===== KPI ===== */
 function Kpi({
   label,
   value,
@@ -408,20 +353,9 @@ function Kpi({
         };
 
   return (
-    <div
-      className="kpi"
-      style={{
-        background: style.bg,
-        border: `1px solid ${style.border}`,
-        boxShadow: "0 14px 26px rgba(0,0,0,.22)",
-      }}
-    >
-      <div className="label" style={{ color: style.label }}>
-        {label}
-      </div>
-      <div className="value" style={{ color: style.value }}>
-        {value}
-      </div>
+    <div className="kpi" style={{ background: style.bg, border: `1px solid ${style.border}` }}>
+      <div className="label" style={{ color: style.label }}>{label}</div>
+      <div className="value" style={{ color: style.value }}>{value}</div>
     </div>
   );
 }

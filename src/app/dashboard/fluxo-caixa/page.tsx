@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import UploadCaixa from "@/components/UploadCaixa";
+import UploadCaixa from "@/features/upload/components/UploadCaixa";
 
 type Result = { id?: string; nome?: string; arquivo_nome?: string; total_lancamentos?: number; error?: string };
 

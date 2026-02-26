@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useMemo, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 
 export type Dre = {
   receitaTotal: number;
@@ -36,7 +37,14 @@ type Props = {
 
 type Status = "idle" | "uploading" | "success" | "error";
 
+type ApiErrorPayload = {
+  error?: string;
+  message?: string;
+  max?: number;
+};
+
 export default function UploadPlanilha({ onResult }: Props) {
+  const router = useRouter();
   const inputRef = useRef<HTMLInputElement | null>(null);
 
   const [status, setStatus] = useState<Status>("idle");
@@ -46,7 +54,7 @@ export default function UploadPlanilha({ onResult }: Props) {
 
   const hint = useMemo(() => {
     if (status === "uploading") return `Processando… ${progress}%`;
-    if (status === "success") return "Planilha processada com sucesso.";
+    if (status === "success") return "Planilha processada com sucesso. Abrindo o relatório…";
     if (status === "error") return errorMsg || "Falha ao processar o arquivo.";
     return "Formatos suportados: .xlsx e .csv";
   }, [status, errorMsg, progress]);
@@ -73,6 +81,19 @@ export default function UploadPlanilha({ onResult }: Props) {
     return () => window.clearInterval(t);
   }
 
+  async function readJsonSafe(res: Response) {
+    try {
+      return (await res.json()) as UploadResult & ApiErrorPayload;
+    } catch {
+      return {} as UploadResult & ApiErrorPayload;
+    }
+  }
+
+  function goCheckout(reason: "expired" | "limit", max?: number) {
+    const qs = reason === "limit" ? `?reason=limit&max=${max ?? 3}` : `?reason=expired`;
+    router.push(`/checkout${qs}`);
+  }
+
   async function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -92,10 +113,55 @@ export default function UploadPlanilha({ onResult }: Props) {
         body: form,
       });
 
-      const data = (await res.json()) as UploadResult & { error?: string };
+      // ✅ trata respostas especiais antes de "throw"
+      if (res.status === 401) {
+        stop();
+        setStatus("error");
+        setProgress(0);
+        setErrorMsg("Você precisa entrar para importar planilhas.");
+        router.push("/login?reason=auth");
+        e.target.value = "";
+        return;
+      }
+
+      if (res.status === 402) {
+        const j = await readJsonSafe(res);
+        stop();
+        setStatus("error");
+        setProgress(0);
+        setErrorMsg(j?.message || "Seu teste grátis terminou. Desbloqueie o PRO para continuar.");
+        goCheckout("expired");
+        e.target.value = "";
+        return;
+      }
+
+      if (res.status === 403) {
+        const j = await readJsonSafe(res);
+        stop();
+        setStatus("error");
+        setProgress(0);
+
+        if (j?.error === "limit_reached") {
+          const max = j?.max ?? 3;
+          setErrorMsg(`Limite do teste grátis atingido (${max} relatórios). Assine o PRO para relatórios ilimitados.`);
+          goCheckout("limit", max);
+        } else {
+          setErrorMsg(j?.message || "Ação não permitida no seu plano.");
+        }
+
+        e.target.value = "";
+        return;
+      }
+
+      const data = await readJsonSafe(res);
 
       if (!res.ok) {
-        throw new Error(data?.error || data?.message || "Erro no upload.");
+        stop();
+        setStatus("error");
+        setProgress(0);
+        setErrorMsg(data?.error || data?.message || "Erro no upload.");
+        e.target.value = "";
+        return;
       }
 
       stop();
@@ -116,8 +182,9 @@ export default function UploadPlanilha({ onResult }: Props) {
     } catch (err: any) {
       stop();
       setStatus("error");
-      setErrorMsg(err?.message || "Falha ao processar a planilha.");
       setProgress(0);
+      setErrorMsg(err?.message || "Falha ao processar a planilha.");
+      e.target.value = "";
     }
   }
 
@@ -194,6 +261,14 @@ export default function UploadPlanilha({ onResult }: Props) {
       {status === "error" && (
         <div className="alert danger" style={{ marginTop: 12 }}>
           {errorMsg}
+          <div style={{ marginTop: 10, display: "flex", gap: 10, flexWrap: "wrap" }}>
+            <button type="button" className="btn btn-primary" onClick={() => router.push("/checkout")}>
+              Desbloquear PRO
+            </button>
+            <button type="button" className="btn btn-ghost" onClick={() => router.push("/demo")}>
+              Ver demo
+            </button>
+          </div>
         </div>
       )}
     </div>
