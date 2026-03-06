@@ -38,6 +38,7 @@ export function calcularDre(linhas: LinhaVenda[]): DreResultado {
     (total, l) => total + l.logistica,
     0
   );
+  
 
   const lucro =
     receitaTotal - custoProdutos - taxas - logistica;

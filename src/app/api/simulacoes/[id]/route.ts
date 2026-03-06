@@ -1,14 +1,45 @@
 // src/app/api/simulacoes/[id]/route.ts
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { calcularDre } from "@/lib/dre/calcularDre";
+import { calcularDre, type LinhaVenda, type DreResultado } from "@/lib/dre/calcularDre";
 
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
+function mustEnv(name: string) {
+  const v = process.env[name];
+  if (!v) throw new Error(`Missing env: ${name}`);
+  return v;
+}
 
 const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY! // server only
+  mustEnv("NEXT_PUBLIC_SUPABASE_URL"),
+  mustEnv("SUPABASE_SERVICE_ROLE_KEY") // server only
 );
+
+function asNum(v: unknown): number {
+  const n = Number(v);
+  return Number.isFinite(n) ? n : 0;
+}
+
+function isRecord(x: unknown): x is Record<string, unknown> {
+  return !!x && typeof x === "object";
+}
+
+type SimulacaoDados = {
+  linhas?: LinhaVenda[];
+  meta?: {
+    avisos?: unknown;
+    camposDetectados?: unknown;
+    camposIgnorados?: unknown;
+    sheetHeaders?: unknown;
+    headersNormalizados?: unknown;
+    totalLinhasBrutas?: unknown;
+    totalLinhasValidas?: unknown;
+    headerIdx?: unknown;
+    sheetName?: unknown;
+  };
+};
 
 type SimulacaoDb = {
   id: string;
@@ -25,23 +56,20 @@ type SimulacaoDb = {
   created_at: string | null;
   origem: string | null;
 
-  dados: any | null; // jsonb (linhas + meta)
+  dados: unknown | null; // jsonb
 };
 
-function num(v: any) {
-  const n = Number(v);
-  return Number.isFinite(n) ? n : 0;
+function parseDados(dados: unknown): SimulacaoDados {
+  if (!isRecord(dados)) return {};
+  return dados as SimulacaoDados;
 }
 
-export async function GET(
-  _req: Request,
-  context: { params: Promise<{ id: string }> }
-) {
+export async function GET(_req: Request, context: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await context.params;
 
-    if (!id) {
-      return NextResponse.json({ error: "ID não informado." }, { status: 400 });
+    if (!id || id === "undefined") {
+      return NextResponse.json({ error: "ID inválido." }, { status: 400 });
     }
 
     const { data, error } = await supabase
@@ -72,37 +100,31 @@ export async function GET(
       );
     }
 
-    // tenta montar o DRE a partir das colunas já salvas
-    const dreColunas = {
-      receitaTotal: num(data.receita_total),
-      custoProdutos: num(data.custo_produtos),
-      taxas: num(data.taxas),
-      logistica: num(data.logistica),
-      lucro: num(data.lucro),
-      margem: num(data.margem),
+    // DRE pelas colunas salvas
+    const dreColunas: DreResultado = {
+      receitaTotal: asNum(data.receita_total),
+      custoProdutos: asNum(data.custo_produtos),
+      taxas: asNum(data.taxas),
+      logistica: asNum(data.logistica),
+      lucro: asNum(data.lucro),
+      margem: asNum(data.margem),
     };
 
-    // se por algum motivo ficou tudo 0 (ou não existe), tenta recalcular do jsonb linhas
-    let dre = dreColunas;
+    const dados = parseDados(data.dados);
+    const linhas = Array.isArray(dados.linhas) ? dados.linhas : [];
 
-    const linhas = data.dados?.linhas;
-    const hasLinhas = Array.isArray(linhas) && linhas.length > 0;
-
+    // Se ficou tudo 0, tenta recalcular do jsonb linhas
     const dreTudoZero =
-      dre.receitaTotal === 0 &&
-      dre.custoProdutos === 0 &&
-      dre.taxas === 0 &&
-      dre.logistica === 0 &&
-      dre.lucro === 0 &&
-      dre.margem === 0;
+      dreColunas.receitaTotal === 0 &&
+      dreColunas.custoProdutos === 0 &&
+      dreColunas.taxas === 0 &&
+      dreColunas.logistica === 0 &&
+      dreColunas.lucro === 0 &&
+      dreColunas.margem === 0;
 
-    if (dreTudoZero && hasLinhas) {
-      // linhas precisam ter formato LinhaVenda: { data, produto, receita, custo, taxa, logistica }
-      dre = calcularDre(linhas);
-    }
+    const dre = dreTudoZero && linhas.length > 0 ? calcularDre(linhas) : dreColunas;
 
-    // meta/diagnóstico (salvos no upload-planilha)
-    const meta = data.dados?.meta ?? {};
+    const meta = isRecord(dados.meta) ? (dados.meta as Record<string, unknown>) : {};
 
     return NextResponse.json({
       id: data.id,
@@ -113,20 +135,23 @@ export async function GET(
 
       dre,
 
-      // diagnóstico / warnings (para sua UI)
-      avisos: Array.isArray(meta?.avisos) ? meta.avisos : [],
-      camposDetectados: meta?.camposDetectados ?? null,
-      camposIgnorados: meta?.camposIgnorados ?? null,
+      // ✅ Item 5 precisa disso:
+      linhas: linhas.length > 0 ? linhas : null,
 
-      sheetHeaders: meta?.sheetHeaders ?? null,
-      headersNormalizados: meta?.headersNormalizados ?? null,
+      // diagnóstico / warnings
+      avisos: Array.isArray(meta.avisos) ? meta.avisos : [],
+      camposDetectados: (meta.camposDetectados ?? null) as unknown,
+      camposIgnorados: (meta.camposIgnorados ?? null) as unknown,
 
-      totalLinhasBrutas: meta?.totalLinhasBrutas ?? null,
-      totalLinhasValidas: meta?.totalLinhasValidas ?? null,
-      headerIdx: meta?.headerIdx ?? null,
-      sheetName: meta?.sheetName ?? null,
+      sheetHeaders: (meta.sheetHeaders ?? null) as unknown,
+      headersNormalizados: (meta.headersNormalizados ?? null) as unknown,
+
+      totalLinhasBrutas: meta.totalLinhasBrutas ?? null,
+      totalLinhasValidas: meta.totalLinhasValidas ?? null,
+      headerIdx: meta.headerIdx ?? null,
+      sheetName: meta.sheetName ?? null,
     });
-  } catch (err) {
+  } catch (err: unknown) {
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "Erro desconhecido." },
       { status: 500 }

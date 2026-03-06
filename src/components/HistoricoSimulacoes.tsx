@@ -27,63 +27,64 @@ type Props = {
 
 export default function HistoricoSimulacoes({ simulacoes }: Props) {
   return (
-    <div className="bg-white rounded-xl shadow">
-      <div className="p-5 border-b flex items-center justify-between gap-3">
-        <div>
-          <h3 className="text-lg font-semibold">Histórico de Simulações (PRO)</h3>
-          <p className="text-sm text-gray-500">
-            Reabra uma simulação ou exporte PDF em 1 clique.
-          </p>
+    <div className="dash2-hist">
+      <div className="dash2-hist-head">
+        <div className="dash2-hist-copy">
+          <h3 className="dash2-h3">Histórico</h3>
+          <p className="dash2-muted">Reabra simulações e exporte PDF quando precisar.</p>
         </div>
 
-        <span className="text-xs text-gray-500">
-          {simulacoes.length} registro(s)
-        </span>
+        <span className="dash2-count">{simulacoes.length} registro(s)</span>
       </div>
 
-      <div className="divide-y">
-        {simulacoes.map((sim) => (
-          <div
-            key={sim.id}
-            className="p-5 flex flex-col md:flex-row md:items-center md:justify-between gap-4"
-          >
-            <div className="min-w-0">
-              <p className="font-medium truncate">{sim.nome}</p>
-              <p className="text-sm text-gray-500">
-                {new Date(sim.created_at).toLocaleString("pt-BR")}
-                {sim.arquivo_nome ? ` • ${sim.arquivo_nome}` : ""}
-              </p>
-            </div>
-
-            <div className="flex flex-wrap gap-3">
-              <Link
-                href={`/dashboard/dre?id=${sim.id}`}
-                className="px-4 py-2 text-sm rounded-lg border hover:bg-gray-50"
-              >
-                Ver DRE
-              </Link>
-
-              <button
-                type="button"
-                onClick={() =>
-                  gerarPdfDre({
-                    nome: sim.nome,
-                    receitaTotal: sim.receita_total,
-                    custoProdutos: sim.custo_produtos,
-                    taxas: sim.taxas,
-                    logistica: sim.logistica,
-                    lucro: sim.lucro,
-                    margem: sim.margem,
-                  })
-                }
-                className="px-4 py-2 text-sm rounded-lg bg-blue-600 text-white hover:bg-blue-700"
-              >
-                Exportar PDF
-              </button>
-            </div>
+      {simulacoes.length === 0 ? (
+        <div className="dash2-empty">
+          <div className="dash2-empty-title">Sem simulações ainda</div>
+          <div className="dash2-empty-sub">
+            Importe uma planilha para gerar seu primeiro DRE.
           </div>
-        ))}
-      </div>
+        </div>
+      ) : (
+        <div className="dash2-hist-list">
+          {simulacoes.map((sim) => (
+            <div key={sim.id} className="dash2-hist-row">
+              <div className="dash2-hist-left">
+                <div className="dash2-hist-title" title={sim.nome}>
+                  {sim.nome}
+                </div>
+                <div className="dash2-hist-meta">
+                  {new Date(sim.created_at).toLocaleString("pt-BR")}
+                  {sim.arquivo_nome ? ` • ${sim.arquivo_nome}` : ""}
+                </div>
+              </div>
+
+              <div className="dash2-hist-actions">
+                <Link href={`/dashboard/dre?id=${sim.id}`} className="btn btn-ghost">
+                  Ver DRE
+                </Link>
+
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  onClick={() =>
+                    gerarPdfDre({
+                      nome: sim.nome,
+                      receitaTotal: sim.receita_total,
+                      custoProdutos: sim.custo_produtos,
+                      taxas: sim.taxas,
+                      logistica: sim.logistica,
+                      lucro: sim.lucro,
+                      margem: sim.margem,
+                    })
+                  }
+                >
+                  Exportar PDF
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

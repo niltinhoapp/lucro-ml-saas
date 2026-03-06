@@ -1,30 +1,54 @@
 import { DreInsight } from "@/lib/dre/insights";
 
-const styles: Record<DreInsight["level"], string> = {
-  success: "border-green-200 bg-green-50 text-green-900",
-  warning: "border-yellow-200 bg-yellow-50 text-yellow-900",
-  danger: "border-red-200 bg-red-50 text-red-900",
-  info: "border-blue-200 bg-blue-50 text-blue-900",
+const toneClass: Record<DreInsight["level"], string> = {
+  success: "ins-card success",
+  warning: "ins-card warning",
+  danger: "ins-card danger",
+  info: "ins-card info",
 };
+
+function tagLabel(tag: DreInsight["action_tag"]) {
+  switch (tag) {
+    case "DADOS": return "Dados";
+    case "LUCRO": return "Lucro";
+    case "MARGEM": return "Margem";
+    case "CUSTO": return "Custo";
+    case "TAXA": return "Taxas";
+    case "LOGISTICA": return "Logística";
+    case "PRECO": return "Preço";
+    case "ACAO": return "Ação";
+    default: return "Insight";
+  }
+}
 
 export default function DreInsights({ insights }: { insights: DreInsight[] }) {
   if (!insights?.length) return null;
 
   return (
-    <section className="space-y-3">
-      <div className="insights-head">
-        <h2 className="text-lg font-semibold text-gray-800">
-          Insights automáticos
-        </h2>
-        <span className="text-xs text-gray-500">análise baseada no seu DRE</span>
+    <section className="ins">
+      <div className="ins-head">
+        <div>
+          <h2 className="ins-title">Insights automáticos</h2>
+          <div className="ins-sub">análise baseada no seu DRE</div>
+        </div>
       </div>
 
-      <div className="grid gap-3">
+      <div className="ins-grid">
         {insights.map((it, idx) => (
-          <div key={idx} className={`border rounded-xl p-4 ${styles[it.level]}`}>
-            <div className="font-semibold">{it.title}</div>
-            <div className="text-sm opacity-90 mt-1">{it.detail}</div>
-          </div>
+          <article key={idx} className={toneClass[it.level]}>
+            <div className="ins-top">
+              <span className={`ins-chip ${it.action_tag.toLowerCase?.() ?? ""}`}>
+                {tagLabel(it.action_tag)}
+              </span>
+
+              <span className={`ins-prio p${it.priority}`}>
+                P{it.priority}
+              </span>
+            </div>
+
+            <div className="ins-h">{it.title}</div>
+            <div className="ins-p">{it.detail}</div>
+          </article>
         ))}
       </div>
     </section>

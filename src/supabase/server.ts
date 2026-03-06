@@ -1,31 +1,32 @@
+// src/supabase/server.ts
 import { cookies } from "next/headers";
 import { createServerClient as createSSRClient } from "@supabase/ssr";
 
+function mustEnv(name: string) {
+  const v = process.env[name];
+  if (!v) throw new Error(`Missing env: ${name}`);
+  return v;
+}
+
 export async function createServerClient() {
-  // ✅ Next 16: cookies() pode ser Promise
   const cookieStore = await cookies();
 
   return createSSRClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    mustEnv("NEXT_PUBLIC_SUPABASE_URL"),
+    mustEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY"),
     {
       cookies: {
         getAll() {
-          // ✅ getAll pode não existir em alguns builds → fallback
-          const all = (cookieStore as any).getAll?.();
-          if (all) return all;
-
-          // fallback: monta no formato esperado pelo @supabase/ssr
-          const list = (cookieStore as any).get?.length ? [] : [];
-          // (na prática, quase sempre getAll existe após await cookies())
-          return list as any;
+          return cookieStore.getAll();
         },
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) => {
-            (cookieStore as any).set(name, value, options);
-          });
+          for (const { name, value, options } of cookiesToSet) {
+            cookieStore.set(name, value, options);
+          }
         },
       },
     }
   );
 }
+
+export const supabaseServer = createServerClient;

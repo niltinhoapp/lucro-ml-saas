@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import UploadPlanilha, { type UploadResult } from "@/components/UploadPlanilha";
+import UploadPlanilha, { type UploadResult } from "@/features/upload/components/UploadPlanilha";
 import HistoricoSimulacoes, { type Simulacao } from "@/components/HistoricoSimulacoes";
 
 export default function DashboardHomeClient({
@@ -12,79 +12,97 @@ export default function DashboardHomeClient({
   const [lastUpload, setLastUpload] = useState<UploadResult | null>(null);
 
   return (
-    <div className="space-y-10">
-      {/* HEADER */}
-      <div>
-        <h1 className="text-3xl font-bold text-gray-800">
-          Lucro ML — Inteligência de Margem
-        </h1>
-        <p className="text-gray-600 mt-2">
-          DRE automático, comparação FULL vs FLEX e decisões baseadas em dados reais do Mercado Livre.
-        </p>
-      </div>
+    <div className="dash2">
+      <header className="dash2-head">
+        <div className="dash2-head-copy">
+          <div className="dash2-head-glow" aria-hidden />
 
-      {/* CARDS DE VALOR */}
-      <div className="grid md:grid-cols-3 gap-4">
-        <ValueCard
-          title="📊 DRE Automático"
-          desc="Receita, custos, taxas, lucro e margem calculados automaticamente."
-        />
-        <ValueCard
-          title="🚚 Full vs Flex"
-          desc="Compare cenários logísticos e descubra o mais lucrativo."
-        />
-        <ValueCard
-          title="📈 Histórico & PDF"
-          desc="Salve simulações, reabra no DRE e exporte relatórios profissionais."
-        />
-      </div>
+          <div className="dash2-kicker">Painel</div>
 
-      {/* UPLOAD */}
-      <div className="bg-white rounded-xl shadow p-6">
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <h2 className="text-xl font-semibold mb-1">
-              Importar planilha do Mercado Livre
-            </h2>
-            <p className="text-gray-500">
-              Envie CSV ou Excel (.xlsx). Recurso exclusivo do plano <strong>PRO</strong>.
-            </p>
-          </div>
+          <h1 className="dash2-title">
+            Lucro ML — Inteligência de Margem
+          </h1>
 
-          {lastUpload?.id ? (
-            <span className="text-xs px-3 py-1 rounded-full bg-green-50 text-green-700 border border-green-200">
-              ✅ Upload salvo
-            </span>
-          ) : (
-            <span className="text-xs px-3 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-200">
-              ⚡ Upload PRO
-            </span>
-          )}
+          <p className="dash2-subtitle">
+            DRE automático, comparação FULL vs FLEX e decisões baseadas em dados do
+            Mercado Livre.
+          </p>
         </div>
 
-        <div className="mt-4">
-          <UploadPlanilha onResult={(data) => setLastUpload(data)} />
+        <div className="dash2-head-right">
+          <span className={`dash2-status ${lastUpload?.id ? "ok" : ""}`}>
+            <span className="dash2-dot" aria-hidden />
+            {lastUpload?.id ? "Upload salvo" : "Pronto para importar"}
+          </span>
+        </div>
+      </header>
+
+      <section className="dash2-surface">
+        <div className="dash2-strip" role="list">
+          <StripItem
+            title="DRE automático"
+            desc="Receita, custos, taxas, lucro e margem."
+          />
+          <StripItem
+            title="Full vs Flex"
+            desc="Compare cenários logísticos por unidade."
+          />
+          <StripItem
+            title="Histórico & PDF"
+            desc="Reabrir relatórios e exportar (PRO)."
+          />
         </div>
 
-        {lastUpload?.message && (
-          <div className="mt-4 text-sm text-blue-700 bg-blue-50 border border-blue-200 rounded-lg p-3">
-            {lastUpload.message}
+        <div className="dash2-section">
+          <div className="dash2-section-head">
+            <div>
+              <h2 className="dash2-h2">Importar planilha</h2>
+              <p className="dash2-muted">
+                Envie CSV ou Excel (.xlsx). Resultado em segundos.
+              </p>
+            </div>
+
+            <span className={`dash2-pill ${lastUpload?.id ? "good" : "info"}`}>
+              {lastUpload?.id ? "✅ salvo" : "⚡ pro"}
+            </span>
           </div>
-        )}
-      </div>
 
-      {/* HISTÓRICO */}
-     <HistoricoSimulacoes simulacoes={simulacoes} />
+          <div className="dash2-upload">
+            <UploadPlanilha onResult={(data) => setLastUpload(data)} />
+          </div>
 
+          {lastUpload?.message ? (
+            <div className="dash2-note">
+              <span className="dash2-note-label">Status</span>
+              <span className="dash2-note-text">{lastUpload.message}</span>
+            </div>
+          ) : null}
+        </div>
+
+        <div className="dash2-divider" />
+
+        <div className="dash2-section">
+          <div className="dash2-section-head">
+            <div>
+              <h2 className="dash2-h2">Histórico</h2>
+              <p className="dash2-muted">Últimos relatórios salvos.</p>
+            </div>
+          </div>
+
+          <div className="dash2-history">
+            <HistoricoSimulacoes simulacoes={simulacoes} />
+          </div>
+        </div>
+      </section>
     </div>
   );
 }
 
-function ValueCard({ title, desc }: { title: string; desc: string }) {
+function StripItem({ title, desc }: { title: string; desc: string }) {
   return (
-    <div className="bg-white p-4 rounded-xl shadow">
-      <h3 className="font-semibold">{title}</h3>
-      <p className="text-gray-500 text-sm mt-1">{desc}</p>
+    <div className="dash2-strip-item" role="listitem">
+      <div className="dash2-strip-title">{title}</div>
+      <div className="dash2-strip-desc">{desc}</div>
     </div>
   );
 }

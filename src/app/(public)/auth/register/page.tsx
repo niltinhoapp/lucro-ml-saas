@@ -1,44 +1,130 @@
-"use client";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { registerAction } from "./actions";
 
-export default function RegisterPage() {
-  const router = useRouter();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+type Props = {
+  searchParams?: Promise<{ next?: string; error?: string; check?: string }>;
+};
 
-  const handleRegister = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (email && password) {
-      alert("Cadastro realizado com sucesso!");
-      router.push("/dashboard");
-    } else {
-      alert("Preencha todos os campos");
-    }
-  };
+function safeNext(next?: string) {
+  if (!next) return "/dashboard";
+  if (!next.startsWith("/")) return "/dashboard";
+  if (next.startsWith("//")) return "/dashboard";
+  return next;
+}
+
+export default async function Page(props: Props) {
+  const sp = (await props.searchParams) ?? {};
+  const next = safeNext(sp.next);
+  const error = sp.error ? decodeURIComponent(sp.error) : null;
+  const check = sp.check === "1";
 
   return (
-    <div className="flex flex-col items-center justify-center h-screen bg-gray-50">
-      <h1 className="text-3xl font-bold mb-6">Cadastrar</h1>
-      <form className="flex flex-col gap-4 w-80" onSubmit={handleRegister}>
-        <input
-          type="email"
-          placeholder="Email"
-          className="p-3 border rounded"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
-        <input
-          type="password"
-          placeholder="Senha"
-          className="p-3 border rounded"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
-        <button className="p-3 bg-green-600 text-white rounded hover:bg-green-700">
-          Cadastrar
-        </button>
-      </form>
-    </div>
+    <main className="auth-shell">
+      <div className="auth-wrap">
+        <section className="auth-panel">
+          <div className="auth-eyebrow">Lucro ML • Cadastro</div>
+
+          <h1 className="auth-title">Crie sua base para vender com lucro.</h1>
+
+          <p className="auth-subtitle">
+            Estruture seu painel, acompanhe relatórios e tenha um ponto único para analisar
+            margem, histórico e decisões financeiras do seu negócio.
+          </p>
+
+          <div className="auth-grid">
+            <div className="auth-stat">
+              <div className="auth-stat-value">Setup rápido</div>
+              <div className="auth-stat-label">Conta pronta em poucos segundos</div>
+            </div>
+
+            <div className="auth-stat">
+              <div className="auth-stat-value">Mais controle</div>
+              <div className="auth-stat-label">Indicadores financeiros em um só lugar</div>
+            </div>
+
+            <div className="auth-stat">
+              <div className="auth-stat-value">Sem planilhas soltas</div>
+              <div className="auth-stat-label">Histórico salvo e fácil de revisar</div>
+            </div>
+
+            <div className="auth-stat">
+              <div className="auth-stat-value">Escalável</div>
+              <div className="auth-stat-label">Base pronta para novas features do SaaS</div>
+            </div>
+          </div>
+        </section>
+
+        <section className="auth-card">
+          <div className="auth-card-head">
+            <span className="badge pro">Criar conta</span>
+            <h2 className="auth-card-title">Abra seu acesso</h2>
+            <p className="auth-card-subtitle">
+              Cadastre-se para usar o painel e ativar seu fluxo financeiro.
+            </p>
+          </div>
+
+          {check ? (
+            <div className="alert success">
+              Conta criada. Confirme o e-mail enviado para sua caixa de entrada e depois volte para entrar.
+            </div>
+          ) : null}
+
+          {error ? (
+            <div className={`alert danger ${check ? "auth-alert-gap" : ""}`}>
+              {error}
+            </div>
+          ) : null}
+
+          <form
+            action={registerAction}
+            className={`auth-form ${check || error ? "has-error" : ""}`}
+          >
+            <input type="hidden" name="next" value={next} />
+
+            <div>
+              <label className="auth-label">E-mail</label>
+              <input
+                className="auth-input"
+                name="email"
+                type="email"
+                required
+                placeholder="voce@empresa.com"
+              />
+            </div>
+
+            <div>
+              <label className="auth-label">Senha</label>
+              <input
+                className="auth-input"
+                name="password"
+                type="password"
+                required
+                placeholder="Crie uma senha"
+              />
+              <div className="auth-help">
+                Recomendado: mínimo de 8 caracteres.
+              </div>
+            </div>
+
+            <div className="auth-actions">
+              <button className="btn-primary" type="submit">
+                Criar conta
+              </button>
+
+              <Link className="btn-ghost" href={`/auth/login?next=${encodeURIComponent(next)}`}>
+                Já tenho acesso
+              </Link>
+            </div>
+          </form>
+
+          <div className="auth-footer">
+            Já tem conta?{" "}
+            <Link href={`/auth/login?next=${encodeURIComponent(next)}`}>
+              Entrar
+            </Link>
+          </div>
+        </section>
+      </div>
+    </main>
   );
 }

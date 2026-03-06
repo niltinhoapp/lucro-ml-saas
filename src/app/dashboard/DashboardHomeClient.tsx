@@ -1,8 +1,8 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import UploadPlanilha from "@/components/UploadPlanilha";
-import type { UploadResult } from "@/components/UploadPlanilha";
+import UploadPlanilha from "@/features/upload/components/UploadPlanilha";
+import type { UploadResult } from "@/features/upload/components/UploadPlanilha";
 
 import HistoricoSimulacoes, { type Simulacao } from "@/components/HistoricoSimulacoes";
 

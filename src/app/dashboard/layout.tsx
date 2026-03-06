@@ -11,46 +11,39 @@ const menu = [
   { label: "💰 Fluxo de Caixa", href: "/dashboard/fluxo-caixa" },
   { label: "🚚 Full vs Flex", href: "/dashboard/full-vs-flex" },
   { label: "🕒 Histórico", href: "/dashboard/historico" },
+  { label: "💳 Assinar PRO", href: "/checkout" },
 ];
 
+
+
+
 function isActive(pathname: string, href: string) {
-  // Home do site só ativa quando for exatamente "/"
   if (href === "/") return pathname === "/";
-
-  // Painel só ativa quando for exatamente "/dashboard"
   if (href === "/dashboard") return pathname === "/dashboard";
-
-  // Para rotas do dashboard: ativa também em subrotas
-  return pathname === href || pathname.startsWith(href + "/") || pathname.startsWith(href + "?") || pathname.startsWith(href);
+  return pathname === href || pathname.startsWith(href + "/");
 }
 
-export default function DashboardLayout({ children }: { children: ReactNode }) {
+export default function DashboardLayout({
+  children,
+}: {
+  children: ReactNode;
+}) {
   const pathname = usePathname();
 
   return (
     <div className="app-layout">
-      {/* SIDEBAR */}
-      <aside className="sidebar">
-        <div style={{ marginBottom: "1.25rem" }}>
-          <h1>Lucro ML</h1>
+      <aside className="sidebar sidebar-pro">
+        <div className="sidebar-head">
+          <h1 className="sidebar-logo">Lucro ML</h1>
 
-          <div style={{ display: "flex", justifyContent: "center" }}>
+          <div className="sidebar-badge-row">
             <span className="badge pro">⚡ PRO</span>
           </div>
 
-          <p
-            style={{
-              textAlign: "center",
-              marginTop: "0.75rem",
-              color: "rgba(229,231,235,0.75)",
-              fontSize: "0.85rem",
-            }}
-          >
-            Inteligência de margem
-          </p>
+          <p className="sidebar-tagline">Inteligência de margem</p>
         </div>
 
-        <nav>
+        <nav className="sidebar-nav">
           {menu.map((item) => {
             const active = isActive(pathname, item.href);
 
@@ -58,7 +51,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
               <Link
                 key={item.href}
                 href={item.href}
-                className={active ? "active" : ""}
+                className={active ? "active" : undefined}
               >
                 {item.label}
               </Link>
@@ -66,23 +59,13 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
           })}
         </nav>
 
-        <div
-          style={{
-            marginTop: "auto",
-            paddingTop: "1rem",
-            borderTop: "1px solid rgba(255,255,255,0.12)",
-            color: "rgba(229,231,235,0.75)",
-            fontSize: "0.8rem",
-            textAlign: "center",
-          }}
-        >
+        <div className="sidebar-footer">
           © {new Date().getFullYear()} Lucro ML
         </div>
       </aside>
 
-      {/* CONTEÚDO */}
       <main className="main">
-        <div className="page">{children}</div>
+        <div className="page dashboard-page">{children}</div>
       </main>
     </div>
   );

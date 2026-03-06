@@ -4,13 +4,24 @@ import ThemeToggle from "../../ThemeToggle";
 
 export default function PublicLayout({ children }: { children: ReactNode }) {
   return (
-    <div className="page-wrap">
-      <header style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center" }}>
-        <div style={{ fontWeight: 950, letterSpacing: "-0.02em" }}>
-          <Link href="/" style={{ color: "rgba(255,255,255,.95)" }}>
+    <div className="page-wrap" style={{ minHeight: "100vh", padding: "18px" }}>
+      <header
+        style={{
+          maxWidth: "1180px",
+          width: "100%",
+          margin: "0 auto",
+          display: "flex",
+          justifyContent: "space-between",
+          gap: 12,
+          alignItems: "center",
+          flexWrap: "wrap",
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <Link href="/auth/login" style={{ fontWeight: 900, letterSpacing: "-0.03em" }}>
             LUCRO ML
-          </Link>{" "}
-          <span style={{ color: "rgba(229,231,235,.60)" }}>• PRO</span>
+          </Link>
+          <span className="badge pro">PRO</span>
         </div>
 
         <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
@@ -18,7 +29,7 @@ export default function PublicLayout({ children }: { children: ReactNode }) {
           <Link className="btn btn-ghost" href="/demo">
             Demo
           </Link>
-          <Link className="btn btn-primary" href="/dashboard">
+          <Link className="btn btn-primary" href="/auth/login">
             Entrar
           </Link>
         </div>

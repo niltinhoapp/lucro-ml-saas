@@ -16,37 +16,31 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="page-wrap">
-      {/* Topbar compacto (sem textão) */}
-      <section className="topbar">
-        <div>
+    <div className="page-wrap dash-upload-page">
+      {/* Topbar */}
+      <section className="topbar dash-upload-topbar">
+        <div className="dash-upload-left">
           <span className="badge pro">📊 DRE</span>
-          <h2 style={{ marginTop: 10 }}>DRE Automático</h2>
-          <p className="subtitle">
-            Envie a planilha e abra o relatório.
-          </p>
 
-          {/* chips (substitui cards explicativos) */}
-          <div style={{ marginTop: 10, display: "flex", gap: 8, flexWrap: "wrap" }}>
+          <h2 className="dash-upload-title">DRE Automático</h2>
+          <p className="subtitle">Envie a planilha e abra o relatório.</p>
+
+          <div className="dash-upload-chips">
             <span className="pill">.xlsx</span>
             <span className="pill">.csv</span>
             <span className="pill good">Auto</span>
           </div>
         </div>
 
-        <div className="actions">
-          <button className="btn btn-ghost" onClick={() => router.push("/")}>
-            🏠 Home
-          </button>
-          <button className="btn-dark" onClick={() => router.push("/dashboard/historico")}>
-            Histórico
-          </button>
+        <div className="actions dash-upload-actions">
+          <button className="btn btn-ghost" onClick={() => router.push("/")}>🏠 Home</button>
+          <button className="btn" onClick={() => router.push("/dashboard/historico")}>Histórico</button>
         </div>
       </section>
 
-      {/* AÇÃO PRINCIPAL PRIMEIRO (sem rolar) */}
-      <section className="card">
-        <div className="card-head">
+      {/* Ação principal */}
+      <section className="card dash-upload-card">
+        <div className="card-head dash-upload-card-head">
           <div>
             <h2>Importar planilha</h2>
             <p>Escolha o arquivo e pronto.</p>
@@ -58,26 +52,23 @@ export default function DashboardPage() {
         </div>
 
         <div className="card-body">
-          <div className="drop">
-            <div className="drop-top">
-              <div className="drop-left">
-                <div className="drop-title">Planilha do Mercado Livre</div>
-                <div className="drop-file">Suporta .xlsx e .csv</div>
-                <div className="drop-hint hint-idle">Após enviar, o DRE abre automaticamente.</div>
+          <div className="drop dash-upload-drop">
+            <div className="dash-drop-top">
+              <div className="dash-drop-left">
+                <div className="dash-drop-title">Planilha do Mercado Livre</div>
+                <div className="dash-drop-file">Suporta .xlsx e .csv</div>
+                <div className="dash-drop-hint">Após enviar, o DRE abre automaticamente.</div>
               </div>
-
-              <div className="drop-actions" />
             </div>
 
-            <div style={{ marginTop: 12 }}>
+            <div className="dash-drop-uploader">
               <UploadPlanilha onResult={handleResult} />
             </div>
           </div>
 
-          {/* Ajuda colapsada (não polui tela pequena) */}
-          <details style={{ marginTop: 12 }}>
+          <details className="dash-upload-details">
             <summary>Como funciona</summary>
-            <pre>
+            <pre className="dash-upload-pre">
 - Faz upload da planilha
 - Normaliza colunas reconhecidas
 - Gera DRE + margem + alertas
@@ -87,7 +78,7 @@ export default function DashboardPage() {
         </div>
       </section>
 
-      <div className="small" style={{ textAlign: "center" }}>
+      <div className="small dash-upload-footer">
         © {new Date().getFullYear()} Lucro ML • PRO
       </div>
     </div>

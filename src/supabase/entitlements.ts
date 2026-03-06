@@ -1,22 +1,32 @@
+import { SupabaseClient } from "@supabase/supabase-js";
+
 type Entitlements = {
   isPro: boolean;
   trialActive: boolean;
   trialExpired: boolean;
-  canUseApp: boolean;       // pode ficar no dashboard
-  canCreateReports: boolean; // limitado no free
-  canExport: boolean;       // PRO somente
-  maxReports: number;
+
+  canUseApp: boolean;        // pode acessar dashboard
+  canCreateReports: boolean; // pode criar relatório (limitado no free)
+  canExport: boolean;        // exportar PDF (PRO)
+
+  maxReports: number;        // limite de relatórios
 };
 
-export async function getEntitlements(supabase: any, userId: string): Promise<Entitlements> {
+export async function getEntitlements(
+  supabase: SupabaseClient,
+  userId: string
+): Promise<Entitlements> {
   const { data, error } = await supabase
     .from("profiles")
     .select("plan, trial_ends_at, pro_until")
     .eq("id", userId)
-    .single();
+    .single<{
+      plan: string | null;
+      trial_ends_at: string | null;
+      pro_until: string | null;
+    }>();
 
   if (error || !data) {
-    // se der ruim, bloqueia por segurança
     return {
       isPro: false,
       trialActive: false,
@@ -29,8 +39,12 @@ export async function getEntitlements(supabase: any, userId: string): Promise<En
   }
 
   const now = Date.now();
-  const trialEnds = new Date(data.trial_ends_at).getTime();
-  const trialActive = now <= trialEnds;
+
+  const trialEnds = data.trial_ends_at
+    ? new Date(data.trial_ends_at).getTime()
+    : 0;
+
+  const trialActive = trialEnds > now;
 
   const isPro =
     data.plan === "pro" ||
@@ -38,18 +52,19 @@ export async function getEntitlements(supabase: any, userId: string): Promise<En
 
   const trialExpired = !trialActive;
 
-  // ✅ Regra do seu SaaS:
-  // - Pode usar app se Pro OU trial ativo
-  // - Após expirar: loga, mas app "bloqueado" (manda pro checkout)
+  // Regras do SaaS
   const canUseApp = isPro || trialActive;
+  const canCreateReports = isPro || trialActive;
+  const canExport = isPro;
+  const maxReports = isPro ? 999999 : 2;
 
   return {
     isPro,
     trialActive,
     trialExpired,
     canUseApp,
-    canCreateReports: isPro || trialActive, // mas vamos limitar quantidade no free
-    canExport: isPro,
-    maxReports: isPro ? 999999 : 3,
+    canCreateReports,
+    canExport,
+    maxReports,
   };
 }
