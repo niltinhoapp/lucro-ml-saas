@@ -11,7 +11,7 @@ function getEnv(name: string) {
   return v;
 }
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const response = NextResponse.next();
 
   const supabase = createServerClient(
@@ -33,7 +33,6 @@ export async function middleware(request: NextRequest) {
 
   const { data } = await supabase.auth.getUser();
 
-  // Sem sessão => manda pro login com "next"
   if (!data?.user) {
     const url = request.nextUrl.clone();
     url.pathname = "/auth/login";

@@ -72,7 +72,7 @@ export default async function CatalogosPage() {
         </div>
       </section>
 
-      <CatalogoAnalyzerClient plan={ent?.plan ?? "free"} />
+      <CatalogoAnalyzerClient  />
 
       <section className="card card-premium">
         <div className="card-head">

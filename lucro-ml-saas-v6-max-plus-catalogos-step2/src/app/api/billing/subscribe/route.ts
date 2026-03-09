@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { supabaseServer } from "@/lib/supabase/server";
-import { createSubscriptionLink } from "@/services/mercadopago";
+import { mpCreateSubscription } from "@/services/mercadopago";
 
 export const runtime = "nodejs";
 
@@ -31,7 +31,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "E-mail do pagador não encontrado." }, { status: 400 });
     }
 
-    const data = await createSubscriptionLink({
+    const data = await mpCreateSubscription({
       payerEmail: email,
       userId: user.id,
       plan,
