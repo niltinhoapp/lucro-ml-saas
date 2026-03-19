@@ -1,0 +1,37 @@
+@layer components {
+  .table-wrapper,
+  .market-table-wrap {
+    overflow-x: auto;
+  }
+
+  table,
+  .market-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+  }
+
+  th,
+  td,
+  .market-table th,
+  .market-table td {
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+    text-align: left;
+  }
+
+  th,
+  .market-table th {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    background: var(--surface-soft);
+  }
+
+  tr:hover td {
+    background: rgba(52, 152, 219, 0.04);
+  }
+}

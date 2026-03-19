@@ -1,0 +1,31 @@
+@keyframes float-soft {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-2px); }
+}
+
+@keyframes pulse-soft {
+  0%, 100% { opacity: 0.9; }
+  50% { opacity: 1; }
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+@keyframes shine-sweep {
+  0% { left: -65%; opacity: 0; }
+  10% { opacity: 1; }
+  55% { left: 125%; opacity: 1; }
+  100% { left: 125%; opacity: 0; }
+}
+
+@keyframes glow-soft {
+  0%, 100% { filter: brightness(1); }
+  50% { filter: brightness(1.08); }
+}
+
+@keyframes loading-soft {
+  0%, 100% { opacity: 0.65; }
+  50% { opacity: 1; }
+}

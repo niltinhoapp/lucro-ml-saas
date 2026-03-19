@@ -1,0 +1,51 @@
+@layer components {
+  .field,
+  .auth-input,
+  .input,
+  .ui-input,
+  .market-input {
+    width: 100%;
+    min-height: 46px;
+    padding: 12px 14px;
+    border-radius: 14px;
+    border: 1px solid var(--border-strong);
+    background: var(--surface-soft);
+    color: var(--text);
+    transition: border-color .2s ease, box-shadow .2s ease, background-color .2s ease;
+  }
+
+  .field:hover,
+  .auth-input:hover,
+  .input:hover,
+  .ui-input:hover,
+  .market-input:hover {
+    border-color: rgba(52, 152, 219, 0.18);
+  }
+
+  .field:focus,
+  .auth-input:focus,
+  .input:focus,
+  .ui-input:focus {
+    outline: none;
+    box-shadow: var(--ring);
+  }
+
+  .label,
+  .auth-label,
+  .ui-label,
+  .market-label,
+  .market-kpi-label {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .help,
+  .auth-help,
+  .ui-hint {
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+}
