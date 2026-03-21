@@ -2,22 +2,32 @@
 
 import { useState } from "react";
 
-type AiPdfProduct = {
+type EnrichedPdfProduct = {
   title: string;
   estimatedCost: number | null;
   possibleSku: string | null;
   categoryHint: string | null;
   opportunityLevel: "baixa" | "media" | "alta";
   notes: string[];
+
+  mlAveragePrice: number | null;
+  mlDemandScore: number;
+  mlCompetitionScore: number;
+  marginPercent: number | null;
+  finalScore: number;
+  risk: "baixo" | "moderado" | "alto";
+  mlSampleSize: number;
+  mlTopTitles: string[];
 };
 
-type PdfAiResponse = {
+type PdfAiMlResponse = {
   ok: boolean;
-  source: "pdf_catalog_ai";
+  source: "pdf_catalog_ai_ml";
   fileName: string;
-  itemsFound: number;
+  readingQuality: "baixa" | "media" | "alta";
   summary: string;
-  recommendedProducts: AiPdfProduct[];
+  itemsFound: number;
+  products: EnrichedPdfProduct[];
   error?: string;
   details?: string;
 };
@@ -30,7 +40,12 @@ function brl(value: number | null) {
   });
 }
 
-function badgeClass(level: "baixa" | "media" | "alta") {
+function percent(value: number | null) {
+  if (value == null || !Number.isFinite(value)) return "—";
+  return `${value.toFixed(1)}%`;
+}
+
+function qualityBadge(level: "baixa" | "media" | "alta") {
   switch (level) {
     case "alta":
       return "bg-emerald-500/15 text-emerald-300 ring-1 ring-emerald-500/30";
@@ -43,10 +58,41 @@ function badgeClass(level: "baixa" | "media" | "alta") {
   }
 }
 
+function riskBadge(risk: "baixo" | "moderado" | "alto") {
+  switch (risk) {
+    case "baixo":
+      return "bg-emerald-500/15 text-emerald-300 ring-1 ring-emerald-500/30";
+    case "moderado":
+      return "bg-amber-500/15 text-amber-300 ring-1 ring-amber-500/30";
+    case "alto":
+      return "bg-rose-500/15 text-rose-300 ring-1 ring-rose-500/30";
+    default:
+      return "bg-white/10 text-white ring-1 ring-white/10";
+  }
+}
+
+function scoreBarClass(score: number) {
+  if (score >= 70) return "bg-emerald-500";
+  if (score >= 45) return "bg-amber-500";
+  return "bg-rose-500";
+}
+
+function demandLabel(score: number) {
+  if (score >= 75) return "alta";
+  if (score >= 45) return "média";
+  return "baixa";
+}
+
+function competitionLabel(score: number) {
+  if (score >= 70) return "baixa";
+  if (score >= 40) return "média";
+  return "alta";
+}
+
 export default function RadarPdfUpload() {
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
-  const [data, setData] = useState<PdfAiResponse | null>(null);
+  const [data, setData] = useState<PdfAiMlResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   async function handleSubmit(e: React.FormEvent) {
@@ -70,7 +116,7 @@ export default function RadarPdfUpload() {
         body: form,
       });
 
-      const json = (await res.json()) as PdfAiResponse;
+      const json = (await res.json()) as PdfAiMlResponse;
 
       if (!res.ok || !json.ok) {
         throw new Error(json.error || "Falha ao analisar o PDF.");
@@ -95,8 +141,8 @@ export default function RadarPdfUpload() {
             Analisar catálogo em PDF com IA
           </h2>
           <p className="mt-1 text-sm text-zinc-400">
-            Envie um catálogo e a IA lê o PDF para destacar os produtos com mais
-            potencial inicial.
+            A IA lê o catálogo, extrai os produtos e cruza com o Mercado Livre
+            para estimar preço, margem e potencial de revenda.
           </p>
         </div>
 
@@ -127,15 +173,27 @@ export default function RadarPdfUpload() {
       {data ? (
         <>
           <div className="p-5 border shadow-2xl rounded-3xl border-white/10 bg-zinc-950">
-            <p className="text-xs uppercase tracking-[0.2em] text-zinc-500">
-              Resumo da IA
-            </p>
-            <h3 className="mt-2 text-2xl font-semibold text-white">
-              {data.fileName}
-            </h3>
-            <p className="mt-3 text-sm text-zinc-300">{data.summary}</p>
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <p className="text-xs uppercase tracking-[0.2em] text-zinc-500">
+                  Resumo da IA
+                </p>
+                <h3 className="mt-2 text-2xl font-semibold text-white">
+                  {data.fileName}
+                </h3>
+                <p className="mt-3 text-sm text-zinc-300">{data.summary}</p>
+              </div>
 
-            <div className="grid gap-3 mt-4 md:grid-cols-2">
+              <span
+                className={`rounded-full px-3 py-1 text-xs font-semibold capitalize ${qualityBadge(
+                  data.readingQuality
+                )}`}
+              >
+                leitura {data.readingQuality}
+              </span>
+            </div>
+
+            <div className="grid gap-3 mt-4 md:grid-cols-4">
               <div className="p-4 border rounded-2xl border-white/10 bg-zinc-900">
                 <p className="text-xs text-zinc-500">Produtos encontrados</p>
                 <p className="mt-1 text-lg font-semibold text-white">
@@ -144,9 +202,26 @@ export default function RadarPdfUpload() {
               </div>
 
               <div className="p-4 border rounded-2xl border-white/10 bg-zinc-900">
-                <p className="text-xs text-zinc-500">Fonte</p>
+                <p className="text-xs text-zinc-500">Leitura</p>
+                <p className="mt-1 text-lg font-semibold text-white capitalize">
+                  {data.readingQuality}
+                </p>
+              </div>
+
+              <div className="p-4 border rounded-2xl border-white/10 bg-zinc-900">
+                <p className="text-xs text-zinc-500">Com preço ML</p>
                 <p className="mt-1 text-lg font-semibold text-white">
-                  Leitura por IA
+                  {
+                    data.products.filter((item) => item.mlAveragePrice !== null)
+                      .length
+                  }
+                </p>
+              </div>
+
+              <div className="p-4 border rounded-2xl border-white/10 bg-zinc-900">
+                <p className="text-xs text-zinc-500">Bom score (70+)</p>
+                <p className="mt-1 text-lg font-semibold text-white">
+                  {data.products.filter((item) => item.finalScore >= 70).length}
                 </p>
               </div>
             </div>
@@ -155,15 +230,15 @@ export default function RadarPdfUpload() {
           <div className="space-y-4">
             <div>
               <h3 className="text-lg font-semibold text-white">
-                Produtos recomendados
+                Produtos identificados
               </h3>
               <p className="mt-1 text-sm text-zinc-400">
-                Itens que a IA conseguiu identificar no PDF.
+                Itens lidos pela IA e enriquecidos com sinais do Mercado Livre.
               </p>
             </div>
 
             <div className="grid gap-4 xl:grid-cols-2">
-              {data.recommendedProducts.map((item, index) => (
+              {data.products.map((item, index) => (
                 <article
                   key={`${item.title}-${index}`}
                   className="p-5 border shadow-xl rounded-3xl border-white/10 bg-zinc-950"
@@ -179,19 +254,33 @@ export default function RadarPdfUpload() {
                     </div>
 
                     <span
-                      className={`rounded-full px-3 py-1 text-xs font-semibold capitalize ${badgeClass(
-                        item.opportunityLevel
+                      className={`rounded-full px-3 py-1 text-xs font-semibold capitalize ${riskBadge(
+                        item.risk
                       )}`}
                     >
-                      {item.opportunityLevel}
+                      {item.risk}
                     </span>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-3 mt-4">
+                  <div className="grid grid-cols-2 gap-3 mt-4 md:grid-cols-4">
                     <div className="p-3 border rounded-2xl border-white/10 bg-zinc-900">
-                      <p className="text-[11px] text-zinc-500">Custo estimado</p>
+                      <p className="text-[11px] text-zinc-500">Custo</p>
                       <p className="mt-1 text-sm font-semibold text-white">
                         {brl(item.estimatedCost)}
+                      </p>
+                    </div>
+
+                    <div className="p-3 border rounded-2xl border-white/10 bg-zinc-900">
+                      <p className="text-[11px] text-zinc-500">Preço ML</p>
+                      <p className="mt-1 text-sm font-semibold text-white">
+                        {brl(item.mlAveragePrice)}
+                      </p>
+                    </div>
+
+                    <div className="p-3 border rounded-2xl border-white/10 bg-zinc-900">
+                      <p className="text-[11px] text-zinc-500">Margem</p>
+                      <p className="mt-1 text-sm font-semibold text-white">
+                        {percent(item.marginPercent)}
                       </p>
                     </div>
 
@@ -200,6 +289,52 @@ export default function RadarPdfUpload() {
                       <p className="mt-1 text-sm font-semibold text-white">
                         {item.possibleSku || "—"}
                       </p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3 mt-4 md:grid-cols-4">
+                    <div className="p-3 border rounded-2xl border-white/10 bg-zinc-900">
+                      <p className="text-[11px] text-zinc-500">Demanda</p>
+                      <p className="mt-1 text-sm font-semibold text-white capitalize">
+                        {demandLabel(item.mlDemandScore)} ({item.mlDemandScore})
+                      </p>
+                    </div>
+
+                    <div className="p-3 border rounded-2xl border-white/10 bg-zinc-900">
+                      <p className="text-[11px] text-zinc-500">Concorrência</p>
+                      <p className="mt-1 text-sm font-semibold text-white capitalize">
+                        {competitionLabel(item.mlCompetitionScore)} ({item.mlCompetitionScore})
+                      </p>
+                    </div>
+
+                    <div className="p-3 border rounded-2xl border-white/10 bg-zinc-900">
+                      <p className="text-[11px] text-zinc-500">Pontuação</p>
+                      <p className="mt-1 text-sm font-semibold text-white">
+                        {item.finalScore}
+                      </p>
+                    </div>
+
+                    <div className="p-3 border rounded-2xl border-white/10 bg-zinc-900">
+                      <p className="text-[11px] text-zinc-500">Amostra ML</p>
+                      <p className="mt-1 text-sm font-semibold text-white">
+                        {item.mlSampleSize}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="mt-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-sm text-zinc-400">Score final</p>
+                      <p className="text-sm font-semibold text-white">
+                        {item.finalScore}/100
+                      </p>
+                    </div>
+
+                    <div className="w-full h-2 overflow-hidden rounded-full bg-white/10">
+                      <div
+                        className={`h-full ${scoreBarClass(item.finalScore)}`}
+                        style={{ width: `${item.finalScore}%` }}
+                      />
                     </div>
                   </div>
 
@@ -215,6 +350,19 @@ export default function RadarPdfUpload() {
                       )}
                     </ul>
                   </div>
+
+                  {item.mlTopTitles?.length ? (
+                    <div className="p-4 mt-4 border rounded-2xl border-white/10 bg-zinc-900">
+                      <p className="text-sm font-semibold text-white">
+                        Referências encontradas no ML
+                      </p>
+                      <ul className="mt-3 space-y-2 text-sm text-zinc-300">
+                        {item.mlTopTitles.map((title, idx) => (
+                          <li key={`${title}-${idx}`}>• {title}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  ) : null}
                 </article>
               ))}
             </div>

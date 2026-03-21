@@ -1,143 +1,316 @@
 /* =========================================================
-   ACCOUNT
+   ACCOUNT — PREMIUM
    ========================================================= */
 
-.account-integrations-page {
+.account-page-premium {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 24px;
 }
 
-.account-grid {
+/* HERO */
+.premium-hero {
+  position: relative;
+  overflow: hidden;
+  padding: 30px;
+  border-radius: 28px;
+  isolation: isolate;
+}
+
+.premium-hero__glow {
+  position: absolute;
+  border-radius: 999px;
+  pointer-events: none;
+  z-index: 0;
+  filter: blur(6px);
+}
+
+.premium-hero__glow--primary {
+  right: -80px;
+  bottom: -120px;
+  width: 260px;
+  height: 260px;
+  background: radial-gradient(circle, rgba(99, 102, 241, 0.22), transparent 70%);
+}
+
+.premium-hero__glow--secondary {
+  left: -60px;
+  top: -90px;
+  width: 220px;
+  height: 220px;
+  background: radial-gradient(circle, rgba(34, 197, 94, 0.12), transparent 72%);
+}
+
+.premium-hero__content {
+  position: relative;
+  z-index: 1;
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 16px;
+  grid-template-columns: minmax(0, 1.3fr) minmax(280px, 0.7fr);
+  gap: 28px;
+  align-items: center;
 }
 
-.account-card {
+.premium-hero__left {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 10px;
 }
 
-.section-title-row {
+.premium-hero__text {
+  max-width: 720px;
+}
+
+.premium-hero__chips {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.premium-hero__right {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.premium-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
   gap: 12px;
 }
 
+.btn-lg {
+  min-height: 48px;
+  padding-inline: 18px;
+}
+
+/* BADGES */
 .plan-badge,
 .inline-badge {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 6px 10px;
+  padding: 7px 11px;
   border-radius: 999px;
   border: 1px solid var(--border);
   background: var(--surface-2, rgba(255, 255, 255, 0.04));
   font-size: 12px;
   font-weight: 700;
+  line-height: 1;
 }
 
 .inline-badge.success {
   background: rgba(34, 197, 94, 0.14);
-  color: #16a34a;
+  color: #4ade80;
   border-color: rgba(34, 197, 94, 0.3);
 }
 
 .inline-badge.warning {
   background: rgba(245, 158, 11, 0.14);
-  color: #d97706;
+  color: #f59e0b;
   border-color: rgba(245, 158, 11, 0.3);
 }
 
 .inline-badge.danger {
   background: rgba(239, 68, 68, 0.14);
-  color: #dc2626;
+  color: #f87171;
   border-color: rgba(239, 68, 68, 0.3);
 }
 
-.hero-actions {
+/* TOAST */
+.premium-toast {
   display: flex;
-  flex-direction: column;
   align-items: flex-start;
   gap: 12px;
+  padding: 16px 18px;
+  border-radius: 22px;
 }
 
-.account-inline-form {
+.premium-toast__icon {
   display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 1px;
 }
 
-.status-banner {
-  border-left: 4px solid var(--border);
-}
-
-.status-banner.is-success {
-  border-left-color: rgba(34, 197, 94, 0.8);
-}
-
-.status-banner.is-error {
-  border-left-color: rgba(239, 68, 68, 0.8);
-}
-
-.status-banner-title {
-  font-weight: 700;
-  margin-bottom: 6px;
-}
-
-.integration-info-list,
-.route-list,
-.account-checklist {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.integration-info-item,
-.route-item {
+.premium-toast__content {
   display: flex;
   flex-direction: column;
   gap: 4px;
-  padding: 12px 14px;
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  background: var(--surface-2, rgba(255, 255, 255, 0.03));
 }
 
-.integration-info-item span,
-.route-item span {
-  color: var(--muted);
+.premium-toast__title {
   font-size: 13px;
+  font-weight: 700;
 }
 
-.account-checklist li {
+.premium-toast.is-success {
+  border: 1px solid rgba(34, 197, 94, 0.22);
+  background: rgba(34, 197, 94, 0.07);
+}
+
+.premium-toast.is-error {
+  border: 1px solid rgba(239, 68, 68, 0.22);
+  background: rgba(239, 68, 68, 0.07);
+}
+
+/* GRID */
+.account-premium-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(320px, 0.8fr);
+  gap: 20px;
+}
+
+.premium-status-card,
+.premium-benefits-card {
+  padding: 24px;
+  border-radius: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.section-title-row {
   display: flex;
   align-items: flex-start;
-  gap: 10px;
-  padding: 12px 14px;
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  background: var(--surface-2, rgba(255, 255, 255, 0.03));
+  justify-content: space-between;
+  gap: 14px;
 }
 
-.account-checklist code {
-  word-break: break-all;
+.section-kicker {
+  display: inline-block;
+  margin-bottom: 6px;
+  font-size: 11px;
+  line-height: 1;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.52);
 }
 
-.inline-link-external {
-  display: inline-flex;
+.account-page-premium .section-title-row h2,
+.account-page-premium .premium-hero__left h1 {
+  letter-spacing: -0.02em;
+}
+
+/* STATUS CARD */
+.premium-status-card.is-success {
+  border-color: rgba(34, 197, 94, 0.28);
+  box-shadow: 0 0 0 1px rgba(34, 197, 94, 0.08) inset;
+}
+
+.premium-status-card.is-warning {
+  border-color: rgba(245, 158, 11, 0.28);
+  box-shadow: 0 0 0 1px rgba(245, 158, 11, 0.08) inset;
+}
+
+.premium-status-card.is-danger {
+  border-color: rgba(239, 68, 68, 0.28);
+  box-shadow: 0 0 0 1px rgba(239, 68, 68, 0.08) inset;
+}
+
+.premium-metrics {
+  display: grid;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+.premium-metric {
+  display: flex;
   align-items: center;
-  gap: 6px;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 15px 16px;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.02));
+  backdrop-filter: blur(4px);
+}
+
+.premium-metric span {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.68);
+}
+
+.premium-metric strong {
+  font-size: 14px;
   font-weight: 600;
+  color: #fff;
+  text-align: right;
 }
 
-.account-disconnect-btn {
-  min-width: 190px;
+.premium-inline-actions {
+  margin-top: 2px;
 }
 
-@media (max-width: 900px) {
-  .account-grid {
+/* BENEFITS */
+.premium-benefits-list {
+  display: grid;
+  gap: 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.premium-benefits-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 15px 16px;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.02));
+}
+
+.premium-benefits-list li svg {
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+/* HELPERS */
+.account-page-premium .muted {
+  max-width: 72ch;
+}
+
+/* RESPONSIVE */
+@media (max-width: 980px) {
+  .premium-hero__content,
+  .account-premium-grid {
     grid-template-columns: 1fr;
+  }
+
+  .premium-hero__right,
+  .premium-actions {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 640px) {
+  .premium-hero,
+  .premium-status-card,
+  .premium-benefits-card {
+    padding: 20px;
+    border-radius: 22px;
+  }
+
+  .premium-metric {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .premium-metric strong {
+    text-align: left;
+  }
+
+  .premium-actions {
+    width: 100%;
+  }
+
+  .premium-actions .btn,
+  .premium-actions form,
+  .premium-actions form .btn {
+    width: 100%;
   }
 }

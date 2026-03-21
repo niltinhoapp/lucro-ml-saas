@@ -2,7 +2,7 @@ import Link from "next/link";
 import {
   AlertTriangle,
   CheckCircle2,
-  ExternalLink,
+  Link2,
   RefreshCcw,
   ShieldCheck,
   Unplug,
@@ -27,22 +27,17 @@ type BannerMessage = {
   text: string;
 };
 
-type ConnectionMeta = {
-  badgeClass: string;
-  badgeText: string;
-  title: string;
-  description: string;
-};
-
-function getFirstParamValue(value: string | string[] | undefined): string | undefined {
+function getFirstParamValue(
+  value: string | string[] | undefined
+): string | undefined {
   return Array.isArray(value) ? value[0] : value;
 }
 
 function formatDateTime(value: string | null): string {
-  if (!value) return "-";
+  if (!value) return "—";
 
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "-";
+  if (Number.isNaN(date.getTime())) return "—";
 
   return date.toLocaleString("pt-BR");
 }
@@ -119,7 +114,9 @@ function getBannerMessage(value: string | undefined): BannerMessage | null {
   }
 }
 
-function getConnectionStatus(connection: MlConnectionView | null): ConnectionStatus {
+function getConnectionStatus(
+  connection: MlConnectionView | null
+): ConnectionStatus {
   if (!connection?.is_active) return "disconnected";
   if (!connection.expires_at) return "error";
 
@@ -131,43 +128,47 @@ function getConnectionStatus(connection: MlConnectionView | null): ConnectionSta
   return "connected";
 }
 
-function getConnectionMeta(status: ConnectionStatus): ConnectionMeta {
+function getStatusConfig(status: ConnectionStatus) {
   switch (status) {
     case "connected":
       return {
-        badgeClass: "success",
         badgeText: "Conectada",
+        badgeClass: "success",
         title: "Conexão ativa",
         description:
-          "Sua conta do Mercado Livre está conectada e pronta para uso nos módulos compatíveis.",
+          "Sua conta está conectada e pronta para alimentar os módulos com dados reais.",
+        accentClass: "is-success",
       };
 
     case "expired":
       return {
-        badgeClass: "warning",
         badgeText: "Expirada",
+        badgeClass: "warning",
         title: "Sessão expirada",
         description:
-          "A conexão existe, mas a sessão expirou. Reconecte a conta para voltar a usar os recursos.",
+          "A conexão existe, mas precisa ser renovada para voltar a usar os recursos.",
+        accentClass: "is-warning",
       };
 
     case "error":
       return {
-        badgeClass: "danger",
         badgeText: "Com erro",
+        badgeClass: "danger",
         title: "Erro na conexão",
         description:
-          "Encontramos inconsistência nos dados da conexão. Reconecte a conta para corrigir.",
+          "Encontramos um problema na integração. Reconecte a conta para corrigir.",
+        accentClass: "is-danger",
       };
 
     case "disconnected":
     default:
       return {
-        badgeClass: "",
         badgeText: "Não conectada",
-        title: "Sem conexão",
+        badgeClass: "",
+        title: "Nenhuma conta conectada",
         description:
-          "Você ainda não conectou sua conta do Mercado Livre ao LucroML.",
+          "Conecte sua conta do Mercado Livre para liberar dados reais no LucroML.",
+        accentClass: "",
       };
   }
 }
@@ -215,7 +216,7 @@ export default async function ContaPage({
   const banner = getBannerMessage(mlParam);
 
   const connectionStatus = getConnectionStatus(connection);
-  const connectionMeta = getConnectionMeta(connectionStatus);
+  const status = getStatusConfig(connectionStatus);
 
   const canReconnect =
     connectionStatus === "connected" ||
@@ -224,118 +225,115 @@ export default async function ContaPage({
 
   const hasSavedConnection = Boolean(connection);
 
-  const showConnectionDetails =
-    (connectionStatus === "connected" ||
-      connectionStatus === "expired" ||
-      connectionStatus === "error") &&
-    !!connection;
-
   return (
-    <div className="premium-page-shell account-integrations-page">
-      <section className="hero-card premium-card">
-        <div className="hero-copy">
-          <span className="eyebrow">Conta e integrações</span>
-          <h1>Conecte sua conta do Mercado Livre</h1>
-          <p className="muted">
-            Ao conectar sua conta, o LucroML poderá usar seus dados autorizados
-            para ajudar na análise da operação, leitura de desempenho e evolução
-            dos módulos premium.
-          </p>
-        </div>
+    <div className="premium-page-shell account-page-premium">
+      <section className="premium-hero premium-card">
+        <div className="premium-hero__glow premium-hero__glow--primary" />
+        <div className="premium-hero__glow premium-hero__glow--secondary" />
 
-        <div className="hero-actions">
-          <span className="plan-badge">Plano atual: {currentPlan}</span>
+        <div className="premium-hero__content">
+          <div className="premium-hero__left">
+            <span className="eyebrow">Conta</span>
+            <h1>Conexão com Mercado Livre</h1>
+            <p className="muted premium-hero__text">
+              Conecte sua conta para usar dados reais da operação dentro do
+              LucroML e preparar análises mais inteligentes nos módulos.
+            </p>
 
-          {canConnectMl ? (
-            <div className="account-actions-row">
-              <a href="/api/ml/oauth/start" className="btn btn-primary">
-                {canReconnect ? "Conectar novamente" : "Conectar Mercado Livre"}
-              </a>
-
-              {hasSavedConnection ? (
-                <form action="/api/ml/disconnect" method="POST" className="account-inline-form">
-                  <button type="submit" className="btn btn-danger-soft account-disconnect-btn">
-                    <Unplug size={16} />
-                    <span>Desconectar conta</span>
-                  </button>
-                </form>
-              ) : null}
+            <div className="premium-hero__chips">
+              <span className="plan-badge">Plano atual: {currentPlan}</span>
+              <span className={`inline-badge ${status.badgeClass}`}>
+                {status.badgeText}
+              </span>
             </div>
-          ) : (
-            <Link
-              href="/checkout?plan=plus&feature=ml"
-              className="btn btn-primary"
-            >
-              Liberar no Plus
-            </Link>
-          )}
+          </div>
+
+          <div className="premium-hero__right">
+            {canConnectMl ? (
+              <div className="premium-actions">
+                <a href="/api/ml/oauth/start" className="btn btn-primary btn-lg">
+                  <Link2 size={16} />
+                  <span>
+                    {canReconnect ? "Reconectar conta" : "Conectar Mercado Livre"}
+                  </span>
+                </a>
+
+                {hasSavedConnection ? (
+                  <form action="/api/ml/disconnect" method="POST">
+                    <button type="submit" className="btn btn-secondary btn-lg">
+                      <Unplug size={16} />
+                      <span>Desconectar</span>
+                    </button>
+                  </form>
+                ) : null}
+              </div>
+            ) : (
+              <Link
+                href="/checkout?plan=plus&feature=ml"
+                className="btn btn-primary btn-lg"
+              >
+                Liberar no Plus
+              </Link>
+            )}
+          </div>
         </div>
       </section>
 
       {banner ? (
         <section
-          className={`premium-card status-banner ${
+          className={`premium-toast premium-card ${
             banner.tone === "success" ? "is-success" : "is-error"
           }`}
         >
-          <div className="status-banner-title">Status da conexão</div>
-          <p>{banner.text}</p>
-        </section>
-      ) : null}
-
-      {(connectionStatus === "expired" || connectionStatus === "error") && canConnectMl ? (
-        <section className="premium-card status-banner is-error">
-          <div className="status-banner-title">
-            {connectionStatus === "expired"
-              ? "Sessão expirada"
-              : "Problema na conexão"}
+          <div className="premium-toast__icon">
+            {banner.tone === "success" ? (
+              <CheckCircle2 size={18} />
+            ) : (
+              <AlertTriangle size={18} />
+            )}
           </div>
-          <p>{connectionMeta.description}</p>
+          <div className="premium-toast__content">
+            <div className="premium-toast__title">Atualização</div>
+            <p>{banner.text}</p>
+          </div>
         </section>
       ) : null}
 
-      <div className="account-grid">
-        <section className="premium-card account-card">
+      <div className="account-premium-grid">
+        <section className={`premium-card premium-status-card ${status.accentClass}`}>
           <div className="section-title-row">
-            <h2>Situação da conta</h2>
-            <span className={`inline-badge ${connectionMeta.badgeClass}`}>
-              {connectionMeta.badgeText}
+            <div>
+              <span className="section-kicker">Status atual</span>
+              <h2>{status.title}</h2>
+            </div>
+
+            <span className={`inline-badge ${status.badgeClass}`}>
+              {status.badgeText}
             </span>
           </div>
 
-          {showConnectionDetails ? (
-            <div className="integration-info-list">
-              <div className="integration-info-item">
-                <span>Status da conexão</span>
-                <strong>{connectionMeta.title}</strong>
-              </div>
+          <p className="muted">{status.description}</p>
 
-              <div className="integration-info-item">
-                <span>Conta conectada</span>
-                <strong>{connection?.ml_nickname ?? "-"}</strong>
-              </div>
-
-              <div className="integration-info-item">
-                <span>Validade da conexão</span>
-                <strong>{formatDateTime(connection?.expires_at ?? null)}</strong>
-              </div>
-
-              <div className="integration-info-item">
-                <span>Última atualização</span>
-                <strong>{formatDateTime(connection?.updated_at ?? null)}</strong>
-              </div>
+          <div className="premium-metrics">
+            <div className="premium-metric">
+              <span>Conta conectada</span>
+              <strong>{connection?.ml_nickname ?? "—"}</strong>
             </div>
-          ) : (
-            <p className="muted">
-              Você ainda não conectou sua conta do Mercado Livre ao LucroML.
-              Quando a conexão for autorizada, o sistema salvará o vínculo com
-              segurança para usar nos recursos disponíveis do seu plano.
-            </p>
-          )}
+
+            <div className="premium-metric">
+              <span>Validade</span>
+              <strong>{formatDateTime(connection?.expires_at ?? null)}</strong>
+            </div>
+
+            <div className="premium-metric">
+              <span>Última atualização</span>
+              <strong>{formatDateTime(connection?.updated_at ?? null)}</strong>
+            </div>
+          </div>
 
           {(connectionStatus === "expired" || connectionStatus === "error") &&
           canConnectMl ? (
-            <div className="account-secondary-actions">
+            <div className="premium-inline-actions">
               <a href="/api/ml/oauth/start" className="btn btn-primary">
                 <RefreshCcw size={16} />
                 <span>Reconectar agora</span>
@@ -344,108 +342,29 @@ export default async function ContaPage({
           ) : null}
         </section>
 
-        <section className="premium-card account-card">
+        <section className="premium-card premium-benefits-card">
           <div className="section-title-row">
-            <h2>O que essa conexão libera</h2>
+            <div>
+              <span className="section-kicker">Benefícios</span>
+              <h2>O que essa conexão libera</h2>
+            </div>
             <ShieldCheck size={18} />
           </div>
 
-          <ul className="account-checklist">
+          <ul className="premium-benefits-list">
             <li>
               <CheckCircle2 size={16} />
-              <span>
-                Mais integração entre sua conta e os módulos do LucroML
-              </span>
+              <span>Uso de dados reais da conta nos módulos do LucroML</span>
             </li>
             <li>
               <CheckCircle2 size={16} />
-              <span>
-                Base para leitura de desempenho e evolução dos recursos premium
-              </span>
+              <span>Base para análises mais inteligentes do seller</span>
             </li>
             <li>
               <CheckCircle2 size={16} />
-              <span>
-                Preparação para conectar dados reais ao Radar ML
-              </span>
-            </li>
-            <li>
-              <CheckCircle2 size={16} />
-              <span>Recurso disponível no plano Plus</span>
+              <span>Preparação para cruzar seller, radar e catálogos</span>
             </li>
           </ul>
-        </section>
-
-        <section className="premium-card account-card">
-          <div className="section-title-row">
-            <h2>Como funciona</h2>
-            <RefreshCcw size={18} />
-          </div>
-
-          <div className="route-list">
-            <div className="route-item">
-              <strong>1. Você autoriza</strong>
-              <span>
-                O LucroML abre a tela oficial do Mercado Livre para você aprovar
-                a conexão.
-              </span>
-            </div>
-
-            <div className="route-item">
-              <strong>2. A conta é vinculada</strong>
-              <span>
-                Após a autorização, sua conta fica conectada ao LucroML com
-                segurança.
-              </span>
-            </div>
-
-            <div className="route-item">
-              <strong>3. Os módulos evoluem</strong>
-              <span>
-                A conexão prepara o sistema para análises mais inteligentes e
-                recursos premium mais fortes.
-              </span>
-            </div>
-          </div>
-        </section>
-
-        <section className="premium-card account-card">
-          <div className="section-title-row">
-            <h2>Próximos recursos</h2>
-            <AlertTriangle size={18} />
-          </div>
-
-          <div className="route-list">
-            <div className="route-item">
-              <strong>Radar ML mais forte</strong>
-              <span>
-                Cruzar dados reais da sua conta com oportunidades e sinais do
-                mercado.
-              </span>
-            </div>
-
-            <div className="route-item">
-              <strong>Leitura da operação</strong>
-              <span>
-                Ampliar a análise do seu desempenho dentro do LucroML.
-              </span>
-            </div>
-
-            <div className="route-item">
-              <strong>Mais inteligência</strong>
-              <span>
-                Preparar a base para módulos cada vez mais úteis para seller.
-              </span>
-            </div>
-          </div>
-
-          <Link
-            href="https://developers.mercadolivre.com.br"
-            target="_blank"
-            className="inline-link-external"
-          >
-            Saiba mais sobre a integração <ExternalLink size={14} />
-          </Link>
         </section>
       </div>
     </div>
