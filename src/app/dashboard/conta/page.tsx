@@ -237,7 +237,7 @@ export default async function ContaPage({
             <h1>Conexão com Mercado Livre</h1>
             <p className="muted premium-hero__text">
               Conecte sua conta para usar dados reais da operação dentro do
-              LucroML e preparar análises mais inteligentes nos módulos.
+              LucroML e fortalecer as análises dos módulos.
             </p>
 
             <div className="premium-hero__chips">
@@ -292,6 +292,7 @@ export default async function ContaPage({
               <AlertTriangle size={18} />
             )}
           </div>
+
           <div className="premium-toast__content">
             <div className="premium-toast__title">Atualização</div>
             <p>{banner.text}</p>
