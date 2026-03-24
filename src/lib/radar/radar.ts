@@ -1,7 +1,5 @@
 export const ML_RADAR_ENABLED = true;
 
-/* ================= TYPES ================= */
-
 export type RadarItem = {
   produto: string;
   custo: number;
@@ -18,21 +16,21 @@ export type RadarOutput = {
   resumo: string[];
 };
 
-/* ================= HELPERS ================= */
-
 function clamp(n: number, min: number, max: number) {
   return Math.min(max, Math.max(min, n));
 }
 
-function scoreProduto(margem: number, demanda: number, concorrencia: number) {
+function scoreProduto(
+  margem: number,
+  demanda: number,
+  concorrencia: number
+) {
   return clamp(
     Math.round(margem * 2 + demanda - concorrencia * 0.6),
     0,
     100
   );
 }
-
-/* ================= CORE ================= */
 
 export function generateRadar(
   items: Array<{
@@ -52,8 +50,11 @@ export function generateRadar(
 
     let risco: RadarItem["risco"] = "medio";
 
-    if (item.margem > 20 && oportunidade > 70) risco = "baixo";
-    else if (item.margem < 10 || oportunidade < 40) risco = "alto";
+    if (item.margem > 20 && oportunidade > 70) {
+      risco = "baixo";
+    } else if (item.margem < 10 || oportunidade < 40) {
+      risco = "alto";
+    }
 
     let recomendacao = "Validar antes de escalar.";
 
@@ -74,16 +75,18 @@ export function generateRadar(
   });
 
   const top = enriched
-    .filter((i) => i.risco === "baixo")
+    .filter((item) => item.risco === "baixo")
     .sort((a, b) => b.oportunidade - a.oportunidade)
     .slice(0, 5);
 
   const evitar = enriched
-    .filter((i) => i.risco === "alto")
+    .filter((item) => item.risco === "alto")
+    .sort((a, b) => a.oportunidade - b.oportunidade)
     .slice(0, 5);
 
   const ajustar = enriched
-    .filter((i) => i.risco === "medio")
+    .filter((item) => item.risco === "medio")
+    .sort((a, b) => b.oportunidade - a.oportunidade)
     .slice(0, 5);
 
   return {

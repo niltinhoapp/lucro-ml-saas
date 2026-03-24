@@ -5,83 +5,80 @@ import { sha256Buffer } from "@/lib/catalog/hash";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createServerClient } from "@/supabase/server";
 
+// ================= HELPERS =================
+
+function getFileType(fileName: string): "pdf" | "csv" | "xml" | null {
+  const lower = fileName.toLowerCase();
+  if (lower.endsWith(".pdf")) return "pdf";
+  if (lower.endsWith(".csv")) return "csv";
+  if (lower.endsWith(".xml")) return "xml";
+  return null;
+}
+
+function getContentType(type: string) {
+  if (type === "pdf") return "application/pdf";
+  if (type === "csv") return "text/csv";
+  if (type === "xml") return "application/xml";
+  return "application/octet-stream";
+}
+
+// ================= QUOTA =================
+
 async function assertCatalogQuota(userId: string) {
   const admin = createAdminClient();
   const monthLimit = Number(process.env.CATALOG_MONTHLY_LIMIT_PLUS || "20");
 
-  const { data: counter, error } = await admin
+  const { data: counter } = await admin
     .from("usage_counters")
     .select("catalogs_used")
     .eq("user_id", userId)
     .maybeSingle();
 
-  if (error) {
-    throw new Error(`Falha ao consultar limite de uso: ${error.message}`);
-  }
-
   const used = counter?.catalogs_used ?? 0;
 
   if (used >= monthLimit) {
-    throw new Error("Limite mensal de catálogos atingido para o plano atual.");
+    throw new Error("Limite mensal de catálogos atingido.");
   }
 }
 
 async function incrementCatalogUsage(userId: string) {
   const admin = createAdminClient();
 
-  const { data: current, error: selectError } = await admin
+  const { data: current } = await admin
     .from("usage_counters")
-    .select("user_id, catalogs_used, reports_used, ai_used, catalog_items_analyzed")
+    .select("*")
     .eq("user_id", userId)
     .maybeSingle();
 
-  if (selectError) {
-    throw new Error(`Falha ao consultar usage_counters: ${selectError.message}`);
-  }
-
   if (!current) {
-    const { error: insertError } = await admin.from("usage_counters").insert({
+    await admin.from("usage_counters").insert({
       user_id: userId,
       catalogs_used: 1,
-      catalog_items_analyzed: 0,
-      ai_used: 0,
-      reports_used: 0,
       updated_at: new Date().toISOString(),
     });
-
-    if (insertError) {
-      throw new Error(`Falha ao criar usage_counters: ${insertError.message}`);
-    }
-
     return;
   }
 
-  const { error: updateError } = await admin
+  await admin
     .from("usage_counters")
     .update({
       catalogs_used: (current.catalogs_used ?? 0) + 1,
       updated_at: new Date().toISOString(),
     })
     .eq("user_id", userId);
-
-  if (updateError) {
-    throw new Error(`Falha ao atualizar usage_counters: ${updateError.message}`);
-  }
 }
+
+// ================= ROUTE =================
 
 export async function POST(req: Request) {
   try {
     const supabase = await createServerClient();
     const {
       data: { user },
-      error: authError,
     } = await supabase.auth.getUser();
 
-    if (authError || !user) {
-      return NextResponse.json(
-        { ok: false, error: "Não autenticado." },
-        { status: 401 }
-      );
+    if (!user) {
+      return NextResponse.json({ ok: false, error: "Não autenticado." }, { status: 401 });
     }
 
     await assertCatalogQuota(user.id);
@@ -90,15 +87,14 @@ export async function POST(req: Request) {
     const file = formData.get("file");
 
     if (!(file instanceof File)) {
-      return NextResponse.json(
-        { ok: false, error: "Arquivo inválido." },
-        { status: 400 }
-      );
+      return NextResponse.json({ ok: false, error: "Arquivo inválido." }, { status: 400 });
     }
 
-    if (!file.name.toLowerCase().endsWith(".pdf")) {
+    const fileType = getFileType(file.name);
+
+    if (!fileType) {
       return NextResponse.json(
-        { ok: false, error: "Envie apenas PDF." },
+        { ok: false, error: "Envie PDF, CSV ou XML." },
         { status: 400 }
       );
     }
@@ -108,18 +104,13 @@ export async function POST(req: Request) {
 
     const admin = createAdminClient();
 
-    const { data: existing, error: existingError } = await admin
+    // ===== CACHE (evita reprocessar) =====
+    const { data: existing } = await admin
       .from("supplier_catalogs")
       .select("id, status, title")
       .eq("user_id", user.id)
       .eq("file_hash", fileHash)
-      .order("created_at", { ascending: false })
-      .limit(1)
       .maybeSingle();
-
-    if (existingError) {
-      throw new Error(`Falha ao verificar catálogo existente: ${existingError.message}`);
-    }
 
     if (existing) {
       return NextResponse.json({
@@ -131,6 +122,7 @@ export async function POST(req: Request) {
       });
     }
 
+    // ===== STORAGE =====
     const bucket = process.env.CATALOG_BUCKET || "catalogs";
     const safeFileName = file.name.replace(/\s+/g, "-");
     const storagePath = `${user.id}/${Date.now()}-${safeFileName}`;
@@ -138,17 +130,17 @@ export async function POST(req: Request) {
     const { error: uploadError } = await admin.storage
       .from(bucket)
       .upload(storagePath, buffer, {
-        contentType: "application/pdf",
-        upsert: false,
+        contentType: getContentType(fileType),
       });
 
     if (uploadError) {
-      throw new Error(`Falha no upload para o storage: ${uploadError.message}`);
+      throw new Error(uploadError.message);
     }
 
-    const title = file.name.replace(/\.pdf$/i, "");
+    const title = file.name.replace(/\.(pdf|csv|xml)$/i, "");
 
-    const { data: inserted, error: insertError } = await admin
+    // ===== DB =====
+    const { data: inserted } = await admin
       .from("supplier_catalogs")
       .insert({
         user_id: user.id,
@@ -156,29 +148,19 @@ export async function POST(req: Request) {
         file_name: file.name,
         file_path: storagePath,
         file_hash: fileHash,
-        source_type: "pdf",
+        source_type: fileType,
         status: "uploaded",
       })
-      .select("id, status, title, created_at")
+      .select("*")
       .single();
 
-    if (insertError || !inserted) {
-      throw new Error(
-        `Falha ao criar supplier_catalogs: ${insertError?.message || "registro não criado"}`
-      );
-    }
-
-    const { error: runError } = await admin.from("catalog_runs").insert({
+    await admin.from("catalog_runs").insert({
       catalog_id: inserted.id,
       user_id: user.id,
       step: "upload",
       status: "success",
       logs: [{ at: new Date().toISOString(), message: "Upload concluído." }],
     });
-
-    if (runError) {
-      throw new Error(`Falha ao registrar catalog_runs: ${runError.message}`);
-    }
 
     await incrementCatalogUsage(user.id);
 
@@ -187,11 +169,10 @@ export async function POST(req: Request) {
       catalogId: inserted.id,
       status: inserted.status,
       title: inserted.title,
-      createdAt: inserted.created_at,
     });
-  } catch (error: unknown) {
+  } catch (error: any) {
     return NextResponse.json(
-      { ok: false, error: error instanceof Error ? error.message : "Falha ao enviar catálogo." },
+      { ok: false, error: error.message || "Erro no upload." },
       { status: 500 }
     );
   }

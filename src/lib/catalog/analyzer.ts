@@ -5,191 +5,162 @@ import type {
   ParsedCatalogRow,
 } from "./types";
 
-const DEFAULT_ML_FEE_RATE = 0.16;
+const ML_FEE = 0.16;
 
-function inferMlPriceAvgFromCost(
-  supplierCost: number,
-  productName: string
-): number {
-  const lower = productName.toLowerCase();
+/* ================= HELPERS ================= */
 
-  const lowTicketHints = [
-    "lanterna",
-    "luminária",
-    "luminaria",
-    "relógio",
-    "relogio",
-    "espelho",
-    "plug",
-    "adaptador",
-    "umidificador",
-    "ventilador",
-  ];
-
-  const isLowTicket = lowTicketHints.some((term) => lower.includes(term));
-  const markup = isLowTicket ? 1.75 : 1.9;
-
-  return Number((supplierCost * markup).toFixed(2));
+function normalize(name: string) {
+  return name.toLowerCase();
 }
 
-function calculateFreightEstimate(
-  mlPriceAvg: number,
-  productName: string
-): number {
-  const lower = productName.toLowerCase();
+/* ================= PREÇO ================= */
 
-  const bulkyHints = [
-    "patinete",
-    "bicicleta",
-    "caixa de som",
-    "mesa",
-    "moving",
-    "máquina de fumaça",
-    "maquina de fumaça",
-    "maquina de fumaca",
-  ];
+function estimateSellingPrice(cost: number, name: string): number {
+  const lower = normalize(name);
 
-  if (bulkyHints.some((term) => lower.includes(term))) {
-    return mlPriceAvg < 200 ? 25 : 40;
+  const cheap = ["lanterna", "plug", "adaptador", "cabo"];
+  const medium = ["ventilador", "umidificador", "ring light"];
+
+  let markup = 2;
+
+  if (cheap.some((t) => lower.includes(t))) markup = 1.7;
+  else if (medium.some((t) => lower.includes(t))) markup = 1.85;
+
+  return Number((cost * markup).toFixed(2));
+}
+
+/* ================= FRETE ================= */
+
+function estimateShipping(price: number, name: string): number {
+  const lower = normalize(name);
+
+  const bulky = ["bicicleta", "mesa", "patinete", "caixa de som"];
+
+  if (bulky.some((t) => lower.includes(t))) {
+    return price < 200 ? 30 : 45;
   }
 
-  if (mlPriceAvg < 79) return 12;
-  if (mlPriceAvg < 150) return 18;
+  if (price < 79) return 12;
+  if (price < 150) return 18;
   return 25;
 }
 
-function calculateDemandScore(
-  productName: string,
-  estimatedMargin: number
-): number {
-  const lower = productName.toLowerCase();
-  let base = 58;
+/* ================= DEMANDA ================= */
 
-  const highDemandHints = [
+function demandScore(name: string, margin: number) {
+  const lower = normalize(name);
+
+  let score = 55;
+
+  const high = [
     "ventilador",
     "lanterna",
-    "luminária",
-    "luminaria",
-    "relógio",
-    "relogio",
-    "umidificador",
-    "filtro de linha",
-    "plug",
+    "ring light",
     "adaptador",
+    "plug",
   ];
 
-  const nicheHints = [
-    "moving",
-    "dmx",
-    "filamento",
-    "poker",
-    "dominó",
-    "domino",
-    "peeling",
-    "irrigador",
-  ];
+  const niche = ["dmx", "moving", "profissional"];
 
-  if (highDemandHints.some((term) => lower.includes(term))) base += 10;
-  if (nicheHints.some((term) => lower.includes(term))) base -= 4;
+  if (high.some((t) => lower.includes(t))) score += 12;
+  if (niche.some((t) => lower.includes(t))) score -= 5;
 
-  base += Math.round(estimatedMargin / 3);
+  score += Math.round(margin / 3);
 
-  return Math.max(20, Math.min(95, base));
+  return Math.max(20, Math.min(95, score));
 }
 
-function calculateCompetitionScore(
-  productName: string,
-  estimatedMargin: number
-): number {
-  const lower = productName.toLowerCase();
-  let base = 68;
+/* ================= CONCORRÊNCIA ================= */
 
-  const highCompetitionHints = [
-    "ventilador",
-    "lanterna",
-    "luminária",
-    "luminaria",
-    "relógio",
-    "relogio",
-    "umidificador",
-  ];
+function competitionScore(name: string, margin: number) {
+  const lower = normalize(name);
 
-  const lowerCompetitionHints = [
-    "moving",
-    "dmx",
-    "filamento",
-    "maquina de fumaça",
-    "maquina de fumaca",
-  ];
+  let score = 70;
 
-  if (highCompetitionHints.some((term) => lower.includes(term))) base += 8;
-  if (lowerCompetitionHints.some((term) => lower.includes(term))) base -= 6;
+  const saturated = ["ventilador", "lanterna", "umidificador"];
+  const low = ["moving", "dmx", "especial"];
 
-  base -= Math.round(estimatedMargin / 5);
+  if (saturated.some((t) => lower.includes(t))) score += 10;
+  if (low.some((t) => lower.includes(t))) score -= 8;
 
-  return Math.max(20, Math.min(95, base));
+  score -= Math.round(margin / 5);
+
+  return Math.max(20, Math.min(95, score));
 }
+
+/* ================= CORE ================= */
 
 export function analyzeCatalogRows(items: ParsedCatalogRow[]): {
   rows: CatalogAnalysisRow[];
   summary: CatalogSummary;
 } {
   const rows: CatalogAnalysisRow[] = items
-    .filter((item) => item.supplierCost !== null && item.supplierCost > 0)
+    .filter((item) => item.supplierCost && item.supplierCost > 0)
     .map((item) => {
-      const supplierCost = Number(item.supplierCost!.toFixed(2));
-      const mlPriceAvg = inferMlPriceAvgFromCost(supplierCost, item.productName);
+      const cost = Number(item.supplierCost!.toFixed(2));
+
+      const mlPriceAvg = estimateSellingPrice(cost, item.productName);
       const mlPriceMin = Number((mlPriceAvg * 0.9).toFixed(2));
       const mlPriceMax = Number((mlPriceAvg * 1.1).toFixed(2));
-      const estimatedFees = Number(
-        (mlPriceAvg * DEFAULT_ML_FEE_RATE).toFixed(2)
-      );
-      const estimatedShipping = Number(
-        calculateFreightEstimate(mlPriceAvg, item.productName).toFixed(2)
-      );
-      const estimatedProfit = Number(
-        (mlPriceAvg - supplierCost - estimatedFees - estimatedShipping).toFixed(
-          2
-        )
-      );
-      const estimatedMargin = Number(
-        (((estimatedProfit / mlPriceAvg) || 0) * 100).toFixed(2)
+
+      const fees = Number((mlPriceAvg * ML_FEE).toFixed(2));
+      const shipping = Number(
+        estimateShipping(mlPriceAvg, item.productName).toFixed(2)
       );
 
-      const demandScore = calculateDemandScore(item.productName, estimatedMargin);
-      const competitionScore = calculateCompetitionScore(
-        item.productName,
-        estimatedMargin
+      const profit = Number(
+        (mlPriceAvg - cost - fees - shipping).toFixed(2)
       );
 
-      const opportunityScore = Math.max(
+      const margin = Number(
+        ((profit / mlPriceAvg) * 100).toFixed(2)
+      );
+
+      const demand = demandScore(item.productName, margin);
+      const competition = competitionScore(item.productName, margin);
+
+      const opportunity = Math.max(
         0,
         Math.min(
           100,
           Math.round(
-            estimatedMargin * 1.6 +
-              demandScore * 0.34 -
-              competitionScore * 0.22 +
-              (item.confidence >= 0.8 ? 6 : 0)
+            margin * 1.8 +
+              demand * 0.4 -
+              competition * 0.25 +
+              (item.confidence >= 0.8 ? 8 : 0)
           )
         )
       );
 
-      let riskLevel: CatalogRiskLevel = "moderado";
-      if (estimatedMargin >= 22 && item.confidence >= 0.8) riskLevel = "baixo";
-      if (estimatedMargin < 10 || item.confidence < 0.55) riskLevel = "alto";
+      /* ================= RISCO ================= */
 
-      const worthBuying = riskLevel !== "alto" && estimatedMargin >= 12;
+      let risk: CatalogRiskLevel = "moderado";
 
-      let aiSummary =
-        "Oportunidade intermediária. Vale validar concorrência e preço.";
+      if (margin >= 25 && item.confidence >= 0.8) {
+        risk = "baixo";
+      } else if (margin < 10 || item.confidence < 0.5) {
+        risk = "alto";
+      }
 
-      if (riskLevel === "baixo") {
-        aiSummary =
-          "Boa margem estimada e potencial interessante para validação.";
-      } else if (riskLevel === "alto") {
-        aiSummary =
-          "Margem apertada ou confiança baixa. Revise antes de comprar.";
+      const worthBuying =
+        risk === "baixo" && margin >= 15 && opportunity >= 60;
+
+      /* ================= RESUMO ================= */
+
+      let summary = "Produto precisa de validação manual.";
+
+      if (risk === "baixo") {
+        summary = "Boa oportunidade com margem e potencial.";
+      } else if (risk === "alto") {
+        summary = "Risco alto. Evitar compra sem validação.";
+      }
+
+      if (margin > 30) {
+        summary = "Alta margem. Forte candidato para teste imediato.";
+      }
+
+      if (competition > 85) {
+        summary += " Concorrência muito alta.";
       }
 
       return {
@@ -198,45 +169,47 @@ export function analyzeCatalogRows(items: ParsedCatalogRow[]): {
         brand: item.brand,
         category: item.category,
         productName: item.productName,
-        supplierCost,
+        supplierCost: cost,
         unitPrice: item.unitPrice,
         boxPrice: item.boxPrice,
         unitsPerBox: item.unitsPerBox,
         specs: item.specs,
         notes: item.notes,
-        riskLevel,
+        riskLevel: risk,
         worthBuying,
         mlPriceAvg,
         mlPriceMin,
         mlPriceMax,
-        estimatedFees,
-        estimatedShipping,
-        estimatedProfit,
-        estimatedMargin,
-        demandScore,
-        competitionScore,
-        opportunityScore,
-        aiSummary,
+        estimatedFees: fees,
+        estimatedShipping: shipping,
+        estimatedProfit: profit,
+        estimatedMargin: margin,
+        demandScore: demand,
+        competitionScore: competition,
+        opportunityScore: opportunity,
+        aiSummary: summary,
       };
     })
     .sort((a, b) => b.opportunityScore - a.opportunityScore);
 
-  const promisingCount = rows.filter((r) => r.riskLevel === "baixo").length;
-  const reviewCount = rows.filter((r) => r.riskLevel === "moderado").length;
-  const riskyCount = rows.filter((r) => r.riskLevel === "alto").length;
+  /* ================= SUMMARY ================= */
+
+  const promising = rows.filter((r) => r.riskLevel === "baixo").length;
+  const review = rows.filter((r) => r.riskLevel === "moderado").length;
+  const risky = rows.filter((r) => r.riskLevel === "alto").length;
 
   const avgMargin = rows.length
     ? Number(
-        (
-          rows.reduce((acc, row) => acc + row.estimatedMargin, 0) / rows.length
-        ).toFixed(2)
+        (rows.reduce((a, r) => a + r.estimatedMargin, 0) / rows.length).toFixed(
+          2
+        )
       )
     : 0;
 
   const avgOpportunity = rows.length
     ? Number(
         (
-          rows.reduce((acc, row) => acc + row.opportunityScore, 0) /
+          rows.reduce((a, r) => a + r.opportunityScore, 0) /
           rows.length
         ).toFixed(2)
       )
@@ -245,20 +218,20 @@ export function analyzeCatalogRows(items: ParsedCatalogRow[]): {
   const summary: CatalogSummary = {
     totalRows: items.length,
     parsedRows: rows.length,
-    promisingCount,
-    reviewCount,
-    riskyCount,
+    promisingCount: promising,
+    reviewCount: review,
+    riskyCount: risky,
     avgMargin,
     avgOpportunity,
     extractedTextPreview: "",
     highlights: rows.length
       ? [
           `Produtos válidos: ${rows.length}`,
-          `Boas oportunidades: ${promisingCount}`,
-          `Margem média estimada: ${avgMargin.toFixed(1)}%`,
-          `Melhor oportunidade: ${rows[0]?.productName ?? "-"}`,
+          `Oportunidades boas: ${promising}`,
+          `Margem média: ${avgMargin}%`,
+          `Top produto: ${rows[0]?.productName || "-"}`,
         ]
-      : ["Nenhum produto válido foi extraído do catálogo."],
+      : ["Nenhum produto válido encontrado."],
     usedAI: true,
   };
 

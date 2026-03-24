@@ -1,118 +1,86 @@
 import type { ParsedCatalogRow } from "./types";
 
-const BAD_NAME_PREFIXES = [
+/* ================= CONFIG ================= */
+
+const BAD_PREFIXES = [
   "temperatura",
   "tensão",
   "voltagem",
   "peso",
-  "peso bruto",
-  "peso líquido",
-  "peso liquido",
-  "dimensões",
-  "dimensoes",
-  "dimensão",
-  "dimensao",
+  "dimens",
   "consumo",
   "canal",
   "saída",
-  "saida",
   "modo",
   "função",
-  "funcao",
   "capacidade",
   "material",
   "comprimento",
   "altura",
   "diâmetro",
-  "diametro",
   "interface",
-  "interfaces",
   "lumens",
-  "lúmens",
-  "cor:",
-  "cores:",
-  "color:",
-  "saiba mais",
+  "cor",
   "promoção",
-  "promocao",
-  "acima de",
-  "comprando",
   "ganha",
-  "pcs/cx",
-  "unid. cx",
-  "voltage",
   "input",
   "output",
-  "entrada",
-  "bateria",
-  "carregamento",
-  "resfriamento",
-  "resolução",
-  "resolucao",
-  "frequência",
-  "frequencia",
-  "potência",
-  "potencia",
-  "tamanho",
 ];
 
-function normalizeSpaces(value: string) {
-  return value.replace(/\s+/g, " ").trim();
+/* ================= HELPERS ================= */
+
+function normalizeSpaces(v: string) {
+  return v.replace(/\s+/g, " ").trim();
 }
 
-function normalizeText(value: string) {
-  return normalizeSpaces(value).toLowerCase();
+function normalizeText(v: string) {
+  return normalizeSpaces(v).toLowerCase();
 }
 
-function isLikelySpecLine(name: string) {
+function isSpecLine(name: string) {
   const lower = normalizeText(name);
-  return BAD_NAME_PREFIXES.some((prefix) => lower.startsWith(prefix));
+  return BAD_PREFIXES.some((p) => lower.startsWith(p));
 }
 
-function looksTooGeneric(name: string) {
+function isGarbage(name: string) {
   const lower = normalizeText(name);
 
-  const blockedExact = new Set([
-    "peso",
-    "peso bruto",
-    "peso líquido",
-    "peso liquido",
-    "temperatura",
-    "voltagem",
-    "tensão",
-    "tensao",
-    "cor",
-    "cores",
-    "saída",
-    "saida",
-    "canal",
-    "modo",
-    "função",
-    "funcao",
-    "material",
-    "capacidade",
-    "altura",
-    "largura",
-    "comprimento",
-    "dimensões",
-    "dimensoes",
-    "dimensão",
-    "dimensao",
-    "lumens",
-    "lúmens",
-    "consumo",
-    "interface",
-    "interfaces",
-    "promoção",
-    "promocao",
-    "saiba mais",
-  ]);
-
-  if (blockedExact.has(lower)) return true;
   if (lower.length < 3) return true;
   if (/^\d+[.,]?\d*$/.test(lower)) return true;
 
   return false;
+}
+
+function parseCost(item: ParsedCatalogRow): number | null {
+  if (item.supplierCost && item.supplierCost > 0) {
+    return item.supplierCost;
+  }
+
+  if (item.unitPrice && item.unitPrice > 0) {
+    return item.unitPrice;
+  }
+
+  if (
+    item.boxPrice &&
+    item.unitsPerBox &&
+    item.unitsPerBox > 0
+  ) {
+    return Number((item.boxPrice / item.unitsPerBox).toFixed(2));
+  }
+
+  return null;
+}
+
+function cleanName(name: string): string {
+  return normalizeSpaces(
+    name
+      .replace(/\bSKU[:\s-]*[A-Z0-9._/-]+\b/gi, "")
+      .replace(/\bC[ÓO]D(?:IGO)?[:\s-]*[A-Z0-9._/-]+\b/gi, "")
+      .replace(/\bREF[:\s-]*[A-Z0-9._/-]+\b/gi, "")
+      .replace(/\b\d+\s*(un|und|unid)\b/gi, "")
+      .replace(/\bkit\s*\d+\b/gi, "")
+      .replace(/[|•·]+/g, " ")
+  );
 }
 
 function keyOf(item: ParsedCatalogRow) {
@@ -122,51 +90,64 @@ function keyOf(item: ParsedCatalogRow) {
 function score(item: ParsedCatalogRow) {
   let s = 0;
 
-  if (item.productName.length >= 4) s += 2;
-  if (item.supplierCost && item.supplierCost > 0) s += 3;
+  if (item.productName.length > 6) s += 2;
+  if (item.supplierCost) s += 3;
   if (item.sku) s += 2;
-  if (item.confidence >= 0.8) s += 2;
-  if (item.unitPrice) s += 1;
-  if (item.boxPrice) s += 1;
+  if (item.brand) s += 1;
   if (item.unitsPerBox) s += 1;
-  if (isLikelySpecLine(item.productName)) s -= 5;
-  if (looksTooGeneric(item.productName)) s -= 5;
+  if (item.confidence > 0.8) s += 2;
+
+  if (isSpecLine(item.productName)) s -= 6;
+  if (isGarbage(item.productName)) s -= 6;
 
   return s;
 }
 
+/* ================= CORE ================= */
+
 function cleanItem(item: ParsedCatalogRow): ParsedCatalogRow {
+  const productName = cleanName(item.productName);
+
+  const supplierCost = parseCost(item);
+
   return {
     ...item,
     sku: item.sku ? normalizeSpaces(item.sku) : null,
-    model: item.model ? normalizeSpaces(item.model) : item.sku ? normalizeSpaces(item.sku) : null,
+    model: item.model || item.sku || null,
     brand: item.brand ? normalizeSpaces(item.brand) : null,
     category: item.category ? normalizeSpaces(item.category) : null,
-    productName: normalizeSpaces(item.productName),
-    supplierCost:
-      typeof item.supplierCost === "number" && item.supplierCost > 0
-        ? Number(item.supplierCost.toFixed(2))
-        : null,
+
+    productName,
+
+    supplierCost,
+
     unitPrice:
-      typeof item.unitPrice === "number" && item.unitPrice > 0
+      item.unitPrice && item.unitPrice > 0
         ? Number(item.unitPrice.toFixed(2))
         : null,
+
     boxPrice:
-      typeof item.boxPrice === "number" && item.boxPrice > 0
+      item.boxPrice && item.boxPrice > 0
         ? Number(item.boxPrice.toFixed(2))
         : null,
+
     unitsPerBox:
-      typeof item.unitsPerBox === "number" && item.unitsPerBox > 0
+      item.unitsPerBox && item.unitsPerBox > 0
         ? Math.floor(item.unitsPerBox)
         : null,
-    specs: (item.specs || []).map(normalizeSpaces).filter(Boolean).slice(0, 6),
-    notes: item.notes ? normalizeSpaces(item.notes) : null,
+
+    specs: (item.specs || []).slice(0, 6),
+
+    notes: item.notes || null,
+
     confidence:
-      typeof item.confidence === "number" && Number.isFinite(item.confidence)
+      typeof item.confidence === "number"
         ? Math.max(0, Math.min(1, item.confidence))
-        : 0,
+        : 0.5,
   };
 }
+
+/* ================= MAIN ================= */
 
 export function validateAndNormalizeCatalogItems(
   items: ParsedCatalogRow[],
@@ -174,10 +155,11 @@ export function validateAndNormalizeCatalogItems(
 ): ParsedCatalogRow[] {
   const cleaned = items
     .map(cleanItem)
-    .filter((item) => item.productName.length >= 3)
-    .filter((item) => !isLikelySpecLine(item.productName))
-    .filter((item) => !looksTooGeneric(item.productName))
-    .filter((item) => item.supplierCost !== null && item.supplierCost > 0)
+    .filter((item) => item.productName.length >= 4)
+    .filter((item) => !isSpecLine(item.productName))
+    .filter((item) => !isGarbage(item.productName))
+    .filter((item) => item.supplierCost !== null)
+    .filter((item) => item.supplierCost! > 0)
     .filter((item) => item.supplierCost! < 1_000_000);
 
   const map = new Map<string, ParsedCatalogRow>();
@@ -195,8 +177,7 @@ export function validateAndNormalizeCatalogItems(
     .sort(
       (a, b) =>
         b.confidence - a.confidence ||
-        score(b) - score(a) ||
-        a.productName.localeCompare(b.productName)
+        score(b) - score(a)
     )
     .slice(0, maxRows);
 }

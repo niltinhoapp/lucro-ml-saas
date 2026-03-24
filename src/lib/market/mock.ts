@@ -48,19 +48,83 @@ const sellers = [
 ];
 
 const trendItems: TrendItem[] = [
-  { term: "escova secadora profissional", category: "Beleza", growth: "+31%", competition: "média", marginPotential: "boa" },
-  { term: "mini projetor portátil", category: "Eletrônicos", growth: "+42%", competition: "média", marginPotential: "boa" },
-  { term: "camera veicular 4k", category: "Automotivo", growth: "+28%", competition: "baixa", marginPotential: "boa" },
-  { term: "organizador de cozinha retrátil", category: "Casa", growth: "+19%", competition: "baixa", marginPotential: "média" },
-  { term: "aspirador portátil carro", category: "Automotivo", growth: "+24%", competition: "média", marginPotential: "média" },
-  { term: "fone bluetooth gamer", category: "Eletrônicos", growth: "+15%", competition: "alta", marginPotential: "pressionada" },
+  {
+    term: "escova secadora profissional",
+    category: "Beleza",
+    growth: "+31%",
+    competition: "média",
+    marginPotential: "boa",
+  },
+  {
+    term: "mini projetor portátil",
+    category: "Eletrônicos",
+    growth: "+42%",
+    competition: "média",
+    marginPotential: "boa",
+  },
+  {
+    term: "camera veicular 4k",
+    category: "Automotivo",
+    growth: "+28%",
+    competition: "baixa",
+    marginPotential: "boa",
+  },
+  {
+    term: "organizador de cozinha retrátil",
+    category: "Casa",
+    growth: "+19%",
+    competition: "baixa",
+    marginPotential: "média",
+  },
+  {
+    term: "aspirador portátil carro",
+    category: "Automotivo",
+    growth: "+24%",
+    competition: "média",
+    marginPotential: "média",
+  },
+  {
+    term: "fone bluetooth gamer",
+    category: "Eletrônicos",
+    growth: "+15%",
+    competition: "alta",
+    marginPotential: "pressionada",
+  },
 ];
 
 const bestsellers: BestsellerItem[] = [
-  { category: "Eletrônicos", items: ["mini projetor portátil", "fone bluetooth gamer", "smartwatch tela amoled"] },
-  { category: "Casa", items: ["escova secadora profissional", "organizadores modulares", "air fryer 5l"] },
-  { category: "Automotivo", items: ["camera veicular 4k", "aspirador portátil carro", "suporte magnético painel"] },
-  { category: "Ferramentas", items: ["parafusadeira sem fio", "lixadeira orbital", "kit brocas titânio"] },
+  {
+    category: "Eletrônicos",
+    items: [
+      "mini projetor portátil",
+      "fone bluetooth gamer",
+      "smartwatch tela amoled",
+    ],
+  },
+  {
+    category: "Casa",
+    items: [
+      "escova secadora profissional",
+      "organizadores modulares",
+      "air fryer 5l",
+    ],
+  },
+  {
+    category: "Automotivo",
+    items: [
+      "camera veicular 4k",
+      "aspirador portátil carro",
+      "suporte magnético painel",
+    ],
+  },
+  {
+    category: "Ferramentas",
+    items: [
+      "parafusadeira sem fio",
+      "lixadeira orbital",
+      "kit brocas titânio",
+    ],
+  },
 ];
 
 function hashString(input: string) {
@@ -71,10 +135,38 @@ function hashString(input: string) {
 
 function guessCategory(query: string) {
   const value = query.toLowerCase();
-  if (value.includes("air fryer") || value.includes("cozinha") || value.includes("escova")) return "Casa";
-  if (value.includes("fone") || value.includes("smart") || value.includes("projetor")) return "Eletrônicos";
-  if (value.includes("camera") || value.includes("carro") || value.includes("painel")) return "Automotivo";
-  if (value.includes("broca") || value.includes("parafusadeira")) return "Ferramentas";
+
+  if (
+    value.includes("air fryer") ||
+    value.includes("cozinha") ||
+    value.includes("escova")
+  ) {
+    return "Casa";
+  }
+
+  if (
+    value.includes("fone") ||
+    value.includes("smart") ||
+    value.includes("projetor")
+  ) {
+    return "Eletrônicos";
+  }
+
+  if (
+    value.includes("camera") ||
+    value.includes("carro") ||
+    value.includes("painel")
+  ) {
+    return "Automotivo";
+  }
+
+  if (
+    value.includes("broca") ||
+    value.includes("parafusadeira")
+  ) {
+    return "Ferramentas";
+  }
+
   return "Mercado Livre";
 }
 
@@ -98,7 +190,10 @@ export function createMarketAnalysis(rawQuery: string): MarketAnalysis {
   const estimatedMargin = 12 + (hash % 24);
   const opportunityScore = Math.max(
     48,
-    Math.min(96, Math.round(100 - activeAds / 4 + estimatedMargin * 1.8 + (hash % 8))),
+    Math.min(
+      96,
+      Math.round(100 - activeAds / 4 + estimatedMargin * 1.8 + (hash % 8))
+    )
   );
   const priceSuggestion = Math.round(avgPrice * 0.98);
 
@@ -106,22 +201,37 @@ export function createMarketAnalysis(rawQuery: string): MarketAnalysis {
     activeAds > 130 ? "alta" : activeAds > 70 ? "média" : "baixa";
 
   const trend: MarketAnalysis["trend"] =
-    opportunityScore >= 84 ? "quente" : opportunityScore >= 70 ? "subindo" : "estável";
+    opportunityScore >= 84
+      ? "quente"
+      : opportunityScore >= 70
+      ? "subindo"
+      : "estável";
 
-  const competitions = Array.from({ length: 5 }).map((_, index) => {
-    const diff = ((hash + index * 17) % 39) - 19;
-    return {
-      seller: sellers[(hash + index) % sellers.length],
-      price: Math.max(19, avgPrice + diff),
-      rating: ["Mercado Líder Platinum", "Mercado Líder Gold", "Boa reputação"][index % 3],
-      sold: 90 + ((hash + index * 71) % 2100),
-      activeAds: 2 + ((hash + index * 5) % 17),
-      shipping: (["full", "flex", "normal"] as const)[(hash + index) % 3],
-    };
-  });
+  const competitions: CompetitionEntry[] = Array.from({ length: 5 }).map(
+    (_, index) => {
+      const diff = ((hash + index * 17) % 39) - 19;
+
+      return {
+        seller: sellers[(hash + index) % sellers.length],
+        price: Math.max(19, avgPrice + diff),
+        rating: [
+          "Mercado Líder Platinum",
+          "Mercado Líder Gold",
+          "Boa reputação",
+        ][index % 3],
+        sold: 90 + ((hash + index * 71) % 2100),
+        activeAds: 2 + ((hash + index * 5) % 17),
+        shipping: (["full", "flex", "normal"] as const)[(hash + index) % 3],
+      };
+    }
+  );
 
   const summary = [
-    `Preço médio estimado em R$ ${avgPrice.toFixed(2)} com faixa principal entre R$ ${minPrice.toFixed(2)} e R$ ${maxPrice.toFixed(2)}.`,
+    `Preço médio estimado em R$ ${avgPrice.toFixed(
+      2
+    )} com faixa principal entre R$ ${minPrice.toFixed(
+      2
+    )} e R$ ${maxPrice.toFixed(2)}.`,
     `Existem ${activeAds} anúncios ativos para "${query}", indicando saturação ${saturation}.`,
     `A margem estimada para operação saudável fica em torno de ${estimatedMargin}% se custo e frete estiverem sob controle.`,
     opportunityScore >= 80
