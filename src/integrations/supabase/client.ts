@@ -20,3 +20,4 @@ export const supabaseBrowser = createBrowserClient(
     },
   }
 );
+

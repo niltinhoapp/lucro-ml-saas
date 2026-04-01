@@ -61,3 +61,4 @@ export function gerarPdfDre(dre: PdfDrePayload) {
 
   doc.save(`dre-lucro-ml-${Date.now()}.pdf`);
 }
+

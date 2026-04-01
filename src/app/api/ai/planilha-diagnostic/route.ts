@@ -6,3 +6,4 @@ export async function POST(req: Request) {
   const rows = Array.isArray(body?.rows) ? body.rows : [];
   return NextResponse.json(planilhaDiagnostic(rows));
 }
+

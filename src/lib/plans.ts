@@ -126,3 +126,4 @@ export function priceFromSubscriptionPlan(plan: SubscriptionPlan) {
       return { amount: 59.9, freq: 1, label: "PRO Mensal" };
   }
 }
+

@@ -40,3 +40,4 @@ export async function requireProAccess() {
 
   return { allowed: true, user, ent };
 }
+

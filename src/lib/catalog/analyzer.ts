@@ -264,3 +264,4 @@ export function analyzeCatalogRows(items: ParsedCatalogRow[]): {
 
   return { rows, summary };
 }
+

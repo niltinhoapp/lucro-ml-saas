@@ -17,3 +17,4 @@ export function normalizarPlanilha(rows: any[]): LinhaVenda[] {
     logistica: Number(row["Logística"] || 0),
   }));
 }
+

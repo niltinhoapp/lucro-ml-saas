@@ -210,3 +210,4 @@ export function getUpgradeHref(targetPlan?: PlanGate) {
   if (targetPlan === "pro") return "/checkout?plan=pro";
   return "/checkout";
 }
+

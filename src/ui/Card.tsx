@@ -7,3 +7,4 @@ export default function Card({ title, children }: { title: string; children: Rea
     </div>
   );
 }
+

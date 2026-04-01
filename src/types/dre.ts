@@ -30,3 +30,4 @@ export interface DreSimulacao {
   resumo: DreResumo;
   linhas: DreLinha[];
 }
+

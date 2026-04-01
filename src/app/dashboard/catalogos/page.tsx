@@ -18,7 +18,7 @@ export default async function CatalogosPage() {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect("/auth/login?next=/dashboard/catalogos");
+    redirect("/auth/login?next=/dashboard/produtos/catalogos");
   }
 
   const ent = await getEntitlements(supabase, user.id);
@@ -98,7 +98,7 @@ export default async function CatalogosPage() {
             {catalogs.map((catalog) => (
               <Link
                 key={catalog.id}
-                href={`/dashboard/catalogos/${catalog.id}`}
+                href={`/dashboard/produtos/catalogos/${catalog.id}`}
                 className="card catalog-history-card"
               >
                 <div className="catalog-history-top">
@@ -122,3 +122,4 @@ export default async function CatalogosPage() {
     </div>
   );
 }
+

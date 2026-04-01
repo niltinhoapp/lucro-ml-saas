@@ -766,3 +766,4 @@ export async function extractCatalogItems(
     };
   }
 }
+

@@ -258,3 +258,4 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: false, error: "Falha no endpoint de IA." }, { status: 500 });
   }
 }
+

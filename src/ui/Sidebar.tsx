@@ -16,19 +16,19 @@ const modules: SidebarModule[] = [
     items: [
       {
         label: "Radar ML",
-        href: "/dashboard/radar",
+        href: "/dashboard/produtos/radar",
         requiredPlan: "plus",
         description: "Descubra produtos com boa procura e menor concorrência.",
       },
       {
         label: "Catálogos de fornecedor",
-        href: "/dashboard/catalogos",
+        href: "/dashboard/produtos/catalogos",
         requiredPlan: "plus",
         description: "Leia catálogos e descubra produtos com potencial.",
       },
       {
         label: "Estratégias ML",
-        href: "/dashboard/estrategias",
+        href: "/dashboard/produtos/estrategias",
         requiredPlan: "plus",
         description: "Acesse estratégias práticas para vender melhor.",
       },
@@ -53,7 +53,7 @@ const modules: SidebarModule[] = [
       },
       {
         label: "Fluxo de caixa",
-        href: "/dashboard/fluxo-caixa",
+        href: "/dashboard/lucro/fluxo-caixa",
         requiredPlan: "pro",
         description: "Acompanhe entradas, saídas e fôlego financeiro.",
       },
@@ -71,7 +71,7 @@ const modules: SidebarModule[] = [
     items: [
       {
         label: "Simulador de compra",
-        href: "/dashboard/simulador",
+        href: "/dashboard/operacao/simulador",
         requiredPlan: "pro",
         description: "Avalie risco, retorno e capital antes de comprar.",
       },
@@ -268,3 +268,4 @@ export default async function Sidebar() {
     </aside>
   );
 }
+

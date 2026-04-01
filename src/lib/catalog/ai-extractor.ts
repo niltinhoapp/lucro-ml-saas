@@ -369,3 +369,4 @@ export async function extractCatalogItemsWithAI(input: {
     clearTimeout(timeout);
   }
 }
+

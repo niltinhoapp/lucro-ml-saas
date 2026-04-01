@@ -31,3 +31,4 @@ export function calcularDRE(linhas: LinhaDre[]): DreBasico {
 
   return { receita, custos, taxas, lucro };
 }
+

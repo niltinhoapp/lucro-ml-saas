@@ -120,3 +120,4 @@ export async function getEntitlements(
       : PLAN_SPECS.free_trial.aiDailyLimit,
   };
 }
+

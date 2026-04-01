@@ -13,3 +13,4 @@ export async function POST(req: Request) {
     adsPercent: Number(body?.adsPercent ?? 6),
   }));
 }
+

@@ -11,3 +11,4 @@ export default function StrategyBellBadge({ unreadCount }: Props) {
     </span>
   );
 }
+

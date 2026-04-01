@@ -80,3 +80,4 @@ export async function POST(req: Request) {
     return apiError("Não foi possível atualizar os favoritos.", error);
   }
 }
+

@@ -40,3 +40,4 @@ export async function POST(req: Request) {
   if (error) return NextResponse.json({ error: "Erro ao salvar SKU." }, { status: 500 });
   return NextResponse.json(data);
 }
+

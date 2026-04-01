@@ -104,7 +104,7 @@ export default function AjudaPage() {
             <Link href="/dashboard/diagnostico" className="btn btn-primary">
               Ver diagnóstico
             </Link>
-            <Link href="/dashboard/catalogos" className="btn btn-ghost">
+            <Link href="/dashboard/produtos/catalogos" className="btn btn-ghost">
               Analisar catálogo
             </Link>
           </div>
@@ -133,3 +133,4 @@ export default function AjudaPage() {
     </div>
   );
 }
+

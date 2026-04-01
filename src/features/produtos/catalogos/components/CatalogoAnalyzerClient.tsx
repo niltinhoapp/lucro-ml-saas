@@ -207,7 +207,7 @@ export default function CatalogoAnalyzerClient({
       const payload = await response.json().catch(() => null);
 
       if (response.status === 401) {
-        window.location.href = "/auth/login?next=/dashboard/catalogos";
+        window.location.href = "/auth/login?next=/dashboard/produtos/catalogos";
         return;
       }
 
@@ -275,7 +275,7 @@ export default function CatalogoAnalyzerClient({
           {savedCatalogId && (
             <div className="alert success" style={{ marginTop: 12 }}>
               Catálogo salvo.{" "}
-              <Link href={`/dashboard/catalogos/${savedCatalogId}`}>
+              <Link href={`/dashboard/produtos/catalogos/${savedCatalogId}`}>
                 Abrir análise
               </Link>
             </div>
@@ -416,7 +416,7 @@ export default function CatalogoAnalyzerClient({
             {savedCatalogs.map((catalog) => (
               <Link
                 key={catalog.id}
-                href={`/dashboard/catalogos/${catalog.id}`}
+                href={`/dashboard/produtos/catalogos/${catalog.id}`}
                 className="catalog-history-card"
               >
                 <div className="catalog-history-top">
@@ -442,3 +442,4 @@ export default function CatalogoAnalyzerClient({
     </div>
   );
 }
+

@@ -12,3 +12,4 @@ export default async function CheckoutPage(props: Props) {
 
   return <CheckoutPageClient mpStatus={mpStatus} />;
 }
+

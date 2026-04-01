@@ -40,7 +40,7 @@ export default function StrategyNotificationCard({
 
         <div className="flex flex-wrap gap-3">
           <button
-            onClick={() => router.push("/dashboard/estrategias")}
+            onClick={() => router.push("/dashboard/produtos/estrategias")}
             className="px-5 py-3 text-sm font-semibold transition rounded-2xl bg-cyan-400 text-neutral-950 hover:opacity-90"
           >
             Abrir estratégias
@@ -50,3 +50,4 @@ export default function StrategyNotificationCard({
     </section>
   );
 }
+

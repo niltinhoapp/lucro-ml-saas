@@ -230,3 +230,4 @@ export default function PriceSuggestAI(props: {
     </section>
   );
 }
+

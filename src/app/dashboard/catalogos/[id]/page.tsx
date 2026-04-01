@@ -42,7 +42,7 @@ export default async function CatalogoDetalhePage({
   } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect("/auth/login?next=/dashboard/catalogos");
+    redirect("/auth/login?next=/dashboard/produtos/catalogos");
   }
 
   const ent = await getEntitlements(supabase, user.id);
@@ -118,10 +118,10 @@ export default async function CatalogoDetalhePage({
           </div>
 
           <div className="catalog-detail-actions">
-            <Link href="/dashboard/catalogos" className="btn btn-secondary">
+            <Link href="/dashboard/produtos/catalogos" className="btn btn-secondary">
               Voltar
             </Link>
-            <Link href="/dashboard/simulador" className="btn btn-primary">
+            <Link href="/dashboard/operacao/simulador" className="btn btn-primary">
               Simular compra
             </Link>
           </div>
@@ -251,3 +251,4 @@ export default async function CatalogoDetalhePage({
     </div>
   );
 }
+

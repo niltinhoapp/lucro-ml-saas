@@ -10,3 +10,4 @@ export default function Header({ children }: { children?: ReactNode }) {
     </header>
   );
 }
+

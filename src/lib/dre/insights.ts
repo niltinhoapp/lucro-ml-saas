@@ -199,3 +199,4 @@ export function gerarInsightsDre(dre?: Partial<DreResultado> | null): DreInsight
     return a.title.localeCompare(b.title, "pt-BR");
   });
 }
+

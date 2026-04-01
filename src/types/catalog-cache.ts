@@ -18,3 +18,4 @@ export type CatalogStructuredResult = {
   warnings?: string[];
   source?: "cache" | "ai";
 };
+

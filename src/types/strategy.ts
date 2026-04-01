@@ -40,3 +40,4 @@ export const STRATEGY_FILTERS = [
 ] as const;
 
 export type StrategyFilter = (typeof STRATEGY_FILTERS)[number];
+

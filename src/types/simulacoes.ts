@@ -14,3 +14,4 @@ export type SimulacaoRow = {
   origem?: "upload" | "calculadora" | string;
   arquivo_nome?: string | null;
 };
+

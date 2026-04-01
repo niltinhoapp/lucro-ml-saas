@@ -56,3 +56,4 @@ export async function analyzeCatalogBuffer(
     rows: analyzed.rows,
   };
 }
+

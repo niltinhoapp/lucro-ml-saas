@@ -106,3 +106,4 @@ export async function GET() {
     return apiError("Não foi possível carregar o ranking.", error);
   }
 }
+

@@ -101,7 +101,7 @@ export default function HomePublicPage() {
           title="Compra mais inteligente"
           desc="Simule lote, margem e tempo de giro antes de comprar para evitar estoque ruim e caixa travado."
           cta="Simular compra"
-          href="/dashboard/simulador"
+          href="/dashboard/operacao/simulador"
         />
       </section>
 
@@ -171,3 +171,4 @@ function ModuleCard({
     </div>
   );
 }
+

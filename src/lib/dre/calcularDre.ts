@@ -57,3 +57,4 @@ export function calcularDre(linhas: LinhaVenda[]): DreResultado {
     margem,
   };
 }
+

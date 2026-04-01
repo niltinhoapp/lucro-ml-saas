@@ -9,3 +9,4 @@ export const getDespesas = (): Despesa[] => [
   { id: 1, descricao: "Frete", valor: 500, data: "2026-02-01" },
   { id: 2, descricao: "Taxa ML", valor: 800, data: "2026-02-02" },
 ];
+

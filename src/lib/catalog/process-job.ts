@@ -122,3 +122,4 @@ export async function processCatalogJob(jobId: string) {
     updated_at: new Date().toISOString(),
   }).eq("id", jobId);
 }
+

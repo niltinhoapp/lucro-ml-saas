@@ -46,7 +46,7 @@ export default function FluxoCaixaPageClient() {
 
             <button
               className="btn-primary"
-              onClick={() => router.push("/dashboard/fluxo-caixa/historico")}
+              onClick={() => router.push("/dashboard/lucro/fluxo-caixa/historico")}
             >
               Ver histórico
             </button>
@@ -76,7 +76,7 @@ export default function FluxoCaixaPageClient() {
             setLast(normalized);
 
             if (normalized.id) {
-              router.push(`/dashboard/fluxo-caixa/relatorio?id=${normalized.id}`);
+              router.push(`/dashboard/lucro/fluxo-caixa/relatorio?id=${normalized.id}`);
             }
           }}
         />
@@ -102,14 +102,14 @@ export default function FluxoCaixaPageClient() {
           <div style={{ marginTop: 12, display: "flex", gap: 10, flexWrap: "wrap" }}>
             <button
               className="btn-primary"
-              onClick={() => router.push(`/dashboard/fluxo-caixa/relatorio?id=${last.id}`)}
+              onClick={() => router.push(`/dashboard/lucro/fluxo-caixa/relatorio?id=${last.id}`)}
             >
               Abrir relatório →
             </button>
 
             <button
               className="btn"
-              onClick={() => router.push("/dashboard/fluxo-caixa/historico")}
+              onClick={() => router.push("/dashboard/lucro/fluxo-caixa/historico")}
             >
               Ver histórico
             </button>
@@ -119,3 +119,4 @@ export default function FluxoCaixaPageClient() {
     </div>
   );
 }
+

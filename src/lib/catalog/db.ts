@@ -45,3 +45,4 @@ export type CatalogDbAnalysis = {
   created_at: string;
   updated_at: string;
 };
+

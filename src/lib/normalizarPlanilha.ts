@@ -267,3 +267,4 @@ export function normalizarPlanilha(rows: Record<string, any>[]) {
 
   return { linhas, camposDetectados, camposIgnorados, headers };
 }
+
