@@ -48,7 +48,9 @@ export async function analyzeCatalogBuffer(
 
   return {
     fileName,
-    mode: analyzed.rows.length ? ("structured" as const) : ("manual_review" as const),
+    mode: analyzed.rows.length
+      ? ("structured" as const)
+      : ("manual_review" as const),
     aiSummary: {
       ...analyzed.summary,
       extractedTextPreview: text.slice(0, 1500),
@@ -56,7 +58,3 @@ export async function analyzeCatalogBuffer(
     rows: analyzed.rows,
   };
 }
-
-
-
-

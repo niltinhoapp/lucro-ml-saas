@@ -66,7 +66,7 @@ export async function processCatalogById(catalogId: string) {
   const userId = catalog.user_id as string;
   const bucket = process.env.CATALOG_BUCKET || "catalogs";
 
-  await upsertRun(catalogId, userId, "parse", "running", "Iniciando leitura do PDF.");
+  await upsertRun(catalogId, userId, "parse", "running", "Iniciando leitura do arquivo.");
 
   await admin
     .from("supplier_catalogs")
@@ -93,15 +93,21 @@ export async function processCatalogById(catalogId: string) {
   }
 
   const buffer = Buffer.from(await fileData.arrayBuffer());
-  const { text } = await extractLikelyPdfText(buffer);
 
-  if (!text) {
-    await upsertRun(catalogId, userId, "parse", "error", "PDF sem texto legível.");
+  let text = "";
+  if ((catalog.file_name || "").toLowerCase().endsWith(".pdf")) {
+    const extracted = await extractLikelyPdfText(buffer);
+    text = extracted.text;
+  } else {
+    text = buffer.toString("utf-8");
+  }
+
+  if (!text.trim()) {
+    await upsertRun(catalogId, userId, "parse", "error", "Arquivo sem texto legível.");
     await admin
       .from("supplier_catalogs")
       .update({
         status: "error",
-        extracted_text_preview: "Nenhum texto legível foi extraído deste arquivo.",
         updated_at: new Date().toISOString(),
       })
       .eq("id", catalogId);
@@ -109,7 +115,7 @@ export async function processCatalogById(catalogId: string) {
   }
 
   await upsertRun(catalogId, userId, "parse", "success", "Texto extraído com sucesso.");
-  await upsertRun(catalogId, userId, "normalize", "running", "Enviando conteúdo para IA.");
+  await upsertRun(catalogId, userId, "normalize", "running", "Enviando conteúdo para estruturação.");
 
   const ai = await extractCatalogItemsWithAI({ extractedText: text });
   const validItems = validateAndNormalizeCatalogItems(ai.items);
@@ -158,59 +164,54 @@ export async function processCatalogById(catalogId: string) {
 
   const analyzed = analyzeCatalogRows(validItems);
 
-  await admin
-    .from("catalog_item_analysis")
-    .delete()
-    .in(
-      "item_id",
-      (
-        await admin
-          .from("supplier_catalog_items")
-          .select("id")
-          .eq("catalog_id", catalogId)
-      ).data?.map((x) => x.id) || []
-    );
-
-  const { data: insertedItems } = await admin
+  const { data: catalogItems } = await admin
     .from("supplier_catalog_items")
     .select("id, normalized_name, supplier_sku")
     .eq("catalog_id", catalogId);
 
-  if (insertedItems?.length) {
-    const analysisPayload = analyzed.rows.map((row) => {
-      const match =
-        insertedItems.find(
-          (it) =>
-            (it.supplier_sku || null) === (row.sku || null) &&
-            it.normalized_name === row.productName
-        ) ||
-        insertedItems.find((it) => it.normalized_name === row.productName);
+  const itemIds = (catalogItems || []).map((x) => x.id);
 
-      if (!match) return null;
+  if (itemIds.length) {
+    await admin.from("catalog_item_analysis").delete().in("item_id", itemIds);
+  }
 
-      return {
-        item_id: match.id,
-        user_id: userId,
-        ml_search_term: row.productName,
-        ml_price_avg: row.mlPriceAvg,
-        ml_price_min: row.mlPriceMin,
-        ml_price_max: row.mlPriceMax,
-        estimated_fees: row.estimatedFees,
-        estimated_shipping: row.estimatedShipping,
-        estimated_margin: row.estimatedMargin,
-        estimated_profit: row.estimatedProfit,
-        demand_score: row.demandScore,
-        competition_score: row.competitionScore,
-        opportunity_score: row.opportunityScore,
-        risk_level: row.riskLevel,
-        analysis: {
-          worthBuying: row.worthBuying,
-          specs: row.specs,
-          notes: row.notes,
-        },
-        ai_summary: row.aiSummary,
-      };
-    }).filter(Boolean);
+  if (catalogItems?.length) {
+    const analysisPayload = analyzed.rows
+      .map((row) => {
+        const match =
+          catalogItems.find(
+            (it) =>
+              (it.supplier_sku || null) === (row.sku || null) &&
+              it.normalized_name === row.productName
+          ) ||
+          catalogItems.find((it) => it.normalized_name === row.productName);
+
+        if (!match) return null;
+
+        return {
+          item_id: match.id,
+          user_id: userId,
+          ml_search_term: row.productName,
+          ml_price_avg: row.mlPriceAvg ?? 0,
+          ml_price_min: row.mlPriceMin ?? 0,
+          ml_price_max: row.mlPriceMax ?? 0,
+          estimated_fees: row.estimatedFees ?? 0,
+          estimated_shipping: row.estimatedShipping ?? 0,
+          estimated_margin: row.estimatedMargin ?? 0,
+          estimated_profit: row.estimatedProfit ?? 0,
+          demand_score: row.demandScore ?? 0,
+          competition_score: row.competitionScore ?? 0,
+          opportunity_score: row.opportunityScore ?? 0,
+          risk_level: row.riskLevel,
+          analysis: {
+            worthBuying: row.worthBuying,
+            specs: row.specs,
+            notes: row.notes,
+          },
+          ai_summary: row.aiSummary ?? null,
+        };
+      })
+      .filter(Boolean);
 
     if (analysisPayload.length) {
       const { error: insertAnalysisError } = await admin
@@ -221,7 +222,7 @@ export async function processCatalogById(catalogId: string) {
     }
   }
 
-  analyzed.summary.extractedTextPreview = safePreviewText(text);
+  const extractedTextPreview = safePreviewText(text);
 
   await upsertRun(catalogId, userId, "analyze", "success", "Análise concluída.");
   await upsertRun(catalogId, userId, "finalize", "success", "Catálogo finalizado.");
@@ -232,12 +233,16 @@ export async function processCatalogById(catalogId: string) {
       status: "analyzed",
       items_count: analyzed.rows.length,
       parsed_at: new Date().toISOString(),
-      extracted_text_preview: analyzed.summary.extractedTextPreview,
       updated_at: new Date().toISOString(),
     })
     .eq("id", catalogId);
+
+  return {
+    catalogId,
+    summary: {
+      ...analyzed.summary,
+      extractedTextPreview,
+    },
+    rows: analyzed.rows,
+  };
 }
-
-
-
-

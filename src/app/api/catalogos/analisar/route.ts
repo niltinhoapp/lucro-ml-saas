@@ -90,6 +90,10 @@ export async function POST(req: Request) {
     console.log("[api/catalogos/analisar] mode:", result.mode);
 
     const title = fileName.replace(/\.[^.]+$/, "");
+    const sourceType = fileName.toLowerCase().endsWith(".pdf")
+      ? "pdf"
+      : "spreadsheet";
+
     const isStructured =
       result.mode === "structured" &&
       Array.isArray(result.rows) &&
@@ -102,9 +106,10 @@ export async function POST(req: Request) {
         user_id: user.id,
         title,
         file_name: fileName,
-        source_type: "pdf",
+        source_type: sourceType,
         status: isStructured ? "analyzed" : "parsed",
         items_count: isStructured ? result.rows.length : 0,
+        parsed_at: isStructured ? new Date().toISOString() : null,
       })
       .select("id")
       .single();
@@ -133,7 +138,7 @@ export async function POST(req: Request) {
         supplier_sku: row.sku,
         brand: row.brand,
         category: row.category,
-        supplier_cost: row.supplierCost,
+        supplier_cost: row.supplierCost ?? 0,
         min_qty: row.unitsPerBox,
         unit: row.unitsPerBox ? "caixa" : "un",
         notes: row.notes,
@@ -148,6 +153,8 @@ export async function POST(req: Request) {
           mlPriceMax: row.mlPriceMax,
           estimatedMargin: row.estimatedMargin,
           estimatedProfit: row.estimatedProfit,
+          estimatedFees: row.estimatedFees,
+          estimatedShipping: row.estimatedShipping,
           demandScore: row.demandScore,
           competitionScore: row.competitionScore,
           opportunityScore: row.opportunityScore,
@@ -160,7 +167,7 @@ export async function POST(req: Request) {
       const { data: insertedItems, error: itemsError } = await sb
         .from("supplier_catalog_items")
         .insert(itemPayload)
-        .select("id, raw_name, supplier_sku");
+        .select("id, raw_name, normalized_name, supplier_sku");
 
       if (itemsError) {
         console.error(
@@ -204,79 +211,93 @@ export async function POST(req: Request) {
           "[api/catalogos/analisar] salvando catalog_item_analysis..."
         );
 
-        const analysisPayload = insertedItems.map((item, index) => {
-          const row = result.rows[index];
+        const analysisPayload = insertedItems
+          .map((item) => {
+            const row =
+              result.rows.find(
+                (r) =>
+                  (item.supplier_sku || null) === (r.sku || null) &&
+                  (item.normalized_name || item.raw_name) === r.productName
+              ) ||
+              result.rows.find(
+                (r) => (item.normalized_name || item.raw_name) === r.productName
+              );
 
-          return {
-            item_id: item.id,
-            user_id: user.id,
-            ml_search_term: row.productName,
-            ml_price_avg: row.mlPriceAvg,
-            ml_price_min: row.mlPriceMin,
-            ml_price_max: row.mlPriceMax,
-            estimated_fees: row.estimatedFees,
-            estimated_shipping: row.estimatedShipping,
-            estimated_margin: row.estimatedMargin,
-            estimated_profit: row.estimatedProfit,
-            demand_score: row.demandScore,
-            competition_score: row.competitionScore,
-            opportunity_score: row.opportunityScore,
-            risk_level: row.riskLevel,
-            analysis: {
-              aiSummary: row.aiSummary,
-              source: "catalog-analysis-v2",
-              worthBuying: row.worthBuying,
-              specs: row.specs,
-              notes: row.notes,
-              supplierSku: row.sku,
-              model: row.model,
-              brand: row.brand,
-              category: row.category,
-            },
-            ai_summary: row.aiSummary,
-          };
-        });
+            if (!row) return null;
 
-        const { error: analysisError } = await sb
-          .from("catalog_item_analysis")
-          .insert(analysisPayload);
-
-        if (analysisError) {
-          console.error(
-            "[api/catalogos/analisar] erro ao salvar catalog_item_analysis:",
-            analysisError
-          );
-
-          await sb.from("catalog_runs").insert({
-            catalog_id: catalog.id,
-            user_id: user.id,
-            step: "analyze",
-            status: "error",
-            logs: [
-              {
-                at: new Date().toISOString(),
-                message:
-                  "Catálogo e itens salvos, mas houve falha ao salvar a análise detalhada.",
-                details: String(analysisError.message || "unknown_error"),
+            return {
+              item_id: item.id,
+              user_id: user.id,
+              ml_search_term: row.productName,
+              ml_price_avg: row.mlPriceAvg ?? 0,
+              ml_price_min: row.mlPriceMin ?? 0,
+              ml_price_max: row.mlPriceMax ?? 0,
+              estimated_fees: row.estimatedFees ?? 0,
+              estimated_shipping: row.estimatedShipping ?? 0,
+              estimated_margin: row.estimatedMargin ?? 0,
+              estimated_profit: row.estimatedProfit ?? 0,
+              demand_score: row.demandScore ?? 0,
+              competition_score: row.competitionScore ?? 0,
+              opportunity_score: row.opportunityScore ?? 0,
+              risk_level: row.riskLevel,
+              analysis: {
+                aiSummary: row.aiSummary,
+                source: "catalog-analysis-v2",
+                worthBuying: row.worthBuying,
+                specs: row.specs,
+                notes: row.notes,
+                supplierSku: row.sku,
+                model: row.model,
+                brand: row.brand,
+                category: row.category,
               },
-            ],
-          });
+              ai_summary: row.aiSummary ?? null,
+            };
+          })
+          .filter(Boolean);
 
-          return NextResponse.json(
-            {
-              ok: true,
-              warning:
-                "Catálogo e itens salvos, mas houve falha ao salvar a análise detalhada.",
-              savedCatalogId: catalog.id,
-              result,
-            },
-            { status: 200 }
+        if (analysisPayload.length) {
+          const { error: analysisError } = await sb
+            .from("catalog_item_analysis")
+            .insert(analysisPayload);
+
+          if (analysisError) {
+            console.error(
+              "[api/catalogos/analisar] erro ao salvar catalog_item_analysis:",
+              analysisError
+            );
+
+            await sb.from("catalog_runs").insert({
+              catalog_id: catalog.id,
+              user_id: user.id,
+              step: "analyze",
+              status: "error",
+              logs: [
+                {
+                  at: new Date().toISOString(),
+                  message:
+                    "Catálogo e itens salvos, mas houve falha ao salvar a análise detalhada.",
+                  details: String(analysisError.message || "unknown_error"),
+                },
+              ],
+            });
+
+            return NextResponse.json(
+              {
+                ok: true,
+                warning:
+                  "Catálogo e itens salvos, mas houve falha ao salvar a análise detalhada.",
+                savedCatalogId: catalog.id,
+                result,
+              },
+              { status: 200 }
+            );
+          }
+
+          console.log(
+            "[api/catalogos/analisar] catalog_item_analysis salvo com sucesso"
           );
         }
-
-        console.log(
-          "[api/catalogos/analisar] catalog_item_analysis salvo com sucesso"
-        );
       }
     } else {
       console.log(
@@ -353,7 +374,3 @@ export async function POST(req: Request) {
     );
   }
 }
-
-
-
-

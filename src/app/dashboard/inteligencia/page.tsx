@@ -1,22 +1,18 @@
 import PlanGate from "@/components/paywall/PlanGate";
-import MarketIntelligenceClient from "@/components/market/MarketIntelligenceClient";
+import InteligenciaView from "./InteligenciaView";
 
 export default function InteligenciaPage() {
   return (
     <PlanGate
-      requiredPlan="pro"
-      title="Inteligência de mercado para decidir melhor"
-      description="No PRO, você analisa cenário, demanda, concorrência e potencial de produto com mais clareza antes de comprar, testar ou escalar uma oportunidade."
+      requiredPlan="plus"
+      title="Inteligência para analisar catálogos"
+      description="Envie catálogos de fornecedor e receba uma leitura prática dos itens, riscos e sinais de oportunidade."
       bullets={[
-        "Entenda risco, demanda e espaço de mercado com mais contexto.",
-        "Tome decisões de produto com mais segurança e menos achismo.",
+        "Transforme PDF em leitura prática",
+        "Priorize o que vale revisar, testar ou descartar",
       ]}
     >
-      <MarketIntelligenceClient />
+      <InteligenciaView />
     </PlanGate>
   );
 }
-
-
-
-
