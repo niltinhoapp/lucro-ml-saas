@@ -1,7 +1,7 @@
 
 import { NextResponse } from "next/server";
-import { createServerClient } from "@/supabase/server";
-import { getEntitlements } from "@/supabase/entitlements";
+import { createServerClient } from "@/integrations/supabase/server";
+import { getEntitlements } from "@/integrations/supabase/entitlements";
 
 export async function validatePlusRadarAccess() {
   const supabase = await createServerClient();

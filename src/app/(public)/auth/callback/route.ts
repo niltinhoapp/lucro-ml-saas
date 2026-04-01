@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createServerClient } from "@/supabase/server";
+import { createServerClient } from "@/integrations/supabase/server";
 
 function safeNext(next?: string | null) {
   if (!next) return "/dashboard";

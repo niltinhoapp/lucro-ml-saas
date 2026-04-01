@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { logoutAction } from "@/app/(public)/auth/logout/actions";
-import { createServerClient } from "@/supabase/server";
+import { createServerClient } from "@/integrations/supabase/server";
 import { normalizeProfilePlan } from "@/lib/plans";
 import SidebarNavClient, {
   type SidebarModule,
@@ -59,7 +59,7 @@ const modules: SidebarModule[] = [
       },
       {
         label: "Full vs Flex",
-        href: "/dashboard/full-vs-flex",
+        href: "/dashboard/lucro/full-vs-flex",
         requiredPlan: "pro",
         description: "Compare cenários logísticos e escolha melhor.",
       },

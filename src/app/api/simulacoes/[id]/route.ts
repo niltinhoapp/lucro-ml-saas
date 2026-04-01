@@ -1,6 +1,6 @@
 // src/app/api/simulacoes/[id]/route.ts
 import { NextResponse } from "next/server";
-import { createServerClient } from "@/supabase/server";
+import { createServerClient } from "@/integrations/supabase/server";
 import {
   calcularDre,
   type LinhaVenda,

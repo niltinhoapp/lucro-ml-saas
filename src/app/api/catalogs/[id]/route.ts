@@ -1,8 +1,8 @@
 export const runtime = "nodejs";
 
 import { NextResponse } from "next/server";
-import { createServerClient } from "@/supabase/server";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { createServerClient } from "@/integrations/supabase/server";
+import { createAdminClient } from "@/integrations/supabase/admin";
 
 export async function GET(_: Request, context: { params: Promise<{ id: string }> }) {
   try {

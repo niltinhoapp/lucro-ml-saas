@@ -5,7 +5,7 @@ import {
   RefreshCcw,
   ShieldCheck,
 } from "lucide-react";
-import { createServerClient } from "@/supabase/server";
+import { createServerClient } from "@/integrations/supabase/server";
 import { getPlanSpec, normalizeProfilePlan } from "@/lib/plans";
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;

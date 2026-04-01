@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { analyzeCatalogBuffer } from "@/lib/catalog/analyze";
-import { supabaseServer } from "@/lib/supabase/server";
-import { getEntitlements } from "@/supabase/entitlements";
+import { createServerClient } from "@/integrations/supabase/server";
+import { getEntitlements } from "@/integrations/supabase/entitlements";
 
 export const runtime = "nodejs";
 
@@ -38,7 +38,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const sb = await supabaseServer();
+    const sb = await createServerClient();
 
     const {
       data: { user },

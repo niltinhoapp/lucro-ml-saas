@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { exchangeMlCode, fetchMlMe } from "@/lib/mercadolivre/client";
 import { ML_STATE_COOKIE, ML_VERIFIER_COOKIE } from "@/lib/mercadolivre/oauth";
-import { createServerClient } from "@/supabase/server";
+import { createServerClient } from "@/integrations/supabase/server";
 import { canUseMlConnection, normalizeProfilePlan } from "@/lib/plans";
 
 type ProfileRow = {

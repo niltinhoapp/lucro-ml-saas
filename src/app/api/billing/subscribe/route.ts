@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
-import { supabaseServer } from "@/lib/supabase/server";
+import { createServerClient } from "@/integrations/supabase/server";
 import { mpCreateSubscription } from "@/services/mercadopago";
 
 export const runtime = "nodejs";
 
 export async function POST(req: Request) {
   try {
-    const sb = await supabaseServer();
+    const sb = await createServerClient();
     const {
       data: { user },
     } = await sb.auth.getUser();

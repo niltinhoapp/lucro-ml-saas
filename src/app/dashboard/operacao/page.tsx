@@ -1,6 +1,6 @@
 
 import Link from "next/link";
-import { moduleCards } from "../_shared/dashboard-data";
+import { moduleCards } from "@/features/dashboard/shared/dashboard-data";
 
 export default function OperacaoPage() {
   const module = moduleCards.find((item) => item.title === "Operação");

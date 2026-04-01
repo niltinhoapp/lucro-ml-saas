@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { redirect } from "next/navigation";
-import { createServerClient } from "@/supabase/server";
-import { getEntitlements } from "@/supabase/entitlements";
+import { createServerClient } from "@/integrations/supabase/server";
+import { getEntitlements } from "@/integrations/supabase/entitlements";
 
 export default async function AppLayout({ children }: { children: ReactNode }) {
   const supabase = await createServerClient();

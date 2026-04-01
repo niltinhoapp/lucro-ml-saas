@@ -1,7 +1,7 @@
 import Link from "next/link";
-import { createServerClient } from "@/supabase/server";
+import { createServerClient } from "@/integrations/supabase/server";
 import LockedFeatureTrigger from "@/ui/LockedFeatureTrigger";
-import { getEntitlements } from "@/supabase/entitlements";
+import { getEntitlements } from "@/integrations/supabase/entitlements";
 import {
   canAccess,
   dashboardIconMap,
@@ -11,7 +11,7 @@ import {
   quickActions,
   shouldShowBadge,
   type UserPlan,
-} from "./_shared/dashboard-data";
+} from "@/features/dashboard/shared/dashboard-data";
 import {
   ArrowRight,
   Crown,

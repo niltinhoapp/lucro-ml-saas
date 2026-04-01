@@ -5,8 +5,8 @@ import * as XLSX from "xlsx";
 import { normalizarPlanilha } from "@/lib/normalizarPlanilha";
 import { calcularDre } from "@/lib/dre/calcularDre";
 
-import { createServerClient } from "@/supabase/server";
-import { getEntitlements } from "@/supabase/entitlements";
+import { createServerClient } from "@/integrations/supabase/server";
+import { getEntitlements } from "@/integrations/supabase/entitlements";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

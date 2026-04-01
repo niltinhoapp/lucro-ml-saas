@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
-import { createServerClient } from "@/supabase/server";
-import { getEntitlements } from "@/supabase/entitlements";
+import { createServerClient } from "@/integrations/supabase/server";
+import { getEntitlements } from "@/integrations/supabase/entitlements";
 import DrePageClient from "./DrePageClient";
 import PlanGate from "@/components/paywall/PlanGate";
 

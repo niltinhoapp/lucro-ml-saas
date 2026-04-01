@@ -2,8 +2,8 @@ export const runtime = "nodejs";
 
 import { NextResponse } from "next/server";
 import { sha256Buffer } from "@/lib/catalog/hash";
-import { createAdminClient } from "@/lib/supabase/admin";
-import { createServerClient } from "@/supabase/server";
+import { createAdminClient } from "@/integrations/supabase/admin";
+import { createServerClient } from "@/integrations/supabase/server";
 
 async function assertCatalogQuota(userId: string) {
   const admin = createAdminClient();

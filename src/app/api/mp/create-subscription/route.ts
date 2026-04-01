@@ -1,6 +1,6 @@
 // src/app/api/mp/create-subscription/route.ts
 import { NextResponse } from "next/server";
-import { createServerClient } from "@/supabase/server";
+import { createServerClient } from "@/integrations/supabase/server";
 import { mpCreateSubscription } from "@/services/mercadopago";
 import { isSubscriptionPlan, type SubscriptionPlan } from "@/lib/plans";
 

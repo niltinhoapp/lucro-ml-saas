@@ -1,4 +1,4 @@
-import { createServerClient } from "@/supabase/server";
+import { createServerClient } from "@/integrations/supabase/server";
 
 type CatalogAiCacheRow = {
   id: string;

@@ -1,4 +1,4 @@
-import { createAdminClient } from "@/lib/supabase/admin";
+import { createAdminClient } from "@/integrations/supabase/admin";
 import { extractLikelyPdfText } from "./pdf";
 import { extractCatalogItemsWithAI } from "./ai-extractor";
 import { validateAndNormalizeCatalogItems } from "./validator";

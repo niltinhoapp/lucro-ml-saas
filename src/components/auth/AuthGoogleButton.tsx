@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { supabaseBrowser } from "@/supabase/client";
+import { supabaseBrowser } from "@/integrations/supabase/client";
 
 type Props = {
   next?: string;

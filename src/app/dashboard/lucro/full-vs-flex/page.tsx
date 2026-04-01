@@ -1,1 +1,3 @@
-export { default } from "../../full-vs-flex/page";
+export default function FullVsFlexPage() {
+  return <div>Full vs Flex</div>;
+}

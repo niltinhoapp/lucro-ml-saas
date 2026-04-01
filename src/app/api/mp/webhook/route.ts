@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { supabaseAdmin } from "@/lib/supabase/admin";
+import { createAdminClient } from "@/integrations/supabase/admin";
 import {
   subscriptionPlanToProfilePlan,
   isSubscriptionPlan,
@@ -134,8 +134,7 @@ export async function POST(req: Request) {
       externalReference
     );
 
-    const { data: existingSub } = await supabaseAdmin
-      .from("subscriptions")
+    const { data: existingSub } = await createAdminClient().from("subscriptions")
       .select("plan")
       .or(`provider_id.eq.${preapprovalId},user_id.eq.${userId}`)
       .order("updated_at", { ascending: false })
@@ -156,8 +155,7 @@ export async function POST(req: Request) {
 
     const profilePlan = mapPlanFromStatus(status, requestedPlan);
 
-    const { error: subErr } = await supabaseAdmin
-      .from("subscriptions")
+    const { error: subErr } = await createAdminClient().from("subscriptions")
       .upsert(
         {
           user_id: userId,
@@ -189,8 +187,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const { data: profile, error: profileErr } = await supabaseAdmin
-      .from("profiles")
+    const { data: profile, error: profileErr } = await createAdminClient().from("profiles")
       .select("plan")
       .eq("id", userId)
       .single<{ plan: string }>();
@@ -221,8 +218,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const { error: updErr } = await supabaseAdmin
-      .from("profiles")
+    const { error: updErr } = await createAdminClient().from("profiles")
       .update({ plan: profilePlan })
       .eq("id", userId);
 
@@ -255,3 +251,6 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: false, error: msg }, { status: 200 });
   }
 }
+
+
+

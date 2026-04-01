@@ -1,7 +1,7 @@
 export const runtime = "nodejs";
 
 import { NextResponse } from "next/server";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { createAdminClient } from "@/integrations/supabase/admin";
 import { processCatalogById } from "@/lib/catalog/process-catalog";
 
 export async function POST(req: Request) {

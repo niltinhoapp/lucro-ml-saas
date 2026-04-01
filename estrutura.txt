@@ -1,0 +1,32 @@
+Listagem de caminhos de pasta
+O número de série do volume é 5CE7-4463
+D:\USUARIO1\NILTINHO\NOVA PASTA\LUCRO-ML-SAAS-ML-OAUTH\APP
+Caminho inválido - \USUARIO1\NILTINHO\NOVA PASTA\LUCRO-ML-SAAS-ML-OAUTH\APP
+Não existem subpastas 
+
+Listagem de caminhos de pasta
+O número de série do volume é 5CE7-4463
+D:\USUARIO1\NILTINHO\NOVA PASTA\LUCRO-ML-SAAS-ML-OAUTH\COMPONENTS
+Caminho inválido - \USUARIO1\NILTINHO\NOVA PASTA\LUCRO-ML-SAAS-ML-OAUTH\COMPONENTS
+Não existem subpastas 
+
+Listagem de caminhos de pasta
+O número de série do volume é 5CE7-4463
+D:\USUARIO1\NILTINHO\NOVA PASTA\LUCRO-ML-SAAS-ML-OAUTH\LIB
+Caminho inválido - \USUARIO1\NILTINHO\NOVA PASTA\LUCRO-ML-SAAS-ML-OAUTH\LIB
+Não existem subpastas 
+
+Listagem de caminhos de pasta
+O número de série do volume é 5CE7-4463
+D:\USUARIO1\NILTINHO\NOVA PASTA\LUCRO-ML-SAAS-ML-OAUTH\SUPABASE
+\---migrations
+        20260308_catalogos_plus.sql
+        20260314_radar_ml_history_favorites.sql
+        20260315_ml_connections.sql
+        
+Listagem de caminhos de pasta
+O número de série do volume é 5CE7-4463
+D:\USUARIO1\NILTINHO\NOVA PASTA\LUCRO-ML-SAAS-ML-OAUTH\STYLES
+Caminho inválido - \USUARIO1\NILTINHO\NOVA PASTA\LUCRO-ML-SAAS-ML-OAUTH\STYLES
+Não existem subpastas 
+

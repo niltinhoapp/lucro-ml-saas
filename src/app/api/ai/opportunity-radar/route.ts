@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { createServerClient } from "@/supabase/server";
-import { getEntitlements } from "@/supabase/entitlements";
+import { createServerClient } from "@/integrations/supabase/server";
+import { getEntitlements } from "@/integrations/supabase/entitlements";
 import { fetchMlMe, refreshMlToken } from "@/lib/mercadolivre/client";
 
 const ML_API_BASE = "https://api.mercadolibre.com";

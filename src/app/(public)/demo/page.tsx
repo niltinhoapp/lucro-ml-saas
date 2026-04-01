@@ -121,7 +121,7 @@ export default function HomePage() {
             </div>
 
             <div className="actions">
-              <Link className="btn btn-primary" href="/dashboard/full-vs-flex">
+              <Link className="btn btn-primary" href="/dashboard/lucro/full-vs-flex">
                 Simular agora
               </Link>
               <Link className="btn btn-success" href="/pricing">

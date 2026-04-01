@@ -7,10 +7,10 @@ import DreResumo from "@/features/dre/components/DreResumo";
 import DreInsights from "@/features/dre/components/DreInsights";
 import ExportarPDF from "@/features/dre/components/ExportarPDF";
 
-import DreInsightsAI from "@/components/dre/DreInsightsAI";
-import PriceSuggestAI from "@/components/dre/PriceSuggestAI";
-import DreRiskBadge from "@/components/dre/DreRiskBadge";
-import ProdutosRank from "@/components/dre/ProdutosRank";
+import DreInsightsAI from "@/features/lucro/dre/components/DreInsightsAI";
+import PriceSuggestAI from "@/features/lucro/dre/components/PriceSuggestAI";
+import DreRiskBadge from "@/features/lucro/dre/components/DreRiskBadge";
+import ProdutosRank from "@/features/lucro/dre/components/ProdutosRank";
 import ProUpgradeButton from "@/components/pro/ProUpgradeButton";
 
 import { gerarInsightsDre } from "@/lib/dre/insights";

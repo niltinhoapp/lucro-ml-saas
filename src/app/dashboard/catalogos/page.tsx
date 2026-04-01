@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { createServerClient } from "@/supabase/server";
-import { getEntitlements } from "@/supabase/entitlements";
-import CatalogoAnalyzerClient from "@/components/catalogos/CatalogoAnalyzerClient";
+import { createServerClient } from "@/integrations/supabase/server";
+import { getEntitlements } from "@/integrations/supabase/entitlements";
+import CatalogoAnalyzerClient from "@/features/produtos/catalogos/components/CatalogoAnalyzerClient";
 import type { CatalogDbSummary } from "@/lib/catalog/db";
 
 function formatDate(value: string | null) {
