@@ -20,3 +20,4 @@ export function normalizarPlanilha(rows: any[]): LinhaVenda[] {
 
 
 
+

@@ -3,9 +3,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
-import DreResumo from "@/features/dre/components/DreResumo";
-import DreInsights from "@/features/dre/components/DreInsights";
-import ExportarPDF from "@/features/dre/components/ExportarPDF";
+import DreResumo from "@/features/lucro/dre/components/DreResumo";
+import DreInsights from "@/features/lucro/dre/components/DreInsights";
+import ExportarPDF from "@/features/lucro/dre/components/ExportarPDF";
 
 import DreInsightsAI from "@/features/lucro/dre/components/DreInsightsAI";
 import PriceSuggestAI from "@/features/lucro/dre/components/PriceSuggestAI";
@@ -229,6 +229,7 @@ export default function DrePageClient({ id }: { id: string }) {
     </div>
   );
 }
+
 
 
 

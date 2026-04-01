@@ -16,3 +16,4 @@ export default async function RadarPage() {
   return <RadarOportunidades />;
 }
 
+

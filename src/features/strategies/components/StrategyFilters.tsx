@@ -35,3 +35,4 @@ export function StrategyFilters({ activeFilter, onChange }: StrategyFiltersProps
   );
 }
 
+

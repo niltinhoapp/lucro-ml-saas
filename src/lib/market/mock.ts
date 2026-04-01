@@ -148,3 +148,4 @@ export function createMarketAnalysis(rawQuery: string): MarketAnalysis {
 
 
 
+

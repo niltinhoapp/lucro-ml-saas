@@ -18,3 +18,4 @@ export default function StrategiesErrorPage({ error, reset }: ErrorPageProps) {
   );
 }
 
+
