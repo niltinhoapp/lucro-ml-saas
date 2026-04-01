@@ -1,0 +1,893 @@
+[33mcommit be1ae2e61b218461ef3c383b025896b47ee8fe70[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m)[m
+Author: nilto <csinput@gmail.com>
+Date:   Wed Feb 25 22:38:35 2026 -0300
+
+    feat:  home fluxo de caixa upload + relatorios; ajustes nas rotas e parsing xlsx/csv
+
+[1mdiff --git a/package-lock.json b/package-lock.json[m
+[1mindex 607635e..15641ef 100644[m
+[1m--- a/package-lock.json[m
+[1m+++ b/package-lock.json[m
+[36m@@ -12,6 +12,7 @@[m
+         "jspdf": "^4.1.0",[m
+         "jspdf-autotable": "^5.0.7",[m
+         "next": "16.1.6",[m
+[32m+[m[32m        "next-themes": "^0.4.6",[m
+         "react": "19.2.3",[m
+         "react-dom": "19.2.3",[m
+         "recharts": "^3.7.0",[m
+[36m@@ -5664,6 +5665,16 @@[m
+         }[m
+       }[m
+     },[m
+[32m+[m[32m    "node_modules/next-themes": {[m
+[32m+[m[32m      "version": "0.4.6",[m
+[32m+[m[32m      "resolved": "https://registry.npmjs.org/next-themes/-/next-themes-0.4.6.tgz",[m
+[32m+[m[32m      "integrity": "sha512-pZvgD5L0IEvX5/9GWyHMf3m8BKiVQwsCMHfoFosXtXBMnaS0ZnIJ9ST4b4NqLVKDEm8QBxoNNGNaBv2JNF6XNA==",[m
+[32m+[m[32m      "license": "MIT",[m
+[32m+[m[32m      "peerDependencies": {[m
+[32m+[m[32m        "react": "^16.8 || ^17 || ^18 || ^19 || ^19.0.0-rc",[m
+[32m+[m[32m        "react-dom": "^16.8 || ^17 || ^18 || ^19 || ^19.0.0-rc"[m
+[32m+[m[32m      }[m
+[32m+[m[32m    },[m
+     "node_modules/next/node_modules/postcss": {[m
+       "version": "8.4.31",[m
+       "resolved": "https://registry.npmjs.org/postcss/-/postcss-8.4.31.tgz",[m
+[1mdiff --git a/package.json b/package.json[m
+[1mindex 0853228..8896637 100644[m
+[1m--- a/package.json[m
+[1m+++ b/package.json[m
+[36m@@ -13,6 +13,7 @@[m
+     "jspdf": "^4.1.0",[m
+     "jspdf-autotable": "^5.0.7",[m
+     "next": "16.1.6",[m
+[32m+[m[32m    "next-themes": "^0.4.6",[m
+     "react": "19.2.3",[m
+     "react-dom": "19.2.3",[m
+     "recharts": "^3.7.0",[m
+[1mdiff --git a/src/ThemeProvider.tsx b/src/ThemeProvider.tsx[m
+[1mnew file mode 100644[m
+[1mindex 0000000..9078207[m
+[1m--- /dev/null[m
+[1m+++ b/src/ThemeProvider.tsx[m
+[36m@@ -0,0 +1,17 @@[m
+[32m+[m[32m"use client";[m
+[32m+[m
+[32m+[m[32mimport * as React from "react";[m
+[32m+[m[32mimport { ThemeProvider as NextThemesProvider } from "next-themes";[m
+[32m+[m
+[32m+[m[32mexport default function ThemeProvider({ children }: { children: React.ReactNode }) {[m
+[32m+[m[32m  return ([m
+[32m+[m[32m    <NextThemesProvider[m
+[32m+[m[32m      attribute="class"[m
+[32m+[m[32m      defaultTheme="dark"[m
+[32m+[m[32m      enableSystem[m
+[32m+[m[32m      disableTransitionOnChange[m
+[32m+[m[32m    >[m
+[32m+[m[32m      {children}[m
+[32m+[m[32m    </NextThemesProvider>[m
+[32m+[m[32m  );[m
+[32m+[m[32m}[m
+\ No newline at end of file[m
+[1mdiff --git a/src/ThemeToggle.tsx b/src/ThemeToggle.tsx[m
+[1mnew file mode 100644[m
+[1mindex 0000000..0fe7e0b[m
+[1m--- /dev/null[m
+[1m+++ b/src/ThemeToggle.tsx[m
+[36m@@ -0,0 +1,34 @@[m
+[32m+[m[32m"use client";[m
+[32m+[m
+[32m+[m[32mimport { useEffect, useMemo, useState } from "react";[m
+[32m+[m[32mimport { useTheme } from "next-themes";[m
+[32m+[m
+[32m+[m[32mexport default function ThemeToggle() {[m
+[32m+[m[32m  const { theme, setTheme, resolvedTheme } = useTheme();[m
+[32m+[m[32m  const [mounted, setMounted] = useState(false);[m
+[32m+[m
+[32m+[m[32m  useEffect(() => setMounted(true), []);[m
+[32m+[m
+[32m+[m[32m  // ✅ useMemo SEMPRE é chamado (mesmo antes de mounted)[m
+[32m+[m[32m  const current = useMemo(() => {[m
+[32m+[m[32m    const t = theme === "system" ? resolvedTheme : theme;[m
+[32m+[m[32m    return t ?? "dark";[m
+[32m+[m[32m  }, [theme, resolvedTheme]);[m
+[32m+[m
+[32m+[m[32m  const isDark = current === "dark";[m
+[32m+[m
+[32m+[m[32m  // ✅ só controla render depois de todos hooks rodarem[m
+[32m+[m[32m  if (!mounted) return null;[m
+[32m+[m
+[32m+[m[32m  return ([m
+[32m+[m[32m    <button[m
+[32m+[m[32m      type="button"[m
+[32m+[m[32m      onClick={() => setTheme(isDark ? "light" : "dark")}[m
+[32m+[m[32m      className="inline-flex items-center gap-2 px-3 py-2 text-sm font-extrabold text-white transition rounded-xl ring-1 ring-white/10 bg-white/5 hover:bg-white/10"[m
+[32m+[m[32m      aria-label="Alternar tema"[m
+[32m+[m[32m    >[m
+[32m+[m[32m      <span aria-hidden>{isDark ? "🌙" : "☀️"}</span>[m
+[32m+[m[32m      <span>{isDark ? "Dark" : "Light"}</span>[m
+[32m+[m[32m    </button>[m
+[32m+[m[32m  );[m
+[32m+[m[32m}[m
+\ No newline at end of file[m
+[1mdiff --git a/src/app/(public)/checkout/page.tsx b/src/app/(public)/checkout/page.tsx[m
+[1mnew file mode 100644[m
+[1mindex 0000000..065790a[m
+[1m--- /dev/null[m
+[1m+++ b/src/app/(public)/checkout/page.tsx[m
+[36m@@ -0,0 +1,119 @@[m
+[32m+[m[32mimport Link from "next/link";[m
+[32m+[m
+[32m+[m[32mexport default function CheckoutPage() {[m
+[32m+[m[32m  return ([m
+[32m+[m[32m    <div className="page">[m
+[32m+[m[32m      <div className="topbar">[m
+[32m+[m[32m        <div>[m
+[32m+[m[32m          <span className="badge pro">💳 PLANO PRO</span>[m
+[32m+[m[32m          <h2 style={{ marginTop: 10 }}>Desbloqueie o PRO e aumente seu lucro</h2>[m
+[32m+[m[32m          <p className="subtitle">[m
+[32m+[m[32m            DRE completo, histórico ilimitado, exportação e insights automáticos. Aqui você liga o pagamento depois[m
+[32m+[m[32m            (Stripe/Mercado Pago/Pix).[m
+[32m+[m[32m          </p>[m
+[32m+[m[32m        </div>[m
+[32m+[m
+[32m+[m[32m        <div className="actions">[m
+[32m+[m[32m          <Link href="/demo" className="btn">[m
+[32m+[m[32m            Ver demo[m
+[32m+[m[32m          </Link>[m
+[32m+[m[32m          <Link href="/dashboard" className="btn btn-primary">[m
+[32m+[m[32m            Entrar[m
+[32m+[m[32m          </Link>[m
+[32m+[m[32m        </div>[m
+[32m+[m[32m      </div>[m
+[32m+[m
+[32m+[m[32m      <div className="grid-3" style={{ gridTemplateColumns: "repeat(2, minmax(0, 1fr))" as any }}>[m
+[32m+[m[32m        <div className="card card-premium">[m
+[32m+[m[32m          <span className="badge">FREE</span>[m
+[32m+[m[32m          <h3 style={{ marginTop: 10 }}>Essencial</h3>[m
+[32m+[m[32m          <p className="muted" style={{ marginTop: 6 }}>[m
+[32m+[m[32m            Para testar e organizar o básico.[m
+[32m+[m[32m          </p>[m
+[32m+[m
+[32m+[m[32m          <div style={{ marginTop: 14, fontWeight: 950, fontSize: 30 }}>[m
+[32m+[m[32m            R$ 0 <span className="muted" style={{ fontSize: 14, fontWeight: 900 }}>/mês</span>[m
+[32m+[m[32m          </div>[m
+[32m+[m
+[32m+[m[32m          <ul style={{ marginTop: 12, paddingLeft: 18, color: "rgba(229,231,235,.9)", fontWeight: 900 }}>[m
+[32m+[m[32m            <li>Acesso ao painel</li>[m
+[32m+[m[32m            <li>DRE básico</li>[m
+[32m+[m[32m            <li>Fluxo de caixa simples</li>[m
+[32m+[m[32m            <li>Full vs Flex (limitado)</li>[m
+[32m+[m[32m          </ul>[m
+[32m+[m
+[32m+[m[32m          <div style={{ marginTop: 16 }}>[m
+[32m+[m[32m            <Link href="/dashboard" className="btn">[m
+[32m+[m[32m              Começar grátis[m
+[32m+[m[32m            </Link>[m
+[32m+[m[32m          </div>[m
+[32m+[m[32m        </div>[m
+[32m+[m
+[32m+[m[32m        <div className="card card-premium">[m
+[32m+[m[32m          <span className="badge pro">PRO • Recomendado</span>[m
+[32m+[m[32m          <h3 style={{ marginTop: 10 }}>Premium</h3>[m
+[32m+[m[32m          <p className="muted" style={{ marginTop: 6 }}>[m
+[32m+[m[32m            Para vender com clareza e escala.[m
+[32m+[m[32m          </p>[m
+[32m+[m
+[32m+[m[32m          <div style={{ marginTop: 14, fontWeight: 950, fontSize: 30 }}>[m
+[32m+[m[32m            R$ 29,90{" "}[m
+[32m+[m[32m            <span className="muted" style={{ fontSize: 14, fontWeight: 900 }}>/mês</span>[m
+[32m+[m[32m          </div>[m
+[32m+[m
+[32m+[m[32m          <ul style={{ marginTop: 12, paddingLeft: 18, color: "rgba(229,231,235,.9)", fontWeight: 900 }}>[m
+[32m+[m[32m            <li>DRE completo + categorias</li>[m
+[32m+[m[32m            <li>Exportação (PDF/CSV)</li>[m
+[32m+[m[32m            <li>Histórico ilimitado</li>[m
+[32m+[m[32m            <li>Insights/alertas de margem</li>[m
+[32m+[m[32m            <li>Full vs Flex completo</li>[m
+[32m+[m[32m            <li>Suporte prioritário</li>[m
+[32m+[m[32m          </ul>[m
+[32m+[m
+[32m+[m[32m          <div style={{ marginTop: 16, display: "flex", gap: 10, flexWrap: "wrap" }}>[m
+[32m+[m[32m            <button className="btn btn-primary" type="button">[m
+[32m+[m[32m              Assinar PRO (em breve)[m
+[32m+[m[32m            </button>[m
+[32m+[m[32m            <Link href="/dashboard" className="btn btn-ghost">[m
+[32m+[m[32m              Ver painel[m
+[32m+[m[32m            </Link>[m
+[32m+[m[32m          </div>[m
+[32m+[m
+[32m+[m[32m          <div className="alert info" style={{ marginTop: 14 }}>[m
+[32m+[m[32m            🔒 Pagamento: conecte Stripe/Mercado Pago depois. Por enquanto, esta página já vende o valor.[m
+[32m+[m[32m          </div>[m
+[32m+[m[32m        </div>[m
+[32m+[m[32m      </div>[m
+[32m+[m
+[32m+[m[32m      <div className="card card-premium">[m
+[32m+[m[32m        <h3>❓ Perguntas rápidas</h3>[m
+[32m+[m
+[32m+[m[32m        <div style={{ marginTop: 10, display: "grid", gap: 10 }}>[m
+[32m+[m[32m          <details>[m
+[32m+[m[32m            <summary>O que entra no DRE completo?</summary>[m
+[32m+[m[32m            <pre>[m
+[32m+[m[32mReceita, comissões, fretes, logística, CMV, impostos, despesas operacionais e lucro.[m
+[32m+[m[32mClassificação por categoria e comparativos.[m
+[32m+[m[32m            </pre>[m
+[32m+[m[32m          </details>[m
+[32m+[m
+[32m+[m[32m          <details>[m
+[32m+[m[32m            <summary>Posso cancelar quando quiser?</summary>[m
+[32m+[m[32m            <pre>[m
+[32m+[m[32mSim. O PRO é mensal e pode ser cancelado. (quando você ligar o gateway de pagamento)[m
+[32m+[m[32m            </pre>[m
+[32m+[m[32m          </details>[m
+[32m+[m
+[32m+[m[32m          <details>[m
+[32m+[m[32m            <summary>Vou conseguir exportar relatórios?</summary>[m
+[32m+[m[32m            <pre>[m
+[32m+[m[32mNo PRO: PDF/CSV. Ideal para reuniões e tomada de decisão.[m
+[32m+[m[32m            </pre>[m
+[32m+[m[32m          </details>[m
+[32m+[m[32m        </div>[m
+[32m+[m[32m      </div>[m
+[32m+[m
+[32m+[m[32m      <div className="alert success">✅ Demo + Checkout alinhados com seu PRO DARK.</div>[m
+[32m+[m[32m    </div>[m
+[32m+[m[32m  );[m
+[32m+[m[32m}[m
+\ No newline at end of file[m
+[1mdiff --git a/src/app/(public)/demo/page.tsx b/src/app/(public)/demo/page.tsx[m
+[1mnew file mode 100644[m
+[1mindex 0000000..fa679da[m
+[1m--- /dev/null[m
+[1m+++ b/src/app/(public)/demo/page.tsx[m
+[36m@@ -0,0 +1,87 @@[m
+[32m+[m[32mimport Link from "next/link";[m
+[32m+[m
+[32m+[m[32mexport default function DemoPage() {[m
+[32m+[m[32m  return ([m
+[32m+[m[32m    <div className="page">[m
+[32m+[m[32m      <div className="topbar">[m
+[32m+[m[32m        <div>[m
+[32m+[m[32m          <span className="badge pro">👁️ DEMO</span>[m
+[32m+[m[32m          <h2 style={{ marginTop: 10 }}>Veja como fica o painel por dentro</h2>[m
+[32m+[m[32m          <p className="subtitle">[m
+[32m+[m[32m            Demonstração do visual premium: KPIs, cards e módulos. Use essa tela como vitrine para vender o PRO.[m
+[32m+[m[32m          </p>[m
+[32m+[m[32m        </div>[m
+[32m+[m
+[32m+[m[32m        <div className="actions">[m
+[32m+[m[32m          <Link href="/checkout" className="btn btn-primary">[m
+[32m+[m[32m            Assinar PRO[m
+[32m+[m[32m          </Link>[m
+[32m+[m[32m          <Link href="/dashboard" className="btn">[m
+[32m+[m[32m            Entrar[m
+[32m+[m[32m          </Link>[m
+[32m+[m[32m          <Link href="/" className="btn btn-ghost">[m
+[32m+[m[32m            Voltar Home[m
+[32m+[m[32m          </Link>[m
+[32m+[m[32m        </div>[m
+[32m+[m[32m      </div>[m
+[32m+[m
+[32m+[m[32m      <div className="grid-3">[m
+[32m+[m[32m        <div className="kpi-card kpi-receita">[m
+[32m+[m[32m          <div className="kpi-label">Receita (exemplo)</div>[m
+[32m+[m[32m          <div className="kpi-value">R$ 18.420,30</div>[m
+[32m+[m[32m          <div className="muted" style={{ marginTop: 8, fontWeight: 900 }}>[m
+[32m+[m[32m            +12% vs. mês anterior[m
+[32m+[m[32m          </div>[m
+[32m+[m[32m        </div>[m
+[32m+[m
+[32m+[m[32m        <div className="kpi-card kpi-despesas">[m
+[32m+[m[32m          <div className="kpi-label">Custos/Taxas (exemplo)</div>[m
+[32m+[m[32m          <div className="kpi-value">R$ 9.106,10</div>[m
+[32m+[m[32m          <div className="muted" style={{ marginTop: 8, fontWeight: 900 }}>[m
+[32m+[m[32m            Logística + comissões + impostos[m
+[32m+[m[32m          </div>[m
+[32m+[m[32m        </div>[m
+[32m+[m
+[32m+[m[32m        <div className="kpi-card kpi-margem-good">[m
+[32m+[m[32m          <div className="kpi-label">Lucro (exemplo)</div>[m
+[32m+[m[32m          <div className="kpi-value">R$ 5.980,40</div>[m
+[32m+[m[32m          <div className="muted" style={{ marginTop: 8, fontWeight: 900 }}>[m
+[32m+[m[32m            Margem: 32,4%[m
+[32m+[m[32m          </div>[m
+[32m+[m[32m        </div>[m
+[32m+[m[32m      </div>[m
+[32m+[m
+[32m+[m[32m      <div className="card card-premium">[m
+[32m+[m[32m        <h3>📊 DRE Automático (demo)</h3>[m
+[32m+[m[32m        <p className="muted" style={{ marginTop: 6 }}>[m
+[32m+[m[32m          Upload → normalização → receita, taxas, logística, CMV, lucro e margem.[m
+[32m+[m[32m        </p>[m
+[32m+[m
+[32m+[m[32m        <div style={{ marginTop: 14, display: "flex", gap: 10, flexWrap: "wrap" }}>[m
+[32m+[m[32m          <Link href="/dashboard/dre" className="btn btn-primary">[m
+[32m+[m[32m            Abrir DRE[m
+[32m+[m[32m          </Link>[m
+[32m+[m[32m          <Link href="/checkout" className="btn btn-ghost">[m
+[32m+[m[32m            Desbloquear PRO[m
+[32m+[m[32m          </Link>[m
+[32m+[m[32m        </div>[m
+[32m+[m[32m      </div>[m
+[32m+[m
+[32m+[m[32m      <div className="card card-premium">[m
+[32m+[m[32m        <h3>🚚 Full vs Flex (demo)</h3>[m
+[32m+[m[32m        <p className="muted" style={{ marginTop: 6 }}>[m
+[32m+[m[32m          Simulação por unidade para descobrir o modelo mais lucrativo.[m
+[32m+[m[32m        </p>[m
+[32m+[m
+[32m+[m[32m        <div style={{ marginTop: 14, display: "flex", gap: 10, flexWrap: "wrap" }}>[m
+[32m+[m[32m          <Link href="/dashboard/full-vs-flex" className="btn">[m
+[32m+[m[32m            Simular agora[m
+[32m+[m[32m          </Link>[m
+[32m+[m[32m          <span className="badge ok">✅ Premium UI</span>[m
+[32m+[m[32m        </div>[m
+[32m+[m[32m      </div>[m
+[32m+[m
+[32m+[m[32m      <div className="alert info">💡 Dica: mantenha “Assinar PRO” sempre visível nessa demo.</div>[m
+[32m+[m[32m    </div>[m
+[32m+[m[32m  );[m
+[32m+[m[32m}[m
+\ No newline at end of file[m
+[1mdiff --git a/src/app/(public)/layout.tsx b/src/app/(public)/layout.tsx[m
+[1mnew file mode 100644[m
+[1mindex 0000000..a9f3bae[m
+[1m--- /dev/null[m
+[1m+++ b/src/app/(public)/layout.tsx[m
+[36m@@ -0,0 +1,30 @@[m
+[32m+[m[32mimport Link from "next/link";[m
+[32m+[m[32mimport type { ReactNode } from "react";[m
+[32m+[m[32mimport ThemeToggle from "../../ThemeToggle";[m
+[32m+[m
+[32m+[m[32mexport default function PublicLayout({ children }: { children: ReactNode }) {[m
+[32m+[m[32m  return ([m
+[32m+[m[32m    <div className="page-wrap">[m
+[32m+[m[32m      <header style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center" }}>[m
+[32m+[m[32m        <div style={{ fontWeight: 950, letterSpacing: "-0.02em" }}>[m
+[32m+[m[32m          <Link href="/" style={{ color: "rgba(255,255,255,.95)" }}>[m
+[32m+[m[32m            LUCRO ML[m
+[32m+[m[32m          </Link>{" "}[m
+[32m+[m[32m          <span style={{ color: "rgba(229,231,235,.60)" }}>• PRO</span>[m
+[32m+[m[32m        </div>[m
+[32m+[m
+[32m+[m[32m        <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>[m
+[32m+[m[32m          <ThemeToggle />[m
+[32m+[m[32m          <Link className="btn btn-ghost" href="/demo">[m
+[32m+[m[32m            Demo[m
+[32m+[m[32m          </Link>[m
+[32m+[m[32m          <Link className="btn btn-primary" href="/dashboard">[m
+[32m+[m[32m            Entrar[m
+[32m+[m[32m          </Link>[m
+[32m+[m[32m        </div>[m
+[32m+[m[32m      </header>[m
+[32m+[m
+[32m+[m[32m      <div>{children}</div>[m
+[32m+[m[32m    </div>[m
+[32m+[m[32m  );[m
+[32m+[m[32m}[m
+\ No newline at end of file[m
+[1mdiff --git a/src/app/(public)/page.tsx b/src/app/(public)/page.tsx[m
+[1mnew file mode 100644[m
+[1mindex 0000000..1b78030[m
+[1m--- /dev/null[m
+[1m+++ b/src/app/(public)/page.tsx[m
+[36m@@ -0,0 +1,174 @@[m
+[32m+[m[32mimport Link from "next/link";[m
+[32m+[m
+[32m+[m[32mexport default function HomePublicPage() {[m
+[32m+[m[32m  return ([m
+[32m+[m[32m    <div className="page">[m
+[32m+[m[32m      {/* HERO premium (usa suas classes: hero, hero-inner, kpis, feature...) */}[m
+[32m+[m[32m      <section className="hero">[m
+[32m+[m[32m        <div className="hero-inner">[m
+[32m+[m[32m          <div>[m
+[32m+[m[32m            <div className="hero-badge">[m
+[32m+[m[32m              <span className="dot" />[m
+[32m+[m[32m              ⚡ DRE + Fluxo de Caixa + Full vs Flex[m
+[32m+[m[32m            </div>[m
+[32m+[m
+[32m+[m[32m            <h1>[m
+[32m+[m[32m              Descubra seu <span style={{ color: "#60a5fa" }}>lucro real</span> no Mercado Livre.[m
+[32m+[m[32m            </h1>[m
+[32m+[m
+[32m+[m[32m            <p>[m
+[32m+[m[32m              Suba planilhas, gere um DRE automático, acompanhe fluxo de caixa e compare Full vs Flex.[m
+[32m+[m[32m              Tudo em um painel premium — com clareza total de taxa, frete, CMV e margem.[m
+[32m+[m[32m            </p>[m
+[32m+[m
+[32m+[m[32m            <div style={{ marginTop: 16, display: "flex", gap: 10, flexWrap: "wrap" }}>[m
+[32m+[m[32m              <Link href="/dashboard" className="btn btn-primary">[m
+[32m+[m[32m                Entrar no painel[m
+[32m+[m[32m              </Link>[m
+[32m+[m[32m              <Link href="/demo" className="btn">[m
+[32m+[m[32m                Ver demo[m
+[32m+[m[32m              </Link>[m
+[32m+[m[32m              <Link href="/checkout" className="btn btn-ghost">[m
+[32m+[m[32m                Assinar PRO[m
+[32m+[m[32m              </Link>[m
+[32m+[m[32m            </div>[m
+[32m+[m
+[32m+[m[32m            <div className="kpis">[m
+[32m+[m[32m              <div className="kpi">[m
+[32m+[m[32m                <div className="label">DRE automático</div>[m
+[32m+[m[32m                <div className="value">Lucro e margem reais</div>[m
+[32m+[m[32m              </div>[m
+[32m+[m[32m              <div className="kpi">[m
+[32m+[m[32m                <div className="label">Fluxo de caixa</div>[m
+[32m+[m[32m                <div className="value">Entradas e saídas por período</div>[m
+[32m+[m[32m              </div>[m
+[32m+[m[32m              <div className="kpi">[m
+[32m+[m[32m                <div className="label">Full vs Flex</div>[m
+[32m+[m[32m                <div className="value">Simule custo por unidade</div>[m
+[32m+[m[32m              </div>[m
+[32m+[m[32m            </div>[m
+[32m+[m[32m          </div>[m
+[32m+[m
+[32m+[m[32m          <div className="hero-features">[m
+[32m+[m[32m            <div className="feature">[m
+[32m+[m[32m              <div className="t">📊 DRE completo e profissional</div>[m
+[32m+[m[32m              <div className="d">[m
+[32m+[m[32m                Receita, comissões, logística, CMV, impostos e despesas — tudo organizado e comparável.[m
+[32m+[m[32m              </div>[m
+[32m+[m[32m            </div>[m
+[32m+[m
+[32m+[m[32m            <div className="feature">[m
+[32m+[m[32m              <div className="t">💰 Decisão rápida no dia a dia</div>[m
+[32m+[m[32m              <div className="d">[m
+[32m+[m[32m                Veja onde está vazando lucro e ajuste preço/compra/logística com confiança.[m
+[32m+[m[32m              </div>[m
+[32m+[m[32m            </div>[m
+[32m+[m
+[32m+[m[32m            <div className="feature">[m
+[32m+[m[32m              <div className="t">🚚 Full vs Flex sem achismo</div>[m
+[32m+[m[32m              <div className="d">[m
+[32m+[m[32m                Compare modelos com base em custo real por unidade e margem final.[m
+[32m+[m[32m              </div>[m
+[32m+[m[32m            </div>[m
+[32m+[m
+[32m+[m[32m            <div className="alert info" style={{ marginTop: 4 }}>[m
+[32m+[m[32m              💡 Dica: comece pela demo e depois migre para o PRO.[m
+[32m+[m[32m            </div>[m
+[32m+[m[32m          </div>[m
+[32m+[m[32m        </div>[m
+[32m+[m[32m      </section>[m
+[32m+[m
+[32m+[m[32m      {/* MÓDULOS */}[m
+[32m+[m[32m      <section className="grid-3">[m
+[32m+[m[32m        <ModuleCard[m
+[32m+[m[32m          title="📊 DRE Automático"[m
+[32m+[m[32m          desc="Upload → normalização → receita, taxas, logística, CMV, lucro e margem."[m
+[32m+[m[32m          cta="Abrir DRE"[m
+[32m+[m[32m          href="/dashboard/dre"[m
+[32m+[m[32m        />[m
+[32m+[m[32m        <ModuleCard[m
+[32m+[m[32m          title="💰 Fluxo de Caixa"[m
+[32m+[m[32m          desc="Entradas/saídas, saldos e histórico de relatórios para decisão rápida."[m
+[32m+[m[32m          cta="Abrir Caixa"[m
+[32m+[m[32m          href="/dashboard/fluxo-caixa"[m
+[32m+[m[32m        />[m
+[32m+[m[32m        <ModuleCard[m
+[32m+[m[32m          title="🚚 Full vs Flex"[m
+[32m+[m[32m          desc="Simule custos por unidade e descubra qual modelo dá mais lucro."[m
+[32m+[m[32m          cta="Simular"[m
+[32m+[m[32m          href="/dashboard/full-vs-flex"[m
+[32m+[m[32m        />[m
+[32m+[m[32m      </section>[m
+[32m+[m
+[32m+[m[32m      {/* PROVA / BENEFÍCIOS */}[m
+[32m+[m[32m      <section className="card card-premium">[m
+[32m+[m[32m        <h3>Clareza total: custo, taxa, frete e margem.</h3>[m
+[32m+[m[32m        <p className="muted" style={{ marginTop: 8 }}>[m
+[32m+[m[32m          Pare de “achar” que está lucrando. Veja números reais, identifique gargalos e tome decisão de compra,[m
+[32m+[m[32m          preço e logística com confiança.[m
+[32m+[m[32m        </p>[m
+[32m+[m
+[32m+[m[32m        <div style={{ marginTop: 14, display: "grid", gap: 10 }}>[m
+[32m+[m[32m          <div className="alert success">✅ Automático: importa e organiza dados rápido</div>[m
+[32m+[m[32m          <div className="alert warn">⚠️ Insights: alertas quando a margem cair</div>[m
+[32m+[m[32m          <div className="alert info">🧾 Exportável: relatórios prontos pra apresentar</div>[m
+[32m+[m[32m        </div>[m
+[32m+[m
+[32m+[m[32m        <div style={{ marginTop: 16, display: "flex", gap: 10, flexWrap: "wrap" }}>[m
+[32m+[m[32m          <Link href="/checkout" className="btn btn-primary">[m
+[32m+[m[32m            Assinar PRO[m
+[32m+[m[32m          </Link>[m
+[32m+[m[32m          <Link href="/demo" className="btn">[m
+[32m+[m[32m            Ver demo[m
+[32m+[m[32m          </Link>[m
+[32m+[m[32m        </div>[m
+[32m+[m[32m      </section>[m
+[32m+[m
+[32m+[m[32m      {/* CTA FINAL */}[m
+[32m+[m[32m      <section className="topbar">[m
+[32m+[m[32m        <div>[m
+[32m+[m[32m          <span className="badge ok">🚀 Pronto pra parar de perder lucro?</span>[m
+[32m+[m[32m          <h2 style={{ marginTop: 10 }}>Entre no painel e veja seus números hoje.</h2>[m
+[32m+[m[32m          <p className="subtitle">[m
+[32m+[m[32m            Se você vende no ML, seu lucro muda com taxa, frete e logística. O PRO mostra a verdade.[m
+[32m+[m[32m          </p>[m
+[32m+[m[32m        </div>[m
+[32m+[m[32m        <div className="actions">[m
+[32m+[m[32m          <Link href="/dashboard" className="btn btn-primary">[m
+[32m+[m[32m            Entrar[m
+[32m+[m[32m          </Link>[m
+[32m+[m[32m          <Link href="/checkout" className="btn">[m
+[32m+[m[32m            Assinar PRO[m
+[32m+[m[32m          </Link>[m
+[32m+[m[32m        </div>[m
+[32m+[m[32m      </section>[m
+[32m+[m[32m    </div>[m
+[32m+[m[32m  );[m
+[32m+[m[32m}[m
+[32m+[m
+[32m+[m[32mfunction ModuleCard({[m
+[32m+[m[32m  title,[m
+[32m+[m[32m  desc,[m
+[32m+[m[32m  cta,[m
+[32m+[m[32m  href,[m
+[32m+[m[32m}: {[m
+[32m+[m[32m  title: string;[m
+[32m+[m[32m  desc: string;[m
+[32m+[m[32m  cta: string;[m
+[32m+[m[32m  href: string;[m
+[32m+[m[32m}) {[m
+[32m+[m[32m  return ([m
+[32m+[m[32m    <div className="card card-premium">[m
+[32m+[m[32m      <h3>{title}</h3>[m
+[32m+[m[32m      <p className="muted" style={{ marginTop: 8 }}>[m
+[32m+[m[32m        {desc}[m
+[32m+[m[32m      </p>[m
+[32m+[m
+[32m+[m[32m      <div style={{ marginTop: 14 }}>[m
+[32m+[m[32m        <Link href={href} className="btn btn-ghost">[m
+[32m+[m[32m          {cta} →[m
+[32m+[m[32m        </Link>[m
+[32m+[m[32m      </div>[m
+[32m+[m[32m    </div>[m
+[32m+[m[32m  );[m
+[32m+[m[32m}[m
+\ No newline at end of file[m
+[1mdiff --git a/src/app/dashboard/dre/page.tsx b/src/app/dashboard/dre/page.tsx[m
+[1mindex 423558c..4d62dc1 100644[m
+[1m--- a/src/app/dashboard/dre/page.tsx[m
+[1m+++ b/src/app/dashboard/dre/page.tsx[m
+[36m@@ -1,7 +1,6 @@[m
+ "use client";[m
+ [m
+ import { useEffect, useMemo, useState } from "react";[m
+[31m-import Link from "next/link";[m
+ import { useRouter, useSearchParams } from "next/navigation";[m
+ [m
+ import DreResumo from "@/components/DreResumo";[m
+[36m@@ -25,7 +24,6 @@[m [mtype ApiSimulacao = {[m
+   created_at?: string | null;[m
+ [m
+   dre: Dre;[m
+[31m-[m
+   avisos?: string[];[m
+ [m
+   // debug (opcional)[m
+[36m@@ -67,8 +65,7 @@[m [mexport default function DrePage() {[m
+ [m
+   useEffect(() => {[m
+     async function load() {[m
+[31m-      // ✅ sem id: não mostra “tela sem sentido”.[m
+[31m-      // Apenas manda voltar pro painel.[m
+[32m+[m[32m      // ✅ Se entrar sem id, volta pro painel (evita tela “sem sentido”)[m
+       if (!id) {[m
+         router.replace("/dashboard");[m
+         return;[m
+[36m@@ -140,7 +137,7 @@[m [mexport default function DrePage() {[m
+   if (erro) {[m
+     return ([m
+       <div className="page-wrap">[m
+[31m-        <section className="card" >[m
+[32m+[m[32m        <section className="card">[m
+           <div className="card-head">[m
+             <div>[m
+               <h2 style={{ color: "#7f1d1d" }}>Não foi possível abrir o DRE</h2>[m
+[36m@@ -148,8 +145,11 @@[m [mexport default function DrePage() {[m
+             </div>[m
+ [m
+             <div className="actions">[m
+[32m+[m[32m              <button className="btn-ghost" onClick={() => router.push("/")}>[m
+[32m+[m[32m                🏠 Home[m
+[32m+[m[32m              </button>[m
+               <button className="btn-dark" onClick={() => router.push("/dashboard")}>[m
+[31m-                Voltar ao painel[m
+[32m+[m[32m                ← Painel[m
+               </button>[m
+             </div>[m
+           </div>[m
+[36m@@ -171,9 +171,13 @@[m [mexport default function DrePage() {[m
+               <h2>Relatório indisponível</h2>[m
+               <p>Não encontramos dados de DRE nesta simulação.</p>[m
+             </div>[m
+[32m+[m
+             <div className="actions">[m
+[32m+[m[32m              <button className="btn-ghost" onClick={() => router.push("/")}>[m
+[32m+[m[32m                🏠 Home[m
+[32m+[m[32m              </button>[m
+               <button className="btn-dark" onClick={() => router.push("/dashboard")}>[m
+[31m-                Voltar ao painel[m
+[32m+[m[32m                ← Painel[m
+               </button>[m
+             </div>[m
+           </div>[m
+[36m@@ -185,7 +189,7 @@[m [mexport default function DrePage() {[m
+   // ===== RELATÓRIO =====[m
+   return ([m
+     <div className="page-wrap">[m
+[31m-      {/* TOP HERO (mesmo estilo PRO da Home) */}[m
+[32m+[m[32m      {/* TOP HERO */}[m
+       <section className="hero">[m
+         <div className="hero-inner" style={{ gridTemplateColumns: "1.2fr .8fr" }}>[m
+           <div>[m
+[36m@@ -199,7 +203,8 @@[m [mexport default function DrePage() {[m
+             <p style={{ marginTop: 8 }}>[m
+               {data?.arquivo_nome ? ([m
+                 <>[m
+[31m-                  Arquivo: <strong style={{ color: "rgba(255,255,255,.95)" }}>{data.arquivo_nome}</strong>[m
+[32m+[m[32m                  Arquivo:{" "}[m
+[32m+[m[32m                  <strong style={{ color: "rgba(255,255,255,.95)" }}>{data.arquivo_nome}</strong>[m
+                 </>[m
+               ) : ([m
+                 "Relatório gerado a partir de simulação salva."[m
+[36m@@ -214,18 +219,22 @@[m [mexport default function DrePage() {[m
+           </div>[m
+ [m
+           <div className="actions" style={{ justifyContent: "flex-end", alignItems: "flex-start" }}>[m
+[32m+[m[32m            <button className="btn-ghost" onClick={() => router.push("/")}>[m
+[32m+[m[32m              🏠 Home[m
+[32m+[m[32m            </button>[m
+[32m+[m
+             <button className="btn-dark" onClick={() => router.push("/dashboard")}>[m
+               ← Painel[m
+             </button>[m
+ [m
+[31m-           <button[m
+[31m-  type="button"[m
+[31m-  onClick={() => router.push("/dashboard")}[m
+[31m-  className="btn btn-success"[m
+[31m->[m
+[31m-  + Nova simulação[m
+[31m-</button>[m
+[31m-[m
+[32m+[m[32m            <button[m
+[32m+[m[32m              type="button"[m
+[32m+[m[32m              onClick={() => router.push("/dashboard")}[m
+[32m+[m[32m              className="btn btn-success"[m
+[32m+[m[32m              title="Voltar ao painel para fazer um novo upload"[m
+[32m+[m[32m            >[m
+[32m+[m[32m              + Nova simulação[m
+[32m+[m[32m            </button>[m
+ [m
+             <div style={{ display: "inline-flex" }}>[m
+               <ExportarPDF nome={nomeRelatorio} dre={dre} />[m
+[36m@@ -234,7 +243,7 @@[m [mexport default function DrePage() {[m
+         </div>[m
+       </section>[m
+ [m
+[31m-      {/* Avisos (apenas se existir) */}[m
+[32m+[m[32m      {/* Avisos */}[m
+       {data?.avisos?.length ? ([m
+         <section className="card">[m
+           <div className="card-head">[m
+[36m@@ -245,10 +254,16 @@[m [mexport default function DrePage() {[m
+           </div>[m
+ [m
+           <div className="card-body">[m
+[31m-            <div className="alert" style={{ background: "rgba(251,188,5,.16)", borderColor: "rgba(251,188,5,.25)" }}>[m
+[32m+[m[32m            <div[m
+[32m+[m[32m              className="alert"[m
+[32m+[m[32m              style={{[m
+[32m+[m[32m                background: "rgba(251,188,5,.16)",[m
+[32m+[m[32m                borderColor: "rgba(251,188,5,.25)",[m
+[32m+[m[32m              }}[m
+[32m+[m[32m            >[m
+               <ul style={{ margin: 0, paddingLeft: 18, display: "grid", gap: 6 }}>[m
+                 {data.avisos.map((a, i) => ([m
+[31m-                  <li key={i} style={{ color: "#6a4b00", fontWeight: 900 }}>[m
+[32m+[m[32m                  <li key={i} style={{ color: "#ffedd5", fontWeight: 900 }}>[m
+                     {a}[m
+                   </li>[m
+                 ))}[m
+[36m@@ -258,7 +273,7 @@[m [mexport default function DrePage() {[m
+         </section>[m
+       ) : null}[m
+ [m
+[31m-      {/* KPIs (cores) */}[m
+[32m+[m[32m      {/* KPIs */}[m
+       <section className="kpis">[m
+         <Kpi tone="good" label="Receita total" value={moeda(dre.receitaTotal)} />[m
+         <Kpi tone="neutral" label="Custos + Taxas + Logística" value={moeda(totalDespesas)} />[m
+[36m@@ -269,7 +284,7 @@[m [mexport default function DrePage() {[m
+         />[m
+       </section>[m
+ [m
+[31m-      {/* Resultado principal (lucro) destacado */}[m
+[32m+[m[32m      {/* Resultado */}[m
+       <section className="card">[m
+         <div className="card-head">[m
+           <div>[m
+[36m@@ -282,9 +297,9 @@[m [mexport default function DrePage() {[m
+             <span[m
+               className="badge"[m
+               style={{[m
+[31m-                background: dre.lucro >= 0 ? "rgba(34,197,94,.12)" : "rgba(234,67,53,.12)",[m
+[31m-                borderColor: dre.lucro >= 0 ? "rgba(34,197,94,.22)" : "rgba(234,67,53,.22)",[m
+[31m-                color: dre.lucro >= 0 ? "#14532d" : "#7f1d1d",[m
+[32m+[m[32m                background: dre.lucro >= 0 ? "rgba(34,197,94,.12)" : "rgba(239,68,68,.12)",[m
+[32m+[m[32m                borderColor: dre.lucro >= 0 ? "rgba(34,197,94,.22)" : "rgba(239,68,68,.22)",[m
+[32m+[m[32m                color: dre.lucro >= 0 ? "#dcfce7" : "#fee2e2",[m
+               }}[m
+             >[m
+               {dre.lucro >= 0 ? "Lucro positivo" : "Lucro negativo"}[m
+[36m@@ -311,18 +326,20 @@[m [mexport default function DrePage() {[m
+         </div>[m
+       </section>[m
+ [m
+[31m-      {/* Diagnóstico: só se debug=1 */}[m
+[32m+[m[32m      {/* Diagnóstico (debug=1) */}[m
+       {debug && (data?.camposDetectados || data?.sheetHeaders?.length || data?.headersNormalizados?.length) ? ([m
+         <section className="card">[m
+           <div className="card-head">[m
+             <div>[m
+               <h3>🔎 Diagnóstico (modo técnico)</h3>[m
+[31m-              <p>Visível apenas com <code>?debug=1</code>.</p>[m
+[32m+[m[32m              <p>[m
+[32m+[m[32m                Visível apenas com <code>?debug=1</code>.[m
+[32m+[m[32m              </p>[m
+             </div>[m
+           </div>[m
+ [m
+           <div className="card-body">[m
+[31m-           <pre style={{ fontSize: 12, whiteSpace: "pre-wrap", wordBreak: "break-word", margin: 0 }}>[m
+[32m+[m[32m            <pre style={{ fontSize: 12, whiteSpace: "pre-wrap", wordBreak: "break-word", margin: 0 }}>[m
+               {JSON.stringify([m
+                 {[m
+                   arquivo_nome: data?.arquivo_nome,[m
+[36m@@ -364,7 +381,6 @@[m [mfunction Kpi({[m
+   const style =[m
+     tone === "good"[m
+       ? {[m
+[31m-          // verde vivo no dark[m
+           bg: "radial-gradient(900px 260px at 20% 0%, rgba(34,197,94,.22), transparent 60%), rgba(255,255,255,.06)",[m
+           border: "rgba(34,197,94,.28)",[m
+           label: "rgba(220,252,231,.92)",[m
+[36m@@ -372,7 +388,6 @@[m [mfunction Kpi({[m
+         }[m
+       : tone === "warn"[m
+       ? {[m
+[31m-          // âmbar vivo no dark[m
+           bg: "radial-gradient(900px 260px at 20% 0%, rgba(245,158,11,.22), transparent 60%), rgba(255,255,255,.06)",[m
+           border: "rgba(245,158,11,.30)",[m
+           label: "rgba(255,237,213,.92)",[m
+[36m@@ -380,14 +395,12 @@[m [mfunction Kpi({[m
+         }[m
+       : tone === "bad"[m
+       ? {[m
+[31m-          // vermelho vivo no dark[m
+           bg: "radial-gradient(900px 260px at 20% 0%, rgba(239,68,68,.22), transparent 60%), rgba(255,255,255,.06)",[m
+           border: "rgba(239,68,68,.30)",[m
+           label: "rgba(254,226,226,.92)",[m
+           value: "rgba(254,226,226,.98)",[m
+         }[m
+       : {[m
+[31m-          // neutro (azulado/clean)[m
+           bg: "radial-gradient(900px 260px at 20% 0%, rgba(59,130,246,.20), transparent 60%), rgba(255,255,255,.05)",[m
+           border: "rgba(255,255,255,.14)",[m
+           label: "rgba(229,231,235,.82)",[m
+[36m@@ -411,5 +424,4 @@[m [mfunction Kpi({[m
+       </div>[m
+     </div>[m
+   );[m
+[31m-  [m
+[31m-}[m
+[32m+[m[32m}[m
+\ No newline at end of file[m
+[1mdiff --git a/src/app/layout.tsx b/src/app/layout.tsx[m
+[1mindex 3fecdf5..fef04f8 100644[m
+[1m--- a/src/app/layout.tsx[m
+[1m+++ b/src/app/layout.tsx[m
+[36m@@ -1,17 +1,13 @@[m
+ import "./globals.css";[m
+[31m-import { ReactNode } from "react";[m
+[31m-[m
+[31m-export const metadata = {[m
+[31m-  title: "Lucro ML SaaS",[m
+[31m-  description: "Dashboard profissional de gestão de vendas Mercado Livre",[m
+[31m-};[m
+[32m+[m[32mimport type { ReactNode } from "react";[m
+[32m+[m[32mimport ThemeProvider from "@/ThemeProvider";[m
+ [m
+ export default function RootLayout({ children }: { children: ReactNode }) {[m
+   return ([m
+[31m-    <html lang="pt-BR">[m
+[32m+[m[32m    <html lang="pt-BR" suppressHydrationWarning>[m
+       <body>[m
+[31m-        {children}[m
+[32m+[m[32m        <ThemeProvider>{children}</ThemeProvider>[m
+       </body>[m
+     </html>[m
+   );[m
+[31m-}[m
+[32m+[m[32m}[m
+\ No newline at end of file[m
+[1mdiff --git a/src/app/page.tsx b/src/app/page.tsx[m
+[1mdeleted file mode 100644[m
+[1mindex 32f70cb..0000000[m
+[1m--- a/src/app/page.tsx[m
+[1m+++ /dev/null[m
+[36m@@ -1,70 +0,0 @@[m
+[31m-"use client";[m
+[31m-[m
+[31m-import { redirect }  from "next/navigation";[m
+[31m-import Link from "next/link";[m
+[31m-import { ReactNode } from "react";[m
+[31m-import { usePathname } from "next/navigation";[m
+[31m-[m
+[31m-const menu = [[m
+[31m-  { label: "Home", href: "/dashboard" },[m
+[31m-  { label: "DRE", href: "/dashboard/dre" },[m
+[31m-  { label: "Fluxo de Caixa", href: "/dashboard/fluxo-caixa" },[m
+[31m-  { label: "Full vs Flex", href: "/dashboard/full-vs-flex" },[m
+[31m-];[m
+[31m-[m
+[31m-export default function DashboardLayout({ children }: { children: ReactNode }) {[m
+[31m-  const pathname = usePathname();[m
+[31m-[m
+[31m-  return ([m
+[31m-    <div className="flex min-h-screen bg-gray-100">[m
+[31m-      {/* SIDEBAR */}[m
+[31m-      <aside className="flex flex-col w-64 text-gray-200 bg-gray-900">[m
+[31m-        {/* LOGO / BRAND */}[m
+[31m-        <div className="px-6 py-5 border-b border-gray-800">[m
+[31m-          <h1 className="text-xl font-bold tracking-wide text-white">[m
+[31m-            Lucro ML[m
+[31m-          </h1>[m
+[31m-          <p className="text-xs text-gray-400">[m
+[31m-            Gestão financeira[m
+[31m-          </p>[m
+[31m-        </div>[m
+[31m-[m
+[31m-        {/* MENU */}[m
+[31m-        <nav className="flex-1 px-4 py-6 space-y-1">[m
+[31m-          {menu.map((item) => {[m
+[31m-            const active = pathname === item.href;[m
+[31m-            return ([m
+[31m-              <Link[m
+[31m-                key={item.href}[m
+[31m-                href={item.href}[m
+[31m-                className={`block px-4 py-2 rounded-lg transition[m
+[31m-                  ${[m
+[31m-                    active[m
+[31m-                      ? "bg-blue-600 text-white font-semibold"[m
+[31m-                      : "text-gray-300 hover:bg-gray-800 hover:text-white"[m
+[31m-                  }[m
+[31m-                `}[m
+[31m-              >[m
+[31m-                {item.label}[m
+[31m-              </Link>[m
+[31m-            );[m
+[31m-          })}[m
+[31m-        </nav>[m
+[31m-[m
+[31m-        {/* FOOTER SIDEBAR */}[m
+[31m-        <div className="px-6 py-4 text-xs text-gray-400 border-t border-gray-800">[m
+[31m-          © {new Date().getFullYear()} Lucro ML[m
+[31m-        </div>[m
+[31m-      </aside>[m
+[31m-[m
+[31m-      {/* CONTEÚDO */}[m
+[31m-      <main className="flex-1 p-8">[m
+[31m-        {children}[m
+[31m-      </main>[m
+[31m-    </div>[m
+[31m-  );[m
+[31m- [m
+[31m-[m
+[31m-}[m
+[31m-[m
+[31m-[m

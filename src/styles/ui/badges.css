@@ -1,0 +1,56 @@
+@layer components {
+  .badge,
+  .pill,
+  .chip,
+  .ui-pill,
+  .ui-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 11px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 800;
+    border: 1px solid var(--border);
+    color: var(--text);
+    background: var(--surface-soft);
+    white-space: nowrap;
+  }
+
+  .badge.pro,
+  .pill.info,
+  .chip.pro {
+    background: rgba(52, 152, 219, 0.10);
+    border-color: rgba(52, 152, 219, 0.18);
+    color: var(--secondary-strong);
+  }
+
+  .badge.ok,
+  .pill.good,
+  .chip.ok {
+    background: rgba(46, 204, 113, 0.10);
+    border-color: rgba(46, 204, 113, 0.20);
+    color: var(--primary-strong);
+  }
+
+  .badge.bad,
+  .pill.bad,
+  .chip.risk {
+    background: rgba(239, 68, 68, 0.10);
+    border-color: rgba(239, 68, 68, 0.18);
+    color: #c0392b;
+  }
+
+  .pill.warn {
+    background: rgba(245, 158, 11, 0.12);
+    border-color: rgba(245, 158, 11, 0.18);
+    color: #b45309;
+  }
+
+  .pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+  }
+}

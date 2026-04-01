@@ -1,0 +1,204 @@
+/* =========================================================
+   UPGRADE MODAL
+   ========================================================= */
+
+.upgrade-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(8, 15, 29, 0.58);
+  backdrop-filter: blur(10px);
+}
+
+.upgrade-modal-card {
+  position: relative;
+  width: 100%;
+  max-width: 560px;
+  overflow: hidden;
+  border-radius: 28px;
+  border: 1px solid var(--border);
+  background:
+    radial-gradient(760px 240px at 10% 0%, rgba(52,152,219,.12), transparent 60%),
+    radial-gradient(620px 240px at 100% 0%, rgba(46,204,113,.10), transparent 60%),
+    var(--surface);
+  box-shadow: 0 30px 80px rgba(15, 23, 42, 0.30);
+  padding: 24px;
+}
+
+html.dark .upgrade-modal-card {
+  background:
+    radial-gradient(760px 240px at 10% 0%, rgba(52,152,219,.16), transparent 60%),
+    radial-gradient(620px 240px at 100% 0%, rgba(46,204,113,.14), transparent 60%),
+    linear-gradient(180deg, rgba(15,27,45,.98), rgba(18,34,57,.98));
+}
+
+.upgrade-modal-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--surface-soft);
+  color: var(--text);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.upgrade-modal-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-right: 44px;
+}
+
+.upgrade-modal-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 36px;
+  padding: 0 14px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: .03em;
+  text-transform: uppercase;
+  color: var(--text);
+  background: linear-gradient(135deg, rgba(46,204,113,.18), rgba(52,152,219,.14));
+  border: 1px solid rgba(46,204,113,.22);
+}
+
+.upgrade-modal-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, rgba(52,152,219,.16), rgba(46,204,113,.14));
+  border: 1px solid rgba(52,152,219,.18);
+  color: var(--text);
+}
+
+.upgrade-modal-title {
+  margin: 18px 0 0;
+  color: var(--text);
+  font-size: clamp(1.6rem, 1.4rem + 1vw, 2.3rem);
+  line-height: 1.08;
+  letter-spacing: -0.04em;
+  font-weight: 900;
+}
+
+.upgrade-modal-subtitle {
+  margin: 12px 0 0;
+  color: var(--text-soft);
+  font-size: 15px;
+  line-height: 1.65;
+}
+
+.upgrade-modal-highlight {
+  margin-top: 18px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: var(--surface-soft);
+}
+
+.upgrade-modal-highlight-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: rgba(52,152,219,.10);
+  color: var(--text);
+}
+
+.upgrade-modal-highlight strong {
+  color: var(--text);
+  font-size: 14px;
+}
+
+.upgrade-modal-highlight p {
+  margin: 6px 0 0;
+  color: var(--text-soft);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.upgrade-modal-points {
+  margin-top: 16px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.upgrade-modal-point {
+  padding: 14px;
+  border-radius: 18px;
+  border: 1px solid var(--border);
+  background: var(--surface-soft);
+}
+
+.upgrade-modal-point-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.upgrade-modal-point strong {
+  display: block;
+  margin-top: 8px;
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.upgrade-modal-actions {
+  margin-top: 20px;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.upgrade-modal-actions .btn {
+  min-height: 48px;
+  border-radius: 16px;
+  padding-inline: 18px;
+  font-weight: 800;
+}
+
+@media (max-width: 640px) {
+  .upgrade-modal-card {
+    padding: 18px;
+    border-radius: 22px;
+  }
+
+  .upgrade-modal-points {
+    grid-template-columns: 1fr;
+  }
+
+  .upgrade-modal-actions {
+    flex-direction: column;
+  }
+
+  .upgrade-modal-actions .btn {
+    width: 100%;
+    justify-content: center;
+  }
+}

@@ -1,0 +1,27 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import "../styles/foundation/tokens.css";
+@import "../styles/foundation/base.css";
+@import "../styles/foundation/animations.css";
+
+@import "../styles/ui/layout.css";
+@import "../styles/ui/surfaces.css";
+@import "../styles/ui/buttons.css";
+@import "../styles/ui/fields.css";
+@import "../styles/ui/badges.css";
+@import "../styles/ui/alerts.css";
+@import "../styles/ui/tables.css";
+
+@import "../styles/features/sidebar.css";
+@import "../styles/features/auth.css";
+@import "../styles/features/checkout.css";
+@import "../styles/features/dashboard.css";
+@import "../styles/features/dre.css";
+@import "../styles/features/risk-ai.css";
+@import "../styles/features/seller-market.css";
+@import "../styles/features/catalogos.css";
+@import "../styles/features/account.css";
+
+

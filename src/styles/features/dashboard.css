@@ -1,0 +1,782 @@
+/* =========================================================
+   DASHHOME PREMIUM — CONSOLIDADO
+   ========================================================= */
+
+.dashhome-premium {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.dashhome-premium-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.dashhome-premium-section-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.dashhome-premium-section-head h2,
+.dashhome-premium-highlight h2,
+.dashhome-premium-bottom-card h3 {
+  margin: 0;
+  color: var(--text);
+  letter-spacing: -0.03em;
+}
+
+.dashhome-premium-section-head p,
+.dashhome-premium-bottom-card p {
+  margin: 8px 0 0;
+  color: var(--text-soft);
+  line-height: 1.6;
+}
+
+/* =========================================================
+   HERO
+   ========================================================= */
+
+.dashhome-premium-hero {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  display: grid;
+  grid-template-columns: minmax(0, 1.28fr) minmax(280px, 0.72fr);
+  gap: 22px;
+  padding: 30px;
+  border-radius: 30px;
+  border: 1px solid var(--border);
+  background:
+    radial-gradient(900px 360px at 8% 0%, rgba(52, 152, 219, 0.14), transparent 60%),
+    radial-gradient(700px 320px at 92% 0%, rgba(46, 204, 113, 0.10), transparent 60%),
+    linear-gradient(180deg, rgba(255,255,255,0.96), rgba(248,251,253,0.98));
+  box-shadow: var(--shadow-md);
+}
+
+html.dark .dashhome-premium-hero {
+  background:
+    radial-gradient(900px 360px at 8% 0%, rgba(52, 152, 219, 0.18), transparent 60%),
+    radial-gradient(700px 320px at 92% 0%, rgba(46, 204, 113, 0.14), transparent 60%),
+    linear-gradient(180deg, rgba(15,27,45,0.98), rgba(18,34,57,0.98));
+}
+
+.dashhome-premium-gridline {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px);
+  background-size: 28px 28px;
+  mask-image: linear-gradient(to bottom, rgba(0,0,0,0.30), transparent 75%);
+  z-index: 1;
+}
+
+.dashhome-premium-hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(
+    135deg,
+    rgba(52,152,219,0.24),
+    rgba(46,204,113,0.22),
+    rgba(52,152,219,0.10)
+  );
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.dashhome-premium-glow {
+  position: absolute;
+  border-radius: 999px;
+  filter: blur(60px);
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.65;
+}
+
+.dashhome-premium-glow-1 {
+  top: -40px;
+  left: -20px;
+  width: 220px;
+  height: 220px;
+  background: rgba(52, 152, 219, 0.16);
+}
+
+.dashhome-premium-glow-2 {
+  top: 20px;
+  right: -40px;
+  width: 240px;
+  height: 240px;
+  background: rgba(46, 204, 113, 0.12);
+}
+
+.dashhome-premium-hero-copy,
+.dashhome-premium-hero-side {
+  position: relative;
+  z-index: 2;
+  min-width: 0;
+}
+
+.dashhome-premium-kicker-row,
+.dashhome-premium-proof,
+.dashhome-premium-hero-actions,
+.dashhome-premium-bottom-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.dashhome-premium-plan,
+.dashhome-premium-kicker,
+.dashhome-premium-highlight-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 36px;
+  padding: 0 14px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.01em;
+}
+
+.dashhome-premium-plan {
+  color: #0b3b24;
+  background: linear-gradient(135deg, rgba(46,204,113,0.20), rgba(52,152,219,0.14));
+  border: 1px solid rgba(46,204,113,0.26);
+  box-shadow: 0 12px 26px rgba(46,204,113,0.10);
+}
+
+html.dark .dashhome-premium-plan {
+  color: #dff9eb;
+}
+
+.dashhome-premium-kicker,
+.dashhome-premium-highlight-badge {
+  color: var(--text);
+  background: var(--surface-soft);
+  border: 1px solid var(--border);
+}
+
+.dashhome-premium-title {
+  margin: 18px 0 0;
+  max-width: 13ch;
+  font-size: clamp(2.25rem, 1.9rem + 1.6vw, 4rem);
+  line-height: 1.02;
+  letter-spacing: -0.055em;
+  font-weight: 950;
+  color: var(--text);
+  text-wrap: balance;
+}
+
+.dashhome-premium-subtitle {
+  margin: 16px 0 0;
+  max-width: 64ch;
+  font-size: 15.5px;
+  line-height: 1.72;
+  color: var(--text-soft);
+}
+
+.dashhome-premium-proof {
+  margin-top: 18px;
+}
+
+.dashhome-premium-proof span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: rgba(255,255,255,0.52);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+html.dark .dashhome-premium-proof span {
+  background: rgba(255,255,255,0.04);
+}
+
+.dashhome-premium-hero-actions {
+  margin-top: 20px;
+}
+
+.dashhome-premium-btn-main,
+.dashhome-premium-btn-secondary {
+  min-height: 54px;
+  padding-inline: 22px;
+  border-radius: 18px;
+  font-weight: 800;
+}
+
+.dashhome-premium-stats {
+  margin-top: 22px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.dashhome-premium-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  padding: 14px 16px;
+  border-radius: 18px;
+  border: 1px solid var(--border);
+  background: rgba(255,255,255,0.48);
+  box-shadow: var(--shadow-xs);
+}
+
+html.dark .dashhome-premium-stat {
+  background: rgba(255,255,255,0.04);
+}
+
+.dashhome-premium-stat-label {
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+}
+
+.dashhome-premium-stat strong {
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+/* =========================================================
+   HERO SIDE
+   ========================================================= */
+
+.dashhome-premium-hero-side {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.dashhome-premium-side-card,
+.dashhome-premium-highlight,
+.dashhome-premium-quick-card,
+.dashhome-premium-module-card,
+.dashhome-premium-bottom-card {
+  border-radius: 24px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+}
+
+html.dark .dashhome-premium-side-card,
+html.dark .dashhome-premium-highlight,
+html.dark .dashhome-premium-quick-card,
+html.dark .dashhome-premium-module-card,
+html.dark .dashhome-premium-bottom-card {
+  background: linear-gradient(180deg, rgba(15,27,45,0.98), rgba(18,34,57,0.96));
+}
+
+.dashhome-premium-side-card {
+  padding: 18px;
+}
+
+.dashhome-premium-side-card-strong {
+  background:
+    radial-gradient(620px 220px at 10% 0%, rgba(46,204,113,0.12), transparent 60%),
+    radial-gradient(580px 220px at 100% 0%, rgba(52,152,219,0.10), transparent 60%),
+    var(--surface);
+}
+
+html.dark .dashhome-premium-side-card-strong {
+  background:
+    radial-gradient(620px 220px at 10% 0%, rgba(46,204,113,0.14), transparent 60%),
+    radial-gradient(580px 220px at 100% 0%, rgba(52,152,219,0.12), transparent 60%),
+    linear-gradient(180deg, rgba(15,27,45,0.98), rgba(18,34,57,0.96));
+}
+
+.dashhome-premium-side-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.dashhome-premium-side-label {
+  font-size: 12px;
+  font-weight: 900;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.dashhome-premium-side-title {
+  display: block;
+  margin-top: 8px;
+  color: var(--text);
+  font-size: 1.04rem;
+  line-height: 1.45;
+  font-weight: 850;
+}
+
+.dashhome-premium-side-card p {
+  margin: 8px 0 0;
+  color: var(--text-soft);
+  line-height: 1.55;
+}
+
+.dashhome-premium-side-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 28px;
+  padding: 0 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(46,204,113,0.20);
+  background: rgba(46,204,113,0.10);
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--text);
+}
+
+.dashhome-premium-side-mini-grid {
+  margin-top: 16px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.dashhome-premium-side-mini-grid div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px;
+  border-radius: 16px;
+  background: var(--surface-soft);
+  border: 1px solid var(--border);
+}
+
+.dashhome-premium-side-mini-grid span {
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+}
+
+.dashhome-premium-side-mini-grid strong {
+  color: var(--text);
+  font-size: 13px;
+}
+
+/* =========================================================
+   QUICK ACTIONS
+   ========================================================= */
+
+.dashhome-premium-quick-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.dashhome-premium-quick-card {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+  min-height: 220px;
+  padding: 22px;
+  color: inherit;
+  text-decoration: none;
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease,
+    border-color 0.18s ease;
+  box-shadow:
+    0 16px 36px rgba(15,23,42,0.06),
+    inset 0 1px 0 rgba(255,255,255,0.04);
+}
+
+.dashhome-premium-quick-card:hover,
+.dashhome-premium-module-card:hover {
+  transform: translateY(-4px);
+  box-shadow:
+    0 24px 56px rgba(15,23,42,0.10),
+    inset 0 1px 0 rgba(255,255,255,0.06);
+  border-color: rgba(46,204,113,0.24);
+}
+
+.dashhome-premium-quick-card::before,
+.dashhome-premium-module-card::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 3px;
+  background: linear-gradient(90deg, rgba(52,152,219,0.9), rgba(46,204,113,0.9));
+  opacity: 0.9;
+}
+
+.dashhome-premium-quick-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background:
+    linear-gradient(135deg, rgba(52,152,219,0.14), rgba(46,204,113,0.12));
+  border: 1px solid rgba(52,152,219,0.18);
+  color: var(--text);
+  box-shadow: var(--shadow-xs);
+}
+
+.dashhome-premium-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.dashhome-premium-quick-card h3,
+.dashhome-premium-module-card h3 {
+  margin: 0;
+  color: var(--text);
+  font-size: 1.08rem;
+  line-height: 1.3;
+  letter-spacing: -0.02em;
+  font-weight: 850;
+}
+
+.dashhome-premium-quick-card p,
+.dashhome-premium-module-desc,
+.dashhome-premium-module-item span,
+.dashhome-premium-highlight p {
+  color: var(--text-soft);
+  line-height: 1.6;
+}
+
+.dashhome-premium-quick-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding-top: 2px;
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.dashhome-premium-card-cta {
+  margin-top: auto;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--secondary-strong);
+  font-weight: 800;
+}
+
+/* =========================================================
+   HIGHLIGHT
+   ========================================================= */
+
+.dashhome-premium-highlight {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 22px;
+  background:
+    radial-gradient(760px 240px at 10% 0%, rgba(46,204,113,0.12), transparent 60%),
+    radial-gradient(640px 240px at 92% 0%, rgba(52,152,219,0.12), transparent 60%),
+    var(--surface);
+}
+
+html.dark .dashhome-premium-highlight {
+  background:
+    radial-gradient(760px 240px at 10% 0%, rgba(46,204,113,0.14), transparent 60%),
+    radial-gradient(640px 240px at 92% 0%, rgba(52,152,219,0.14), transparent 60%),
+    linear-gradient(180deg, rgba(15,27,45,0.98), rgba(18,34,57,0.96));
+}
+
+.dashhome-premium-highlight h3 {
+  margin: 14px 0 0;
+  color: var(--text);
+  font-size: 1.08rem;
+  letter-spacing: -0.02em;
+}
+
+.dashhome-premium-highlight p {
+  margin-top: 10px;
+}
+
+.dashhome-premium-highlight-actions {
+  flex-shrink: 0;
+}
+
+/* =========================================================
+   MODULES
+   ========================================================= */
+
+.dashhome-premium-modules-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.dashhome-premium-module-card {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+  padding: 22px;
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease,
+    border-color 0.18s ease;
+  box-shadow:
+    0 16px 36px rgba(15,23,42,0.06),
+    inset 0 1px 0 rgba(255,255,255,0.03);
+}
+
+.dashhome-premium-module-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.dashhome-premium-module-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface-soft);
+  border: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.dashhome-premium-module-link {
+  color: var(--secondary-strong);
+  font-size: 13px;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.dashhome-premium-module-strip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: var(--surface-soft);
+  color: var(--text-soft);
+  font-size: 12.5px;
+  font-weight: 700;
+}
+
+.dashhome-premium-module-items {
+  margin-top: 6px;
+  display: grid;
+  gap: 10px;
+}
+
+.dashhome-premium-module-item {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  min-width: 0;
+  padding: 14px;
+  border-radius: 18px;
+  border: 1px solid var(--border);
+  background: var(--surface-soft);
+  color: inherit;
+  text-decoration: none;
+  transition:
+    transform 0.16s ease,
+    border-color 0.16s ease,
+    box-shadow 0.16s ease;
+}
+
+.dashhome-premium-module-item:hover {
+  transform: translateY(-1px);
+  border-color: rgba(52,152,219,0.18);
+  box-shadow: var(--shadow-xs);
+}
+
+.dashhome-premium-module-item-copy {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.dashhome-premium-module-item-copy strong {
+  color: var(--text);
+  font-size: 14px;
+}
+
+.dashhome-premium-module-item-copy span {
+  font-size: 13px;
+}
+
+.dashhome-premium-module-item-side {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+  color: var(--text-muted);
+}
+
+/* =========================================================
+   BOTTOM
+   ========================================================= */
+
+.dashhome-premium-bottom {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.dashhome-premium-bottom-card {
+  padding: 22px;
+}
+
+.dashhome-premium-bottom-card-plus {
+  background:
+    radial-gradient(700px 240px at 8% 0%, rgba(46,204,113,0.10), transparent 60%),
+    radial-gradient(700px 240px at 100% 0%, rgba(52,152,219,0.10), transparent 60%),
+    var(--surface);
+}
+
+html.dark .dashhome-premium-bottom-card-plus {
+  background:
+    radial-gradient(700px 240px at 8% 0%, rgba(46,204,113,0.12), transparent 60%),
+    radial-gradient(700px 240px at 100% 0%, rgba(52,152,219,0.12), transparent 60%),
+    linear-gradient(180deg, rgba(15,27,45,0.98), rgba(18,34,57,0.96));
+}
+
+.dashhome-premium-bottom-card h3 {
+  margin-top: 10px;
+  font-size: 1.12rem;
+  line-height: 1.45;
+}
+
+.dashhome-premium-bottom-actions {
+  margin-top: 18px;
+}
+
+.dashhome-premium-bottom-points {
+  margin-top: 16px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.dashhome-premium-bottom-points span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 11px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: var(--surface-soft);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 1180px) {
+  .dashhome-premium-hero,
+  .dashhome-premium-quick-grid,
+  .dashhome-premium-modules-grid,
+  .dashhome-premium-bottom {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 980px) {
+  .dashhome-premium-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .dashhome-premium-side-mini-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 760px) {
+  .dashhome-premium-hero,
+  .dashhome-premium-highlight,
+  .dashhome-premium-quick-card,
+  .dashhome-premium-module-card,
+  .dashhome-premium-bottom-card {
+    padding: 18px;
+  }
+
+  .dashhome-premium-title {
+    max-width: none;
+    font-size: clamp(1.9rem, 1.6rem + 1vw, 2.8rem);
+  }
+
+  .dashhome-premium-subtitle {
+    max-width: none;
+  }
+
+  .dashhome-premium-highlight {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .dashhome-premium-hero-actions,
+  .dashhome-premium-bottom-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .dashhome-premium-hero-actions .btn,
+  .dashhome-premium-bottom-actions .btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+button[data-locked-trigger="true"].dashhome-premium-quick-card,
+button[data-locked-trigger="true"].dashhome-premium-module-item {
+  color: inherit;
+}
+
+button[data-locked-trigger="true"].btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}

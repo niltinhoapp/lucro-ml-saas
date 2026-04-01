@@ -1,0 +1,33 @@
+@layer components {
+  .alert,
+  .ui-alert {
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    padding: 12px 14px;
+    font-size: 13px;
+    line-height: 1.5;
+  }
+
+  .alert.info {
+    background: rgba(52, 152, 219, 0.08);
+    border-color: rgba(52, 152, 219, 0.16);
+    color: #21679a;
+  }
+
+  .alert.success {
+    background: rgba(46, 204, 113, 0.10);
+    border-color: rgba(46, 204, 113, 0.18);
+    color: #1f8b4d;
+  }
+
+  .alert.danger,
+  .ui-alert-danger {
+    background: rgba(239, 68, 68, 0.08);
+    border-color: rgba(239, 68, 68, 0.16);
+    color: #b42318;
+  }
+
+  html.dark .alert.info { color: #9bd5fb; }
+  html.dark .alert.success { color: #9ae6b6; }
+  html.dark .alert.danger { color: #ffb4b4; }
+}
