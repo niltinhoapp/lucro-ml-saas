@@ -19,9 +19,12 @@
 @import "../styles/features/checkout.css";
 @import "../styles/features/dashboard.css";
 @import "../styles/features/dre.css";
-@import "../styles/features/risk-ai.css";
-@import "../styles/features/seller-market.css";
+@import "../styles/features/radar.css";
+@import "../styles/features/strategies.css";
 @import "../styles/features/catalogos.css";
 @import "../styles/features/account.css";
-@import "../styles/features/strategies.css";
+@import "../styles/features/upgrade-modal.css";
 
+/* congelados: manter temporariamente só para não quebrar legado */
+@import "../styles/features/risk-ai.css";
+@import "../styles/features/seller-market.css";

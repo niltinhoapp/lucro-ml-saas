@@ -1,139 +1,49 @@
-@layer components {
-  .btn,
-  .btn-primary,
-  .btn-success,
-  .btn-ghost,
-  .btn-dark,
-  .btn-secondary,
-  .btn-danger,
-  .ui-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    min-height: 42px;
-    padding: 0 16px;
-    border-radius: 12px;
-    border: 1px solid transparent;
-    font-weight: 600;
-    font-size: 14px;
-    line-height: 1;
-    white-space: nowrap;
-    cursor: pointer;
-    user-select: none;
-    transition: transform .18s ease, box-shadow .22s ease, background-color .22s ease, border-color .22s ease, filter .22s ease;
-  }
+.lm-btn,
+.lm-btn-primary,
+.lm-btn-ghost {
+  appearance: none;
+  border: 0;
+  border-radius: 14px;
+  padding: 12px 16px;
+  font-size: 0.94rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, opacity 0.18s ease;
+}
 
-  .btn:hover,
-  .btn-primary:hover,
-  .btn-success:hover,
-  .btn-ghost:hover,
-  .btn-dark:hover,
-  .btn-secondary:hover,
-  .btn-danger:hover,
-  .ui-btn:hover {
-    transform: translateY(-1px);
-  }
+.lm-btn-primary {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, #0f172a, #1e293b);
+  color: #fff;
+  box-shadow: 0 14px 30px rgba(15, 23, 42, 0.22);
+}
 
-  .btn:active,
-  .btn-primary:active,
-  .btn-success:active,
-  .btn-ghost:active,
-  .btn-dark:active,
-  .btn-secondary:active,
-  .btn-danger:active,
-  .ui-btn:active {
-    transform: translateY(0);
-  }
+.lm-btn-primary:hover {
+  transform: translateY(-1px);
+}
 
-  .btn:focus-visible,
-  .btn-primary:focus-visible,
-  .btn-success:focus-visible,
-  .btn-ghost:focus-visible,
-  .btn-dark:focus-visible,
-  .btn-secondary:focus-visible,
-  .btn-danger:focus-visible,
-  .ui-btn:focus-visible {
-    outline: none;
-    box-shadow: var(--ring);
-  }
+.lm-btn-primary::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  background: linear-gradient(120deg, transparent, rgba(255,255,255,0.24), transparent);
+  transition: opacity 0.28s ease;
+}
 
-  .btn,
-  .btn-secondary {
-    background: var(--surface-soft);
-    border-color: var(--border-strong);
-    color: var(--text);
-    box-shadow: var(--shadow-xs);
-  }
+.lm-btn-primary:hover::after {
+  opacity: 1;
+}
 
-  .btn:hover,
-  .btn-secondary:hover {
-    background: var(--surface-strong);
-    border-color: rgba(52, 152, 219, 0.18);
-    box-shadow: var(--shadow-sm);
-  }
+.lm-btn-primary:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+  transform: none;
+}
 
-  .btn-primary {
-    color: #fff;
-    background: linear-gradient(135deg, var(--primary), var(--primary-strong));
-    border-color: rgba(46, 204, 113, 0.28);
-    box-shadow: 0 12px 30px rgba(46, 204, 113, 0.24);
-  }
-
-  .btn-success {
-    color: #fff;
-    background: linear-gradient(135deg, #38d27b, var(--primary-strong));
-    border-color: rgba(46, 204, 113, 0.28);
-    box-shadow: 0 12px 30px rgba(46, 204, 113, 0.20);
-  }
-
-  .btn-ghost {
-    color: var(--text);
-    background: rgba(255,255,255,0.55);
-    border-color: var(--border);
-    box-shadow: none;
-    backdrop-filter: blur(8px);
-  }
-
-  html.dark .btn-ghost {
-    background: rgba(18, 34, 57, 0.55);
-  }
-
-  .btn-dark {
-    color: #fff;
-    background: linear-gradient(135deg, #0f172a, #1f2937);
-    border-color: rgba(17, 24, 39, 0.18);
-    box-shadow: 0 14px 32px rgba(15, 23, 42, 0.18);
-  }
-
-  html.dark .btn-dark {
-    color: var(--text-inverse);
-    background: linear-gradient(135deg, #d8e8f7, #f8fbfd);
-    border-color: rgba(236, 243, 251, 0.1);
-  }
-
-  .btn-danger {
-    color: #fff;
-    background: linear-gradient(135deg, #ef4444, #dc2626);
-    border-color: rgba(239, 68, 68, 0.28);
-    box-shadow: 0 12px 30px rgba(239, 68, 68, 0.18);
-  }
-
-  .btn-sm {
-    min-height: 34px;
-    padding: 0 12px;
-    font-size: 13px;
-    border-radius: 10px;
-  }
-
-  .btn-big {
-    min-height: 52px;
-    padding: 0 28px;
-    font-size: 15px;
-    align-self: center;
-  }
-
-  .btn-block {
-    width: 100%;
-  }
+.lm-btn-ghost {
+  background: #fff;
+  color: #0f172a;
+  border: 1px solid #e2e8f0;
 }
