@@ -6,77 +6,34 @@ export type ParsedCatalogRow = {
   brand: string | null;
   category: string | null;
   productName: string;
+
   supplierCost: number | null;
   unitPrice: number | null;
   boxPrice: number | null;
   unitsPerBox: number | null;
+
   specs: string[];
   notes: string | null;
   confidence: number;
 };
 
-export type CatalogItem = {
-  productName: string;
-
-  sku?: string;
-  brand?: string;
-  category?: string;
-
-  supplierCost?: number;
-  unitPrice?: number;
-  boxPrice?: number;
-  unitsPerBox?: number;
-
-  model?: string;
-  specs?: string;
-  notes?: string;
-
-  // mercado
-  mlPriceAvg?: number;
-  mlPriceMin?: number;
-  mlPriceMax?: number;
-
-  demandScore?: number;
-  competitionScore?: number;
-
-  // análise
-  estimatedMargin?: number;
-  estimatedProfit?: number;
-  estimatedFees?: number;
-  estimatedShipping?: number;
-
-  opportunityScore?: number;
-  riskLevel?: "low" | "medium" | "high";
-
-  worthBuying?: boolean;
-
-  aiSummary?: string;
-};
-
-export type CatalogAnalysisRow = {
-  sku: string | null;
-  model: string | null;
-  brand: string | null;
-  category: string | null;
-  productName: string;
-  supplierCost: number;
-  unitPrice: number | null;
-  boxPrice: number | null;
-  unitsPerBox: number | null;
-  specs: string[];
-  notes: string | null;
+export type CatalogAnalysisRow = ParsedCatalogRow & {
   riskLevel: CatalogRiskLevel;
   worthBuying: boolean;
+
   mlPriceAvg: number;
   mlPriceMin: number;
   mlPriceMax: number;
+
   estimatedFees: number;
   estimatedShipping: number;
   estimatedProfit: number;
   estimatedMargin: number;
+
   demandScore: number;
   competitionScore: number;
   opportunityScore: number;
+
   aiSummary: string;
 };
 
@@ -91,15 +48,6 @@ export type CatalogSummary = {
   extractedTextPreview: string;
   highlights: string[];
   usedAI: boolean;
+  extractionSource?: string;
+  totalChunks?: number;
 };
-
-export type CatalogAnalysisResult = {
-  fileName: string;
-  mode: "structured" | "manual_review";
-  aiSummary: CatalogSummary;
-  rows: CatalogAnalysisRow[];
-};
-
-
-
-

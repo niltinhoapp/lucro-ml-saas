@@ -148,9 +148,7 @@ export function analyzeCatalogRows(items: ParsedCatalogRow[]): {
         calculateFreightEstimate(mlPriceAvg, item.productName).toFixed(2)
       );
       const estimatedProfit = Number(
-        (mlPriceAvg - supplierCost - estimatedFees - estimatedShipping).toFixed(
-          2
-        )
+        (mlPriceAvg - supplierCost - estimatedFees - estimatedShipping).toFixed(2)
       );
       const estimatedMargin = Number(
         (((estimatedProfit / mlPriceAvg) || 0) * 100).toFixed(2)
@@ -204,6 +202,7 @@ export function analyzeCatalogRows(items: ParsedCatalogRow[]): {
         unitsPerBox: item.unitsPerBox,
         specs: item.specs,
         notes: item.notes,
+        confidence: item.confidence,
         riskLevel,
         worthBuying,
         mlPriceAvg,
@@ -236,8 +235,7 @@ export function analyzeCatalogRows(items: ParsedCatalogRow[]): {
   const avgOpportunity = rows.length
     ? Number(
         (
-          rows.reduce((acc, row) => acc + row.opportunityScore, 0) /
-          rows.length
+          rows.reduce((acc, row) => acc + row.opportunityScore, 0) / rows.length
         ).toFixed(2)
       )
     : 0;
@@ -264,7 +262,3 @@ export function analyzeCatalogRows(items: ParsedCatalogRow[]): {
 
   return { rows, summary };
 }
-
-
-
-

@@ -1,5 +1,4 @@
-export type {
-  CatalogAnalysisResult,
+export type {  
   CatalogAnalysisRow,
   CatalogRiskLevel,
   CatalogSummary,

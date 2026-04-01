@@ -2,11 +2,34 @@ import { extractLikelyPdfText } from "./pdf";
 import { extractCatalogItemsWithAI } from "./ai-extractor";
 import { validateAndNormalizeCatalogItems } from "./validator";
 import { analyzeCatalogRows } from "./analyzer";
-import type { ParsedCatalogRow } from "./types";
+import type { CatalogAnalysisRow } from "./types";
 
-function chunkText(text: string, maxChars = 18000) {
+type AnalyzeCatalogResult = {
+  fileName: string;
+  mode: "structured" | "manual_review";
+  aiSummary: {
+    totalRows: number;
+    parsedRows: number;
+    promisingCount: number;
+    reviewCount: number;
+    riskyCount: number;
+    avgMargin: number;
+    avgOpportunity: number;
+    extractedTextPreview: string;
+    highlights: string[];
+    usedAI: boolean;
+    extractionSource: string;
+    totalChunks?: number;
+  };
+  rows: CatalogAnalysisRow[];
+};
+
+function chunkText(text: string, maxChars = 18000): string[] {
   const normalized = text.replace(/\r/g, "").trim();
-  if (!normalized) return [];
+
+  if (!normalized) {
+    return [];
+  }
 
   const chunks: string[] = [];
   let current = "";
@@ -45,7 +68,7 @@ function chunkText(text: string, maxChars = 18000) {
 export async function analyzeCatalogBuffer(
   fileName: string,
   buffer: Buffer
-) {
+): Promise<AnalyzeCatalogResult> {
   const lowerName = fileName.toLowerCase();
 
   let text = "";
@@ -60,7 +83,7 @@ export async function analyzeCatalogBuffer(
   if (!text.trim()) {
     return {
       fileName,
-      mode: "manual_review" as const,
+      mode: "manual_review",
       aiSummary: {
         totalRows: 0,
         parsedRows: 0,
@@ -76,19 +99,23 @@ export async function analyzeCatalogBuffer(
           "O arquivo pode exigir revisão manual.",
         ],
         usedAI: true,
+        extractionSource: "empty",
+        totalChunks: 0,
       },
       rows: [],
     };
   }
 
   const chunks = chunkText(text, 18000);
-
-  const allItems: ParsedCatalogRow[] = [];
+  const allItems = [];
 
   for (const chunk of chunks) {
-    const ai = await extractCatalogItemsWithAI({ extractedText: chunk });
-    if (Array.isArray(ai?.items)) {
-      allItems.push(...ai.items);
+    const extracted = await extractCatalogItemsWithAI({
+      extractedText: chunk,
+    });
+
+    if (extracted.items.length > 0) {
+      allItems.push(...extracted.items);
     }
   }
 
@@ -97,13 +124,22 @@ export async function analyzeCatalogBuffer(
 
   return {
     fileName,
-    mode: analyzed.rows.length
-      ? ("structured" as const)
-      : ("manual_review" as const),
+    mode: analyzed.rows.length > 0 ? "structured" : "manual_review",
     aiSummary: {
       ...analyzed.summary,
       extractedTextPreview: text.slice(0, 1500),
       totalChunks: chunks.length,
+      usedAI: true,
+      extractionSource: "openai",
+      highlights:
+        Array.isArray(analyzed.summary.highlights) &&
+        analyzed.summary.highlights.length > 0
+          ? analyzed.summary.highlights
+          : [
+              "Estruturação concluída com apoio de IA.",
+              `Chunks processados: ${chunks.length}`,
+              `Itens válidos após normalização: ${validItems.length}`,
+            ],
     },
     rows: analyzed.rows,
   };
