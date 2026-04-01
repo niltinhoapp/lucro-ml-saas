@@ -28,3 +28,4 @@ export type StrategiesResponse = {
   strategies: Strategy[];
   recommendations: StrategyRecommendation[];
 };
+

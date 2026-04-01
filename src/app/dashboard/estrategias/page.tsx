@@ -10,7 +10,7 @@ export default async function StrategiesPage() {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect("/auth/login?next=/dashboard/estrategias");
+    redirect("/auth/login?next=/dashboard/produtos/estrategiass");
   }
 
   return (
@@ -19,3 +19,4 @@ export default async function StrategiesPage() {
     </Suspense>
   );
 }
+

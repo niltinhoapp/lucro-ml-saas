@@ -139,7 +139,7 @@ export const moduleCards: ModuleCard[] = [
     title: "Estratégia",
     summary: "Ajuda prática para usar melhor a plataforma e evoluir seu plano.",
     icon: "estrategia",
-    href: "/dashboard/estrategia",
+    href: "/dashboard/produtos/estrategias",
     items: [
       {
         label: "Ajuda para seller",
@@ -210,4 +210,6 @@ export function getUpgradeHref(targetPlan?: PlanGate) {
   if (targetPlan === "pro") return "/checkout?plan=pro";
   return "/checkout";
 }
+
+
 

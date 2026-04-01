@@ -39,3 +39,4 @@ export async function saveRadarSearch(input: SaveRadarSearchInput) {
     throw error;
   }
 }
+

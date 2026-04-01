@@ -200,3 +200,5 @@ export function gerarInsightsDre(dre?: Partial<DreResultado> | null): DreInsight
   });
 }
 
+
+

@@ -12,3 +12,5 @@ export interface LinhaVenda {
 // Mantemos flexível, mas SEM any
 export type LinhaPlanilha = Record<string, string | number | null | undefined>;
 
+
+

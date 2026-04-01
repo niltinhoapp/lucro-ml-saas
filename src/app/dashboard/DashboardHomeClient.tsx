@@ -87,3 +87,5 @@ export default function DashboardHomeClient({ simulacoes }: Props) {
   );
 }
 
+
+

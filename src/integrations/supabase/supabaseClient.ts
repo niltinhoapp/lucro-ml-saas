@@ -41,3 +41,5 @@ export const supabase = new Proxy(
   }
 ) as ReturnType<typeof createSupabaseClient>;
 
+
+

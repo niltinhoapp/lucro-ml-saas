@@ -1,36 +1,41 @@
-
 import Link from "next/link";
-import { moduleCards } from "@/features/dashboard/shared/dashboard-data";
+import { Package, Radar, BookOpen, FileText } from "lucide-react";
 
 export default function ProdutosPage() {
-  const module = moduleCards.find((item) => item.title === "Produtos");
-
-  if (!module) return null;
-
   return (
-    <div className="page-wrap" style={{ display: "grid", gap: 18 }}>
-      <section className="card card-premium">
-        <div className="card-head">
-          <div>
-            <h1>Produtos</h1>
-            <p className="subtitle">{module.summary}</p>
-          </div>
-        </div>
-      </section>
+    <div className="lm-produtos-page">
+      <header className="lm-produtos-header">
+        <h1>Produtos</h1>
+        <p>
+          Escolha o que você quer analisar. Aqui é onde você decide o que comprar,
+          testar ou escalar.
+        </p>
+      </header>
 
-      <section className="dashhome-section card card-premium">
-        <div className="dashhome-grid">
-          {module.items.map((item) => (
-            <Link key={item.href} href={item.href} className="dashhome-card">
-              <div className="dashhome-card-body">
-                <div className="dashhome-card-top">
-                  <h3>{item.label}</h3>
-                </div>
-                <p className="dashhome-card-desc">{item.description}</p>
-              </div>
-            </Link>
-          ))}
-        </div>
+      <section className="lm-produtos-grid">
+        <Link href="/dashboard/produtos/radar" className="lm-produtos-card">
+          <Radar size={22} />
+          <div>
+            <strong>Radar ML</strong>
+            <p>Descubra oportunidades com base em dados reais.</p>
+          </div>
+        </Link>
+
+        <Link href="/dashboard/produtos/catalogos" className="lm-produtos-card">
+          <FileText size={22} />
+          <div>
+            <strong>Catálogos</strong>
+            <p>Analise PDFs de fornecedores e identifique produtos.</p>
+          </div>
+        </Link>
+
+        <Link href="/dashboard/produtos/estrategias" className="lm-produtos-card">
+          <BookOpen size={22} />
+          <div>
+            <strong>Estratégias</strong>
+            <p>Decida como vender melhor com base no cenário.</p>
+          </div>
+        </Link>
       </section>
     </div>
   );

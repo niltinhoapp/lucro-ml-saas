@@ -34,3 +34,4 @@ export function StrategyFilters({ activeFilter, onChange }: StrategyFiltersProps
     </div>
   );
 }
+

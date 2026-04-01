@@ -28,3 +28,5 @@ export async function getUserPlan(): Promise<UserPlan> {
   return (data?.plan as UserPlan) ?? "free_trial";
 }
 
+
+

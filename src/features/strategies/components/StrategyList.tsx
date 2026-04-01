@@ -49,3 +49,4 @@ export function StrategyList({ items, selectedId, onSelect }: StrategyListProps)
     </div>
   );
 }
+

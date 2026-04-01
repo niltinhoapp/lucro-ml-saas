@@ -19,3 +19,5 @@ export type CatalogStructuredResult = {
   source?: "cache" | "ai";
 };
 
+
+

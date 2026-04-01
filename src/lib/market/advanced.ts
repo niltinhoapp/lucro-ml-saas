@@ -220,3 +220,5 @@ export function planilhaDiagnostic(rows: Array<{ nome: string; receita: number; 
   };
 }
 
+
+

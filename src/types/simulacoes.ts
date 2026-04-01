@@ -15,3 +15,5 @@ export type SimulacaoRow = {
   arquivo_nome?: string | null;
 };
 
+
+

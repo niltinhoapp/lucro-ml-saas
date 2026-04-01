@@ -10,3 +10,5 @@ export const getDespesas = (): Despesa[] => [
   { id: 2, descricao: "Taxa ML", valor: 800, data: "2026-02-02" },
 ];
 
+
+

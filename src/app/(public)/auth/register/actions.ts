@@ -74,3 +74,5 @@ export async function registerAction(formData: FormData) {
   redirect(`/auth/register?check=1&next=${encodeURIComponent(next)}`);
 }
 
+
+

@@ -22,3 +22,4 @@ export function useStrategies() {
     dedupingInterval: 60_000,
   });
 }
+

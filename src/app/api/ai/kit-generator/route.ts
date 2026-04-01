@@ -10,3 +10,5 @@ export async function POST(req: Request) {
   return NextResponse.json(generateKitIdeas(produto, categoria, precoBase));
 }
 
+
+
