@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { createServerClient } from "@/integrations/supabase/server";
 import { getEntitlements } from "@/integrations/supabase/entitlements";
 import { fetchMlMe, refreshMlToken } from "@/lib/mercadolivre/client";
+import { saveRadarSearch } from "@/features/produtos/radar/server/saveRadarSearch";
+import { generateRadarRecommendation } from "@/features/strategies/server/generateRadarRecommendation";
 
 const ML_API_BASE = "https://api.mercadolibre.com";
 const MLB_SITE_ID = "MLB";
@@ -55,6 +57,56 @@ type ValidMlSession = {
   refreshed: boolean;
 };
 
+type RadarOpportunity = {
+  title: string;
+  keyword: string;
+  price: number;
+  soldQuantity: number;
+  competitionLevel: "baixa" | "média" | "alta";
+  opportunityScore: number;
+  sellerShare: number;
+  shipping: string;
+  permalink?: string;
+};
+
+type RadarPayload = {
+  ok: true;
+  traceId: string;
+  source: "mercado_livre";
+  sellerAccount: string | null;
+  sellerMlUserId: number | null;
+  produto: string;
+  siteId: string;
+  category: {
+    id: string | null;
+    name: string | null;
+    domainId: string | null;
+    domainName: string | null;
+  };
+  market: {
+    activeListings: number;
+    uniqueSellers: number;
+    avgPrice: number;
+    minPrice: number;
+    maxPrice: number;
+    avgSoldQuantity: number;
+    freeShippingRate: number;
+    catalogRate: number;
+    topSellerShare: number;
+    competitionScore: number;
+    demandScore: number;
+    opportunityScore: number;
+  };
+  highlights: string[];
+  opportunities: RadarOpportunity[];
+  sellers: {
+    seller: string;
+    items: number;
+    share: number;
+    powerSeller: string;
+  }[];
+};
+
 function getTraceId() {
   return `mlrad_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
 }
@@ -94,16 +146,16 @@ function logError(
   });
 }
 
-function clamp(v: number, min: number, max: number) {
-  return Math.min(max, Math.max(min, v));
+function clamp(value: number, min: number, max: number) {
+  return Math.min(max, Math.max(min, value));
 }
 
-function toMoney(v: number) {
-  return Number(v.toFixed(2));
+function toMoney(value: number) {
+  return Number(value.toFixed(2));
 }
 
-function normalizeKeyword(v: string) {
-  return v
+function normalizeKeyword(value: string) {
+  return value
     .toLowerCase()
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
@@ -112,13 +164,13 @@ function normalizeKeyword(v: string) {
     .trim();
 }
 
-function normalizeTitleToKeyword(v: string) {
+function normalizeTitleToKeyword(value: string) {
   return (
-    normalizeKeyword(v)
+    normalizeKeyword(value)
       .split(" ")
-      .filter((p) => p.length > 2)
+      .filter((part) => part.length > 2)
       .slice(0, 6)
-      .join(" ") || v.trim()
+      .join(" ") || value.trim()
   );
 }
 
@@ -145,10 +197,15 @@ function isConnectionExpired(expiresAt: string | null | undefined) {
   if (!expiresAt) return true;
 
   const ts = new Date(expiresAt).getTime();
-
   if (!Number.isFinite(ts)) return true;
 
   return ts <= Date.now() + 60_000;
+}
+
+function competitionLevelFromScore(score: number): "baixa" | "média" | "alta" {
+  if (score <= 38) return "baixa";
+  if (score <= 68) return "média";
+  return "alta";
 }
 
 async function mlGet<T>(
@@ -159,9 +216,9 @@ async function mlGet<T>(
 ) {
   const url = new URL(`${ML_API_BASE}${path}`);
 
-  for (const [k, v] of Object.entries(params)) {
-    if (v !== undefined && v !== null && v !== "") {
-      url.searchParams.set(k, String(v));
+  for (const [key, value] of Object.entries(params)) {
+    if (value !== undefined && value !== null && value !== "") {
+      url.searchParams.set(key, String(value));
     }
   }
 
@@ -173,7 +230,6 @@ async function mlGet<T>(
     "User-Agent": "LucroML/1.0",
   };
 
-  // Só envia token em endpoint privado.
   if (accessToken && isPrivateUsersEndpoint) {
     headers.Authorization = `Bearer ${accessToken}`;
   }
@@ -189,23 +245,23 @@ async function mlGet<T>(
   const timeout = setTimeout(() => controller.abort(), ML_TIMEOUT_MS);
 
   try {
-    const res = await fetch(url.toString(), {
+    const response = await fetch(url.toString(), {
       method: "GET",
       headers,
       cache: "no-store",
       signal: controller.signal,
     });
 
-    const raw = await res.text().catch(() => "");
+    const raw = await response.text().catch(() => "");
 
     logStep(traceId, "mercado livre response received", {
       path,
-      status: res.status,
-      ok: res.ok,
+      status: response.status,
+      ok: response.ok,
       bodyPreview: raw.slice(0, 600),
     });
 
-    if (!res.ok) {
+    if (!response.ok) {
       let parsed: any = null;
 
       try {
@@ -218,7 +274,7 @@ async function mlGet<T>(
       const blockedBy = parsed?.blocked_by;
 
       if (
-        res.status === 403 &&
+        response.status === 403 &&
         policyCode === "PA_UNAUTHORIZED_RESULT_FROM_POLICIES"
       ) {
         throw new Error(
@@ -226,7 +282,7 @@ async function mlGet<T>(
         );
       }
 
-      throw new Error(`Mercado Livre ${res.status}: ${raw || res.statusText}`);
+      throw new Error(`Mercado Livre ${response.status}: ${raw || response.statusText}`);
     }
 
     return JSON.parse(raw) as T;
@@ -253,11 +309,10 @@ async function discoverCategory(traceId: string, query: string) {
 }
 
 async function searchItems(traceId: string, query: string, limit = 30) {
-  return mlGet<MlSearchResponse>(
-    traceId,
-    `/sites/${MLB_SITE_ID}/search`,
-    { q: query, limit }
-  );
+  return mlGet<MlSearchResponse>(traceId, `/sites/${MLB_SITE_ID}/search`, {
+    q: query,
+    limit,
+  });
 }
 
 async function searchItemsByCategory(
@@ -265,17 +320,10 @@ async function searchItemsByCategory(
   categoryId: string,
   limit = 20
 ) {
-  return mlGet<MlSearchResponse>(
-    traceId,
-    `/sites/${MLB_SITE_ID}/search`,
-    { category: categoryId, limit }
-  );
-}
-
-function competitionLevelFromScore(score: number): "baixa" | "média" | "alta" {
-  if (score <= 38) return "baixa";
-  if (score <= 68) return "média";
-  return "alta";
+  return mlGet<MlSearchResponse>(traceId, `/sites/${MLB_SITE_ID}/search`, {
+    category: categoryId,
+    limit,
+  });
 }
 
 async function refreshAndPersistConnection(
@@ -399,14 +447,9 @@ async function ensureValidMlSession(
       .eq("id", connection.id);
 
     if (syncError) {
-      logError(
-        traceId,
-        "failed to sync ml connection after /users/me",
-        syncError,
-        {
-          connectionId: connection.id,
-        }
-      );
+      logError(traceId, "failed to sync ml connection after /users/me", syncError, {
+        connectionId: connection.id,
+      });
     }
 
     logStep(traceId, "ml session validated with /users/me", {
@@ -466,14 +509,9 @@ async function ensureValidMlSession(
       .eq("id", connection.id);
 
     if (syncError) {
-      logError(
-        traceId,
-        "failed to sync ml connection after forced refresh",
-        syncError,
-        {
-          connectionId: connection.id,
-        }
-      );
+      logError(traceId, "failed to sync ml connection after forced refresh", syncError, {
+        connectionId: connection.id,
+      });
     }
 
     logStep(traceId, "ml session validated after forced refresh", {
@@ -489,6 +527,208 @@ async function ensureValidMlSession(
       refreshed,
     };
   }
+}
+
+function buildRadarPayload(params: {
+  traceId: string;
+  produto: string;
+  sellerNickname: string | null;
+  sellerMlUserId: number | null;
+  category: MlCategoryPrediction | null;
+  searchResults: MlSearchItem[];
+  categorySearchResults: MlSearchItem[];
+  pagingTotal: number;
+}): RadarPayload {
+  const {
+    traceId,
+    produto,
+    sellerNickname,
+    sellerMlUserId,
+    category,
+    searchResults,
+    categorySearchResults,
+    pagingTotal,
+  } = params;
+
+  const prices = searchResults
+    .map((item) => Number(item.price ?? 0))
+    .filter((value) => value > 0);
+
+  const solds = searchResults.map((item) => Number(item.sold_quantity ?? 0));
+  const freeShippingCount = searchResults.filter(
+    (item) => item.shipping?.free_shipping
+  ).length;
+  const catalogCount = searchResults.filter((item) => item.catalog_listing).length;
+
+  const sellerCounter = new Map<
+    string,
+    { seller: string; count: number; powerSeller: string }
+  >();
+
+  for (const item of searchResults) {
+    const sellerId = String(item.seller?.id ?? item.seller?.nickname ?? item.id);
+    const sellerName = item.seller?.nickname ?? `Seller ${sellerId}`;
+    const existing = sellerCounter.get(sellerId);
+
+    if (existing) {
+      existing.count += 1;
+    } else {
+      sellerCounter.set(sellerId, {
+        seller: sellerName,
+        count: 1,
+        powerSeller: item.seller?.reputation?.power_seller_status ?? "normal",
+      });
+    }
+  }
+
+  const sellers = [...sellerCounter.values()].sort((a, b) => b.count - a.count);
+  const uniqueSellers = sellers.length;
+  const activeListings = Number(pagingTotal ?? searchResults.length);
+  const topSellerShare = searchResults.length
+    ? (sellers[0]?.count ?? 0) / searchResults.length
+    : 0;
+
+  const competitionScore = Math.round(
+    clamp(
+      topSellerShare * 45 +
+        clamp(activeListings / 12000, 0, 1) * 40 +
+        clamp((uniqueSellers / Math.max(1, activeListings)) * 1.8, 0, 1) * 15,
+      0,
+      100
+    )
+  );
+
+  const demandScore = Math.round(
+    (
+      clamp(
+        solds.reduce((a, b) => a + b, 0) / Math.max(1, solds.length) / 80,
+        0,
+        1
+      ) *
+        0.7 +
+      clamp(activeListings / 4000, 0, 1) * 0.3
+    ) * 100
+  );
+
+  const avgPriceBase = prices.reduce((a, b) => a + b, 0) / prices.length;
+
+  const priceSpreadRatio =
+    (Math.max(...prices) - Math.min(...prices)) / Math.max(1, avgPriceBase);
+
+  const opportunityScore = Math.round(
+    clamp(
+      demandScore * 0.5 +
+        (100 - competitionScore) * 0.4 +
+        clamp(priceSpreadRatio, 0, 1) * 10,
+      0,
+      100
+    )
+  );
+
+  const pool = [...searchResults, ...categorySearchResults]
+    .filter(
+      (item, index, arr) =>
+        arr.findIndex((other) => other.id === item.id) === index
+    )
+    .slice(0, 18);
+
+  const opportunities: RadarOpportunity[] = pool
+    .map((item) => {
+      const soldQuantity = Number(item.sold_quantity ?? 0);
+
+      const itemCompetition = clamp(
+        competitionScore * 0.65 +
+          clamp(quantityToNumber(item.available_quantity) / 500, 0, 1) * 35,
+        0,
+        100
+      );
+
+      return {
+        title: item.title,
+        keyword: normalizeTitleToKeyword(item.title),
+        price: toMoney(Number(item.price ?? 0)),
+        soldQuantity,
+        competitionLevel: competitionLevelFromScore(itemCompetition),
+        opportunityScore: Math.round(
+          clamp(
+            demandScore * 0.45 +
+              clamp(soldQuantity / 120, 0, 1) * 30 +
+              (100 - itemCompetition) * 0.25,
+            0,
+            100
+          )
+        ),
+        sellerShare: Number((topSellerShare * 100).toFixed(1)),
+        shipping: item.shipping?.free_shipping
+          ? "frete grátis"
+          : item.shipping?.logistic_type ?? "a validar",
+        permalink: item.permalink,
+      };
+    })
+    .sort(
+      (a, b) =>
+        b.opportunityScore - a.opportunityScore ||
+        b.soldQuantity - a.soldQuantity
+    )
+    .slice(0, 8);
+
+  return {
+    ok: true,
+    traceId,
+    source: "mercado_livre",
+    sellerAccount: sellerNickname,
+    sellerMlUserId,
+    produto,
+    siteId: MLB_SITE_ID,
+    category: {
+      id: category?.category_id ?? null,
+      name: category?.category_name ?? null,
+      domainId: category?.domain_id ?? null,
+      domainName: category?.domain_name ?? null,
+    },
+    market: {
+      activeListings,
+      uniqueSellers,
+      avgPrice: toMoney(avgPriceBase),
+      minPrice: toMoney(Math.min(...prices)),
+      maxPrice: toMoney(Math.max(...prices)),
+      avgSoldQuantity: Math.round(
+        solds.reduce((a, b) => a + b, 0) / Math.max(1, solds.length)
+      ),
+      freeShippingRate: Math.round(
+        (freeShippingCount / Math.max(1, searchResults.length)) * 100
+      ),
+      catalogRate: Math.round(
+        (catalogCount / Math.max(1, searchResults.length)) * 100
+      ),
+      topSellerShare: Math.round(topSellerShare * 100),
+      competitionScore,
+      demandScore,
+      opportunityScore,
+    },
+    highlights: [
+      `${activeListings.toLocaleString("pt-BR")} anúncios ativos encontrados para “${produto}”.`,
+      `${uniqueSellers.toLocaleString("pt-BR")} sellers distintos apareceram na amostra principal.`,
+      `Faixa de preço observada: R$ ${toMoney(Math.min(...prices)).toLocaleString("pt-BR", {
+        minimumFractionDigits: 2,
+      })} até R$ ${toMoney(Math.max(...prices)).toLocaleString("pt-BR", {
+        minimumFractionDigits: 2,
+      })}.`,
+      `Frete grátis aparece em ${Math.round(
+        (freeShippingCount / Math.max(1, searchResults.length)) * 100
+      )}% dos anúncios analisados.`,
+      topSellerShare >= 0.35
+        ? "Atenção: poucos sellers concentram boa parte da vitrine dessa busca."
+        : "Boa notícia: a vitrine parece menos concentrada entre os sellers do topo.",
+    ],
+    opportunities,
+    sellers: sellers.slice(0, 6).map((seller) => ({
+      seller: seller.seller,
+      items: seller.count,
+      share: Math.round((seller.count / Math.max(1, searchResults.length)) * 100),
+      powerSeller: seller.powerSeller,
+    })),
+  };
 }
 
 export async function POST(req: Request) {
@@ -524,11 +764,6 @@ export async function POST(req: Request) {
 
     const ent = await getEntitlements(supabase, user.id);
 
-    logStep(traceId, "entitlements loaded", {
-      userId: user.id,
-      isPlus: ent.isPlus,
-    });
-
     if (!ent.isPlus) {
       return NextResponse.json(
         {
@@ -542,11 +777,6 @@ export async function POST(req: Request) {
 
     const body = await req.json().catch(() => ({}));
     const produto = String(body?.produto ?? "").trim();
-
-    logStep(traceId, "request body parsed", {
-      produto,
-      hasProduto: Boolean(produto),
-    });
 
     if (!produto) {
       return NextResponse.json(
@@ -589,16 +819,6 @@ export async function POST(req: Request) {
     }
 
     if (!typedConnection?.is_active || !typedConnection?.access_token) {
-      logError(
-        traceId,
-        "ml connection missing or inactive",
-        "No active connection",
-        {
-          userId: user.id,
-          hasConnection: Boolean(typedConnection),
-        }
-      );
-
       return NextResponse.json(
         {
           ok: false,
@@ -609,22 +829,14 @@ export async function POST(req: Request) {
       );
     }
 
-    logStep(traceId, "active ml connection found", {
-      connectionId: typedConnection.id,
-      mlUserId: typedConnection.ml_user_id,
-      mlNickname: typedConnection.ml_nickname,
-      expiresAt: typedConnection.expires_at,
-      updatedAt: typedConnection.updated_at,
-    });
-
     let session: ValidMlSession;
 
     try {
       session = await ensureValidMlSession(traceId, supabase, typedConnection);
-    } catch (err) {
-      const detail = safeErrorMessage(err);
+    } catch (error) {
+      const detail = safeErrorMessage(error);
 
-      logError(traceId, "ml session validation failed", err, {
+      logError(traceId, "ml session validation failed", error, {
         connectionId: typedConnection.id,
       });
 
@@ -640,35 +852,19 @@ export async function POST(req: Request) {
       );
     }
 
-    const sellerNickname = session.sellerNickname;
-    const sellerMlUserId = session.sellerMlUserId;
-
-    logStep(traceId, "starting mercado livre market queries", {
-      produto,
-      sellerNickname,
-      sellerMlUserId,
-      refreshed: session.refreshed,
-    });
-
     let category: MlCategoryPrediction | null = null;
     let search: MlSearchResponse;
 
     try {
       [category, search] = await Promise.all([
-        discoverCategory(traceId, produto).catch((err) => {
-          logError(traceId, "category discovery failed", err, { produto });
+        discoverCategory(traceId, produto).catch((error) => {
+          logError(traceId, "category discovery failed", error, { produto });
           return null;
         }),
         searchItems(traceId, produto, 30),
       ]);
-    } catch (err) {
-      const detail = safeErrorMessage(err);
-
-      logError(traceId, "primary mercado livre search failed", err, {
-        produto,
-        sellerNickname,
-        sellerMlUserId,
-      });
+    } catch (error) {
+      const detail = safeErrorMessage(error);
 
       if (detail.includes("ML_POLICY_BLOCK")) {
         return NextResponse.json(
@@ -696,16 +892,8 @@ export async function POST(req: Request) {
     }
 
     const searchResults = (search.results ?? []).filter(
-      (i) => Number(i.price ?? 0) > 0
+      (item) => Number(item.price ?? 0) > 0
     );
-
-    logStep(traceId, "primary search finished", {
-      totalReturned: search.results?.length ?? 0,
-      validPricedResults: searchResults.length,
-      pagingTotal: search.paging?.total ?? null,
-      categoryId: category?.category_id ?? null,
-      categoryName: category?.category_name ?? null,
-    });
 
     if (!searchResults.length) {
       return NextResponse.json(
@@ -718,242 +906,69 @@ export async function POST(req: Request) {
       );
     }
 
-    const prices = searchResults
-      .map((i) => Number(i.price ?? 0))
-      .filter((v) => v > 0);
-
-    const solds = searchResults.map((i) => Number(i.sold_quantity ?? 0));
-    const freeShippingCount = searchResults.filter(
-      (i) => i.shipping?.free_shipping
-    ).length;
-    const catalogCount = searchResults.filter((i) => i.catalog_listing).length;
-
-    const sellerCounter = new Map<
-      string,
-      { seller: string; count: number; powerSeller: string }
-    >();
-
-    for (const item of searchResults) {
-      const sellerId = String(
-        item.seller?.id ?? item.seller?.nickname ?? item.id
-      );
-      const sellerName = item.seller?.nickname ?? `Seller ${sellerId}`;
-      const current = sellerCounter.get(sellerId);
-
-      if (current) {
-        current.count += 1;
-      } else {
-        sellerCounter.set(sellerId, {
-          seller: sellerName,
-          count: 1,
-          powerSeller: item.seller?.reputation?.power_seller_status ?? "normal",
-        });
-      }
-    }
-
-    const sellers = [...sellerCounter.values()].sort((a, b) => b.count - a.count);
-    const uniqueSellers = sellers.length;
-    const activeListings = Number(search.paging?.total ?? searchResults.length);
-    const topSellerShare = searchResults.length
-      ? (sellers[0]?.count ?? 0) / searchResults.length
-      : 0;
-
-    const competitionScore = Math.round(
-      clamp(
-        topSellerShare * 45 +
-          clamp(activeListings / 12000, 0, 1) * 40 +
-          clamp((uniqueSellers / Math.max(1, activeListings)) * 1.8, 0, 1) * 15,
-        0,
-        100
-      )
-    );
-
-    const demandScore = Math.round(
-      (
-        clamp(
-          solds.reduce((a, b) => a + b, 0) / Math.max(1, solds.length) / 80,
-          0,
-          1
-        ) *
-          0.7 +
-        clamp(activeListings / 4000, 0, 1) * 0.3
-      ) * 100
-    );
-
-    const avgPriceBase = prices.reduce((a, b) => a + b, 0) / prices.length;
-
-    const priceSpreadRatio =
-      (Math.max(...prices) - Math.min(...prices)) / Math.max(1, avgPriceBase);
-
-    const opportunityScore = Math.round(
-      clamp(
-        demandScore * 0.5 +
-          (100 - competitionScore) * 0.4 +
-          clamp(priceSpreadRatio, 0, 1) * 10,
-        0,
-        100
-      )
-    );
-
     const categorySearch = category?.category_id
       ? await searchItemsByCategory(traceId, category.category_id, 20).catch(
-          (err) => {
-            logError(traceId, "category search failed", err, {
-              categoryId: category.category_id,
+          (error) => {
+            logError(traceId, "category search failed", error, {
+              categoryId: category?.category_id,
             });
             return null;
           }
         )
       : null;
 
-    const pool = [
-      ...searchResults,
-      ...((categorySearch?.results ?? []).filter(
-        (i) => Number(i.price ?? 0) > 0
-      ) as MlSearchItem[]),
-    ]
-      .filter(
-        (item, index, arr) =>
-          arr.findIndex((other) => other.id === item.id) === index
-      )
-      .slice(0, 18);
+    const categorySearchResults = (categorySearch?.results ?? []).filter(
+      (item) => Number(item.price ?? 0) > 0
+    );
 
-    const opportunities = pool
-      .map((item) => {
-        const soldQuantity = Number(item.sold_quantity ?? 0);
-
-        const itemCompetition = clamp(
-          competitionScore * 0.65 +
-            clamp(quantityToNumber(item.available_quantity) / 500, 0, 1) * 35,
-          0,
-          100
-        );
-
-        return {
-          title: item.title,
-          keyword: normalizeTitleToKeyword(item.title),
-          price: toMoney(Number(item.price ?? 0)),
-          soldQuantity,
-          competitionLevel: competitionLevelFromScore(itemCompetition),
-          opportunityScore: Math.round(
-            clamp(
-              demandScore * 0.45 +
-                clamp(soldQuantity / 120, 0, 1) * 30 +
-                (100 - itemCompetition) * 0.25,
-              0,
-              100
-            )
-          ),
-          sellerShare: Number((topSellerShare * 100).toFixed(1)),
-          shipping: item.shipping?.free_shipping
-            ? "frete grátis"
-            : item.shipping?.logistic_type ?? "a validar",
-          permalink: item.permalink,
-        };
-      })
-      .sort(
-        (a, b) =>
-          b.opportunityScore - a.opportunityScore ||
-          b.soldQuantity - a.soldQuantity
-      )
-      .slice(0, 8);
-
-    const payload = {
-      ok: true,
+    const payload = buildRadarPayload({
       traceId,
-      source: "mercado_livre" as const,
-      sellerAccount: sellerNickname,
-      sellerMlUserId,
       produto,
-      siteId: MLB_SITE_ID,
-      category: {
-        id: category?.category_id ?? null,
-        name: category?.category_name ?? null,
-        domainId: category?.domain_id ?? null,
-        domainName: category?.domain_name ?? null,
-      },
-      market: {
-        activeListings,
-        uniqueSellers,
-        avgPrice: toMoney(avgPriceBase),
-        minPrice: toMoney(Math.min(...prices)),
-        maxPrice: toMoney(Math.max(...prices)),
-        avgSoldQuantity: Math.round(
-          solds.reduce((a, b) => a + b, 0) / Math.max(1, solds.length)
-        ),
-        freeShippingRate: Math.round(
-          (freeShippingCount / Math.max(1, searchResults.length)) * 100
-        ),
-        catalogRate: Math.round(
-          (catalogCount / Math.max(1, searchResults.length)) * 100
-        ),
-        topSellerShare: Math.round(topSellerShare * 100),
-        competitionScore,
-        demandScore,
-        opportunityScore,
-      },
-      highlights: [
-        `${activeListings.toLocaleString("pt-BR")} anúncios ativos encontrados para “${produto}”.`,
-        `${uniqueSellers.toLocaleString("pt-BR")} sellers distintos apareceram na amostra principal.`,
-        `Faixa de preço observada: R$ ${toMoney(
-          Math.min(...prices)
-        ).toLocaleString("pt-BR", {
-          minimumFractionDigits: 2,
-        })} até R$ ${toMoney(Math.max(...prices)).toLocaleString("pt-BR", {
-          minimumFractionDigits: 2,
-        })}.`,
-        `Frete grátis aparece em ${Math.round(
-          (freeShippingCount / Math.max(1, searchResults.length)) * 100
-        )}% dos anúncios analisados.`,
-        topSellerShare >= 0.35
-          ? "Atenção: poucos sellers concentram boa parte da vitrine dessa busca."
-          : "Boa notícia: a vitrine parece menos concentrada entre os sellers do topo.",
-      ],
-      opportunities,
-      sellers: sellers.slice(0, 6).map((seller) => ({
-        seller: seller.seller,
-        items: seller.count,
-        share: Math.round(
-          (seller.count / Math.max(1, searchResults.length)) * 100
-        ),
-        powerSeller: seller.powerSeller,
-      })),
-    };
-
-    const topOpportunity = opportunities[0] ?? null;
+      sellerNickname: session.sellerNickname,
+      sellerMlUserId: session.sellerMlUserId,
+      category,
+      searchResults,
+      categorySearchResults,
+      pagingTotal: Number(search.paging?.total ?? searchResults.length),
+    });
 
     try {
-      const { error: historyError } = await supabase
-        .from("radar_searches")
-        .insert({
-          user_id: user.id,
-          query: produto,
-          site_id: MLB_SITE_ID,
-          category_id: payload.category.id,
-          category_name: payload.category.name,
-          demand_score: demandScore,
-          competition_score: competitionScore,
-          opportunity_score: opportunityScore,
-          active_listings: activeListings,
-          unique_sellers: uniqueSellers,
-          avg_price: payload.market.avgPrice,
-          top_opportunity: topOpportunity,
-          payload,
-        });
+      await saveRadarSearch({
+        userId: user.id,
+        query: produto,
+        avgPrice: payload.market.avgPrice,
+        demandScore: payload.market.demandScore,
+        competitionScore: payload.market.competitionScore,
+        opportunityScore: payload.market.opportunityScore,
+        payload,
+      });
 
-      if (historyError) {
-        logError(traceId, "failed to save radar history", historyError, {
-          userId: user.id,
-          produto,
-        });
-      } else {
-        logStep(traceId, "radar search history saved", {
-          userId: user.id,
-          produto,
-        });
-      }
-    } catch (historyError) {
-      logError(traceId, "failed to save radar history", historyError, {
+      logStep(traceId, "radar search saved", {
+        userId: user.id,
+        produto,
+      });
+    } catch (error) {
+      logError(traceId, "failed to save radar history", error, {
+        userId: user.id,
+        produto,
+      });
+    }
+
+    try {
+      await generateRadarRecommendation({
+        userId: user.id,
+        query: produto,
+        opportunityScore: payload.market.opportunityScore,
+        demandScore: payload.market.demandScore,
+        competitionScore: payload.market.competitionScore,
+      });
+
+      logStep(traceId, "radar recommendation generated", {
+        userId: user.id,
+        produto,
+      });
+    } catch (error) {
+      logError(traceId, "failed to generate radar recommendation", error, {
         userId: user.id,
         produto,
       });
@@ -962,7 +977,7 @@ export async function POST(req: Request) {
     logStep(traceId, "route finished successfully", {
       userId: user.id,
       produto,
-      opportunities: opportunities.length,
+      opportunities: payload.opportunities.length,
     });
 
     return NextResponse.json(payload);
@@ -982,4 +997,3 @@ export async function POST(req: Request) {
     );
   }
 }
-
