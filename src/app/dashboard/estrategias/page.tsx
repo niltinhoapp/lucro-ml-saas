@@ -1,22 +1,21 @@
-import { getUserPlan } from "@/lib/getUserPlan";
-import StrategyUpgradeCard from "@/components/strategies/StrategyUpgradeCard";
-import StrategiesClient from "./StrategiesClient";
+import { Suspense } from "react";
+import { redirect } from "next/navigation";
+import { createServerClient } from "@/integrations/supabase/server";
+import { StrategiesShell } from "@/features/strategies/components/StrategiesShell";
 
-export default async function EstrategiasPage() {
-  const plan = await getUserPlan();
+export default async function StrategiesPage() {
+  const supabase = await createServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
-  const canAccessStrategies = plan === "plus";
-
-  if (!canAccessStrategies) {
-    return (
-      <div className="min-h-screen text-white bg-neutral-950">
-        <div className="px-4 py-6 mx-auto max-w-7xl md:px-6 lg:px-8">
-          <StrategyUpgradeCard />
-        </div>
-      </div>
-    );
+  if (!user) {
+    redirect("/auth/login?next=/dashboard/estrategias");
   }
 
-  return <StrategiesClient />;
+  return (
+    <Suspense fallback={<div className="lm-strategies-loading">Carregando estratégias...</div>}>
+      <StrategiesShell />
+    </Suspense>
+  );
 }
-
