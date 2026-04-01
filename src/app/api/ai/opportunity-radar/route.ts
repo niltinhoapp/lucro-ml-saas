@@ -98,6 +98,13 @@ type RadarPayload = {
     opportunityScore: number;
   };
   highlights: string[];
+  aiRecommendation: {
+    title: string;
+    reason: string;
+    score: number;
+    strategySlug: string | null;
+    strategyId: string | null;
+  } | null;
   opportunities: RadarOpportunity[];
   sellers: {
     seller: string;
@@ -452,13 +459,6 @@ async function ensureValidMlSession(
       });
     }
 
-    logStep(traceId, "ml session validated with /users/me", {
-      connectionId: connection.id,
-      sellerMlUserId,
-      sellerNickname,
-      refreshed,
-    });
-
     return {
       accessToken,
       sellerNickname,
@@ -513,12 +513,6 @@ async function ensureValidMlSession(
         connectionId: connection.id,
       });
     }
-
-    logStep(traceId, "ml session validated after forced refresh", {
-      connectionId: connection.id,
-      sellerMlUserId,
-      sellerNickname,
-    });
 
     return {
       accessToken,
@@ -721,6 +715,7 @@ function buildRadarPayload(params: {
         ? "Atenção: poucos sellers concentram boa parte da vitrine dessa busca."
         : "Boa notícia: a vitrine parece menos concentrada entre os sellers do topo.",
     ],
+    aiRecommendation: null,
     opportunities,
     sellers: sellers.slice(0, 6).map((seller) => ({
       seller: seller.seller,
@@ -756,11 +751,6 @@ export async function POST(req: Request) {
         { status: 401 }
       );
     }
-
-    logStep(traceId, "authenticated user loaded", {
-      userId: user.id,
-      email: user.email ?? null,
-    });
 
     const ent = await getEntitlements(supabase, user.id);
 
@@ -932,15 +922,57 @@ export async function POST(req: Request) {
       pagingTotal: Number(search.paging?.total ?? searchResults.length),
     });
 
+    let aiRecommendation: RadarPayload["aiRecommendation"] = null;
+
+    try {
+      const generated = await generateRadarRecommendation({
+        userId: user.id,
+        query: produto,
+        opportunityScore: payload.market.opportunityScore,
+        demandScore: payload.market.demandScore,
+        competitionScore: payload.market.competitionScore,
+      });
+
+      aiRecommendation = {
+        title: generated.title,
+        reason: generated.reason,
+        score: generated.score,
+        strategySlug: generated.strategySlug,
+        strategyId: generated.strategyId,
+      };
+
+      logStep(traceId, "radar recommendation generated", {
+        userId: user.id,
+        produto,
+        strategySlug: generated.strategySlug,
+      });
+    } catch (error) {
+      logError(traceId, "failed to generate radar recommendation", error, {
+        userId: user.id,
+        produto,
+      });
+    }
+
+    const finalPayload: RadarPayload = {
+      ...payload,
+      aiRecommendation,
+    };
+
     try {
       await saveRadarSearch({
         userId: user.id,
         query: produto,
-        avgPrice: payload.market.avgPrice,
-        demandScore: payload.market.demandScore,
-        competitionScore: payload.market.competitionScore,
-        opportunityScore: payload.market.opportunityScore,
-        payload,
+        siteId: MLB_SITE_ID,
+        categoryId: finalPayload.category.id,
+        categoryName: finalPayload.category.name,
+        avgPrice: finalPayload.market.avgPrice,
+        demandScore: finalPayload.market.demandScore,
+        competitionScore: finalPayload.market.competitionScore,
+        opportunityScore: finalPayload.market.opportunityScore,
+        activeListings: finalPayload.market.activeListings,
+        uniqueSellers: finalPayload.market.uniqueSellers,
+        topOpportunity: finalPayload.opportunities[0] ?? null,
+        payload: finalPayload,
       });
 
       logStep(traceId, "radar search saved", {
@@ -954,33 +986,13 @@ export async function POST(req: Request) {
       });
     }
 
-    try {
-      await generateRadarRecommendation({
-        userId: user.id,
-        query: produto,
-        opportunityScore: payload.market.opportunityScore,
-        demandScore: payload.market.demandScore,
-        competitionScore: payload.market.competitionScore,
-      });
-
-      logStep(traceId, "radar recommendation generated", {
-        userId: user.id,
-        produto,
-      });
-    } catch (error) {
-      logError(traceId, "failed to generate radar recommendation", error, {
-        userId: user.id,
-        produto,
-      });
-    }
-
     logStep(traceId, "route finished successfully", {
       userId: user.id,
       produto,
-      opportunities: payload.opportunities.length,
+      opportunities: finalPayload.opportunities.length,
     });
 
-    return NextResponse.json(payload);
+    return NextResponse.json(finalPayload);
   } catch (error) {
     const detail = safeErrorMessage(error);
 

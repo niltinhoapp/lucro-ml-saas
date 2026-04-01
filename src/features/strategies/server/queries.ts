@@ -1,4 +1,5 @@
 import { createServerClient } from "@/integrations/supabase/server";
+import { generateRadarRecommendation } from "@/features/strategies/server/generateRadarRecommendation";
 import type {
   Strategy,
   StrategyRecommendation,
@@ -12,8 +13,8 @@ type StrategyRow = {
   category: string;
   summary: string;
   content: StrategySection[] | null;
-  estimated_read_minutes: number;
-  plan_required: "free" | "pro" | "plus";
+  access_level: "pro" | "plus";
+  published_at: string | null;
 };
 
 type StrategyReadRow = {
@@ -21,12 +22,13 @@ type StrategyReadRow = {
   read_at: string | null;
 };
 
-type RecommendationRow = {
+type RadarSearchRow = {
   id: string;
-  strategy_id: string | null;
-  reason: string;
-  score: number | string;
-  strategies: { title: string } | { title: string }[] | null;
+  query: string;
+  demand_score: number;
+  competition_score: number;
+  opportunity_score: number;
+  created_at: string;
 };
 
 export async function getStrategiesForUser(userId: string): Promise<Strategy[]> {
@@ -38,13 +40,11 @@ export async function getStrategiesForUser(userId: string): Promise<Strategy[]> 
   ] = await Promise.all([
     supabase
       .from("strategies")
-      .select(
-        "id, slug, title, category, summary, content, estimated_read_minutes, plan_required"
-      )
-      .eq("is_published", true)
-      .order("created_at", { ascending: false }),
+      .select("id, slug, title, category, summary, content, access_level, published_at")
+      .not("published_at", "is", null)
+      .order("published_at", { ascending: false }),
     supabase
-      .from("strategy_reads")
+      .from("user_strategy_reads")
       .select("strategy_id, read_at")
       .eq("user_id", userId),
   ]);
@@ -65,8 +65,8 @@ export async function getStrategiesForUser(userId: string): Promise<Strategy[]> 
     category: item.category,
     summary: item.summary,
     content: Array.isArray(item.content) ? item.content : [],
-    estimatedReadMinutes: item.estimated_read_minutes ?? 3,
-    planRequired: item.plan_required ?? "pro",
+    estimatedReadMinutes: 3,
+    planRequired: item.access_level === "plus" ? "plus" : "pro",
     isRead: readsMap.has(item.id) && Boolean(readsMap.get(item.id)),
     readAt: readsMap.get(item.id) ?? null,
   }));
@@ -77,28 +77,52 @@ export async function getRecommendationsForUser(
 ): Promise<StrategyRecommendation[]> {
   const supabase = await createServerClient();
 
-  const { data, error } = await supabase
-    .from("strategy_recommendations")
-    .select("id, strategy_id, reason, score, strategies(title)")
+  const { data: recentSearches, error } = await supabase
+    .from("radar_searches")
+    .select("id, query, demand_score, competition_score, opportunity_score, created_at")
     .eq("user_id", userId)
-    .order("score", { ascending: false })
+    .order("created_at", { ascending: false })
     .limit(3);
 
   if (error) {
     throw error;
   }
 
-  return ((data ?? []) as RecommendationRow[]).map((item) => {
-    const title = Array.isArray(item.strategies)
-      ? item.strategies[0]?.title
-      : item.strategies?.title;
+  const searches = (recentSearches ?? []) as RadarSearchRow[];
 
-    return {
-      id: item.id,
-      strategyId: item.strategy_id,
-      title: title ?? "Sugestão personalizada",
-      reason: item.reason,
-      score: Number(item.score ?? 0),
-    };
-  });
+  if (!searches.length) {
+    return [];
+  }
+
+  const recommendations = await Promise.all(
+    searches.map(async (search) => {
+      const generated = await generateRadarRecommendation({
+        userId,
+        query: search.query,
+        opportunityScore: Number(search.opportunity_score ?? 0),
+        demandScore: Number(search.demand_score ?? 0),
+        competitionScore: Number(search.competition_score ?? 0),
+      });
+
+      return {
+        id: search.id,
+        strategyId: generated.strategyId,
+        title: generated.title,
+        reason: generated.reason,
+        score: generated.score,
+      };
+    })
+  );
+
+  const deduped = new Map<string, StrategyRecommendation>();
+
+  for (const item of recommendations) {
+    const key = item.strategyId ?? item.title;
+
+    if (!deduped.has(key)) {
+      deduped.set(key, item);
+    }
+  }
+
+  return [...deduped.values()].sort((a, b) => b.score - a.score).slice(0, 3);
 }
