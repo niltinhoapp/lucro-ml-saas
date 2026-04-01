@@ -1,25 +1,41 @@
 import type { ParsedCatalogRow } from "./types";
 
+export type AIExtractedCatalogItem = {
+  sku?: string | null;
+  model?: string | null;
+  productName?: string;
+  unitPrice?: number | null;
+  boxPrice?: number | null;
+  unitsPerBox?: number | null;
+  supplierCost?: number | null;
+  notes?: string | null;
+  brand?: string | null;
+  category?: string | null;
+  specs?: string[] | null;
+  confidence?: number | null;
+};
+
 export type AIExtractedCatalogResponse = {
-  items: Array<{
-    sku?: string | null;
-    model?: string | null;
-    productName?: string;
-    unitPrice?: number | null;
-    boxPrice?: number | null;
-    unitsPerBox?: number | null;
-    supplierCost?: number | null;
-    notes?: string | null;
-    brand?: string | null;
-    category?: string | null;
-    specs?: string[] | null;
-    confidence?: number | null;
-  }>;
+  items: AIExtractedCatalogItem[];
 };
 
 export type CatalogExtractionResult = {
   items: ParsedCatalogRow[];
   source: "openai" | "local_fallback" | "local_no_api";
+};
+
+type ResponsesApiContent = {
+  text?: string;
+  output_text?: string;
+};
+
+type ResponsesApiBlock = {
+  content?: ResponsesApiContent[];
+};
+
+type ResponsesApiResponse = {
+  output_text?: string;
+  output?: ResponsesApiBlock[];
 };
 
 const OPENAI_TIMEOUT_MS = 30000;
@@ -120,12 +136,12 @@ function cleanJsonText(raw: string): string {
     .trim();
 }
 
-function extractTextFromResponsesApi(data: any): string {
-  if (typeof data?.output_text === "string" && data.output_text.trim()) {
+function extractTextFromResponsesApi(data: ResponsesApiResponse): string {
+  if (typeof data.output_text === "string" && data.output_text.trim()) {
     return data.output_text.trim();
   }
 
-  if (!Array.isArray(data?.output)) return "";
+  if (!Array.isArray(data.output)) return "";
 
   const parts: string[] = [];
 
@@ -438,76 +454,74 @@ function dedupeParsedItems(items: ParsedCatalogRow[]): ParsedCatalogRow[] {
   return Array.from(deduped.values());
 }
 
-function normalizeOpenAIItem(item: any): ParsedCatalogRow | null {
+function normalizeOpenAIItem(item: AIExtractedCatalogItem): ParsedCatalogRow | null {
   const sku =
-    typeof item?.sku === "string" && item.sku.trim()
+    typeof item.sku === "string" && item.sku.trim()
       ? normalizeSpaces(item.sku)
       : null;
 
   const model =
-    typeof item?.model === "string" && item.model.trim()
+    typeof item.model === "string" && item.model.trim()
       ? normalizeSpaces(item.model)
       : sku;
 
-  const rawName =
-    typeof item?.productName === "string"
-      ? item.productName
-      : typeof item?.name === "string"
-      ? item.name
-      : "";
-
+  const rawName = typeof item.productName === "string" ? item.productName : "";
   const productName =
     sanitizeProductName(rawName) || inferCategoryName(rawName, sku);
 
   const unitPrice =
-    Number.isFinite(Number(item?.unitPrice)) && Number(item.unitPrice) > 0
+    Number.isFinite(Number(item.unitPrice)) && Number(item.unitPrice) > 0
       ? Number(Number(item.unitPrice).toFixed(2))
       : null;
 
   const boxPrice =
-    Number.isFinite(Number(item?.boxPrice)) && Number(item.boxPrice) > 0
+    Number.isFinite(Number(item.boxPrice)) && Number(item.boxPrice) > 0
       ? Number(Number(item.boxPrice).toFixed(2))
       : null;
 
   const unitsPerBox =
-    Number.isInteger(Number(item?.unitsPerBox)) && Number(item.unitsPerBox) > 0
+    Number.isInteger(Number(item.unitsPerBox)) && Number(item.unitsPerBox) > 0
       ? Number(item.unitsPerBox)
       : null;
 
   const supplierCostRaw =
-    Number.isFinite(Number(item?.supplierCost)) && Number(item.supplierCost) > 0
+    Number.isFinite(Number(item.supplierCost)) && Number(item.supplierCost) > 0
       ? Number(item.supplierCost)
       : unitPrice !== null
       ? unitPrice
       : boxPrice !== null && unitsPerBox
-      ? boxPrice / unitsPerBox
-      : null;
+        ? boxPrice / unitsPerBox
+        : null;
 
   const supplierCost =
     supplierCostRaw !== null ? Number(supplierCostRaw.toFixed(2)) : null;
 
   const brand =
-    typeof item?.brand === "string" && item.brand.trim()
+    typeof item.brand === "string" && item.brand.trim()
       ? normalizeSpaces(item.brand)
       : null;
 
   const category =
-    typeof item?.category === "string" && item.category.trim()
+    typeof item.category === "string" && item.category.trim()
       ? normalizeSpaces(item.category)
       : null;
 
-  const specs = Array.isArray(item?.specs)
-    ? item.specs.map((x: any) => String(x)).map(normalizeSpaces).filter(Boolean).slice(0, 6)
+  const specs = Array.isArray(item.specs)
+    ? item.specs
+        .map((x) => String(x))
+        .map(normalizeSpaces)
+        .filter(Boolean)
+        .slice(0, 6)
     : [];
 
   const confidence =
-    typeof item?.confidence === "number" && Number.isFinite(item.confidence)
+    typeof item.confidence === "number" && Number.isFinite(item.confidence)
       ? Math.max(0, Math.min(1, item.confidence))
       : sku && supplierCost !== null
-      ? 0.9
-      : supplierCost !== null
-      ? 0.75
-      : 0.5;
+        ? 0.9
+        : supplierCost !== null
+          ? 0.75
+          : 0.5;
 
   if (!productName || productName.length < 3) return null;
   if (supplierCost === null && unitPrice === null && boxPrice === null) {
@@ -526,7 +540,7 @@ function normalizeOpenAIItem(item: any): ParsedCatalogRow | null {
     unitsPerBox,
     specs,
     notes:
-      typeof item?.notes === "string" && item.notes.trim()
+      typeof item.notes === "string" && item.notes.trim()
         ? normalizeSpaces(item.notes)
         : null,
     confidence,
@@ -591,19 +605,22 @@ function extractCatalogItemsLocally(extractedText: string): ParsedCatalogRow[] {
       unitPrice !== null
         ? unitPrice
         : boxPrice !== null && unitsPerBox
-        ? Number((boxPrice / unitsPerBox).toFixed(2))
-        : boxPrice !== null
-        ? boxPrice
-        : null;
+          ? Number((boxPrice / unitsPerBox).toFixed(2))
+          : boxPrice !== null
+            ? boxPrice
+            : null;
 
     if (!productName || productName.length < 3) continue;
     if (supplierCost === null) continue;
 
     const confidence =
-      sku && unitPrice !== null ? 0.9 :
-      sku && boxPrice !== null ? 0.82 :
-      unitPrice !== null ? 0.72 :
-      0.55;
+      sku && unitPrice !== null
+        ? 0.9
+        : sku && boxPrice !== null
+          ? 0.82
+          : unitPrice !== null
+            ? 0.72
+            : 0.55;
 
     items.push({
       productName,
@@ -693,7 +710,7 @@ async function extractCatalogItemsWithOpenAI(
       throw new Error(`OPENAI_API_${response.status}`);
     }
 
-    const data = await response.json();
+    const data = (await response.json()) as ResponsesApiResponse;
     const rawText = extractTextFromResponsesApi(data);
 
     console.log("[catalog/ai] preview resposta:", rawText.slice(0, 1200));
@@ -704,7 +721,7 @@ async function extractCatalogItemsWithOpenAI(
       cleanJsonText(rawText)
     ) as AIExtractedCatalogResponse;
 
-    const items = Array.isArray(parsed?.items) ? parsed.items : [];
+    const items = Array.isArray(parsed.items) ? parsed.items : [];
     const normalized = items
       .map(normalizeOpenAIItem)
       .filter((item): item is ParsedCatalogRow => Boolean(item));
@@ -766,7 +783,3 @@ export async function extractCatalogItems(
     };
   }
 }
-
-
-
-

@@ -2,6 +2,45 @@ import { extractLikelyPdfText } from "./pdf";
 import { extractCatalogItemsWithAI } from "./ai-extractor";
 import { validateAndNormalizeCatalogItems } from "./validator";
 import { analyzeCatalogRows } from "./analyzer";
+import type { ParsedCatalogRow } from "./types";
+
+function chunkText(text: string, maxChars = 18000) {
+  const normalized = text.replace(/\r/g, "").trim();
+  if (!normalized) return [];
+
+  const chunks: string[] = [];
+  let current = "";
+
+  for (const block of normalized.split(/\n\s*\n/g)) {
+    const next = current ? `${current}\n\n${block}` : block;
+
+    if (next.length <= maxChars) {
+      current = next;
+      continue;
+    }
+
+    if (current) {
+      chunks.push(current);
+    }
+
+    if (block.length <= maxChars) {
+      current = block;
+      continue;
+    }
+
+    for (let i = 0; i < block.length; i += maxChars) {
+      chunks.push(block.slice(i, i + maxChars));
+    }
+
+    current = "";
+  }
+
+  if (current) {
+    chunks.push(current);
+  }
+
+  return chunks;
+}
 
 export async function analyzeCatalogBuffer(
   fileName: string,
@@ -34,7 +73,7 @@ export async function analyzeCatalogBuffer(
           "Nenhum texto legível foi extraído deste arquivo.",
         highlights: [
           "Nenhum texto legível foi extraído deste arquivo.",
-          "O PDF pode estar em imagem ou exigir OCR.",
+          "O arquivo pode exigir revisão manual.",
         ],
         usedAI: true,
       },
@@ -42,8 +81,18 @@ export async function analyzeCatalogBuffer(
     };
   }
 
-  const ai = await extractCatalogItemsWithAI({ extractedText: text });
-  const validItems = validateAndNormalizeCatalogItems(ai.items);
+  const chunks = chunkText(text, 18000);
+
+  const allItems: ParsedCatalogRow[] = [];
+
+  for (const chunk of chunks) {
+    const ai = await extractCatalogItemsWithAI({ extractedText: chunk });
+    if (Array.isArray(ai?.items)) {
+      allItems.push(...ai.items);
+    }
+  }
+
+  const validItems = validateAndNormalizeCatalogItems(allItems);
   const analyzed = analyzeCatalogRows(validItems);
 
   return {
@@ -54,6 +103,7 @@ export async function analyzeCatalogBuffer(
     aiSummary: {
       ...analyzed.summary,
       extractedTextPreview: text.slice(0, 1500),
+      totalChunks: chunks.length,
     },
     rows: analyzed.rows,
   };

@@ -15,6 +15,44 @@ export type ParsedCatalogRow = {
   confidence: number;
 };
 
+export type CatalogItem = {
+  productName: string;
+
+  sku?: string;
+  brand?: string;
+  category?: string;
+
+  supplierCost?: number;
+  unitPrice?: number;
+  boxPrice?: number;
+  unitsPerBox?: number;
+
+  model?: string;
+  specs?: string;
+  notes?: string;
+
+  // mercado
+  mlPriceAvg?: number;
+  mlPriceMin?: number;
+  mlPriceMax?: number;
+
+  demandScore?: number;
+  competitionScore?: number;
+
+  // análise
+  estimatedMargin?: number;
+  estimatedProfit?: number;
+  estimatedFees?: number;
+  estimatedShipping?: number;
+
+  opportunityScore?: number;
+  riskLevel?: "low" | "medium" | "high";
+
+  worthBuying?: boolean;
+
+  aiSummary?: string;
+};
+
 export type CatalogAnalysisRow = {
   sku: string | null;
   model: string | null;
