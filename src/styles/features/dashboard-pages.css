@@ -1,6 +1,5 @@
 /* =========================================================
-   DASHBOARD PAGES — BASE COMPARTILHADA
-   Usar em páginas internas de lucro, operação, relatórios etc.
+   DASHBOARD PAGES — BASE DAS PÁGINAS INTERNAS
    ========================================================= */
 
 .lm-page-section,
@@ -81,10 +80,6 @@
   color: #2563eb !important;
 }
 
-/* =========================================================
-   CONTRASTE CONTROLADO
-   ========================================================= */
-
 .lm-page-section .lm-hero-surface,
 .lm-page-section .lm-panel {
   background: rgba(255, 255, 255, 0.98) !important;
@@ -109,10 +104,6 @@
 .lm-page-section .lm-panel a {
   color: #2563eb !important;
 }
-
-/* =========================================================
-   RESPONSIVE
-   ========================================================= */
 
 @media (max-width: 720px) {
   .lm-panel,
