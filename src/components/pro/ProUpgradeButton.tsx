@@ -1,37 +1,39 @@
 import Link from "next/link";
+import { Crown, ArrowUpRight } from "lucide-react";
+
+type ProUpgradeButtonProps = {
+  title: string;
+  subtitle: string;
+};
 
 export default function ProUpgradeButton({
-  title = "Libere mais recursos",
-  subtitle = "Faça upgrade para continuar.",
-  href = "/checkout?plan=pro",
-}: {
-  title?: string;
-  subtitle?: string;
-  href?: string;
-}) {
+  title,
+  subtitle,
+}: ProUpgradeButtonProps) {
   return (
-    <div className="pro-upgrade-box card card-premium">
-      <div>
-        <span className="badge pro">PRO</span>
-        <h3>{title}</h3>
-        <p className="muted" style={{ marginTop: 6 }}>
-          {subtitle}
-        </p>
-      </div>
+    <section className="lm-upgrade-card">
+      <div className="lm-upgrade-card__content">
+        <div className="lm-upgrade-card__copy">
+          <span className="lm-upgrade-card__badge">
+            <Crown size={14} />
+            PRO
+          </span>
 
-      <div className="pro-upgrade-actions">
-        <Link href={href} className="btn btn-primary">
-          Fazer upgrade
-        </Link>
+          <h3 className="lm-upgrade-card__title">{title}</h3>
+          <p className="lm-upgrade-card__subtitle">{subtitle}</p>
+        </div>
 
-        <Link href="/dashboard" className="btn btn-ghost">
-          Voltar
-        </Link>
+        <div className="lm-upgrade-card__actions">
+          <Link href="/checkout" className="lm-upgrade-card__btn lm-upgrade-card__btn--primary">
+            Fazer upgrade
+            <ArrowUpRight size={15} />
+          </Link>
+
+          <Link href="/dashboard/conta" className="lm-upgrade-card__btn lm-upgrade-card__btn--ghost">
+            Ver conta
+          </Link>
+        </div>
       </div>
-    </div>
+    </section>
   );
 }
-
-
-
-

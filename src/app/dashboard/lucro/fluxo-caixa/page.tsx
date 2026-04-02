@@ -72,16 +72,7 @@ export default async function FluxoCaixaPage() {
         </article>
       </section>
 
-      <section className="lm-cashflow-panel">
-        <div className="lm-cashflow-panel__head">
-          <h2>Em evolução</h2>
-        </div>
-
-        <p>
-          Esta página já está ativa na V2.1 como base do módulo. O próximo passo
-          é ligar os dados reais de caixa e relatórios consolidados.
-        </p>
-      </section>
+     
     </div>
   );
 }

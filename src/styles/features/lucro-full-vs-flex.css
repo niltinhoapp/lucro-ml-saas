@@ -1,0 +1,239 @@
+/* =========================================================
+   LUCRO FULL VS FLEX — INDEPENDENTE / PREMIUM / SAAS
+   ========================================================= */
+
+.lm-fvf-page {
+  display: grid;
+  gap: 24px;
+}
+
+/* =========================================================
+   HERO
+   ========================================================= */
+
+.lm-fvf-hero {
+  position: relative;
+  overflow: hidden;
+  border-radius: 28px;
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  background:
+    radial-gradient(circle at top left, rgba(46, 204, 113, 0.16), transparent 32%),
+    radial-gradient(circle at top right, rgba(52, 152, 219, 0.14), transparent 28%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.96));
+  box-shadow: 0 24px 80px rgba(15, 23, 42, 0.08);
+}
+
+html.dark .lm-fvf-hero {
+  background:
+    radial-gradient(circle at top left, rgba(46, 204, 113, 0.18), transparent 32%),
+    radial-gradient(circle at top right, rgba(52, 152, 219, 0.18), transparent 28%),
+    linear-gradient(180deg, rgba(15, 27, 45, 0.98), rgba(18, 34, 57, 0.96));
+}
+
+.lm-fvf-hero__content {
+  padding: 30px;
+  display: grid;
+  gap: 14px;
+}
+
+.lm-fvf-chip {
+  width: fit-content;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 34px;
+  padding: 0 14px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  border: 1px solid rgba(37, 99, 235, 0.14);
+  background: rgba(37, 99, 235, 0.08);
+  color: #2563eb;
+}
+
+.lm-fvf-title {
+  margin: 0;
+  color: #0f172a;
+  font-size: clamp(2rem, 3vw, 3rem);
+  line-height: 1.04;
+  font-weight: 900;
+  letter-spacing: -0.045em;
+}
+
+html.dark .lm-fvf-title {
+  color: #eef4ff;
+}
+
+.lm-fvf-subtitle {
+  margin: 0;
+  max-width: 68ch;
+  color: #475569;
+  line-height: 1.7;
+}
+
+html.dark .lm-fvf-subtitle {
+  color: #cbd6e4;
+}
+
+/* =========================================================
+   GRID
+   ========================================================= */
+
+.lm-fvf-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.lm-fvf-card,
+.lm-fvf-panel,
+.lm-fvf-loading,
+.lm-fvf-error {
+  border-radius: 24px;
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  background: rgba(255, 255, 255, 0.98);
+  box-shadow: 0 18px 50px rgba(15, 23, 42, 0.06);
+}
+
+html.dark .lm-fvf-card,
+html.dark .lm-fvf-panel,
+html.dark .lm-fvf-loading,
+html.dark .lm-fvf-error {
+  background: rgba(15, 27, 45, 0.98);
+}
+
+.lm-fvf-card {
+  padding: 22px;
+  display: grid;
+  gap: 16px;
+}
+
+.lm-fvf-card__icon {
+  width: 46px;
+  height: 46px;
+  border-radius: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(
+    135deg,
+    rgba(52, 152, 219, 0.14),
+    rgba(46, 204, 113, 0.12)
+  );
+  border: 1px solid rgba(52, 152, 219, 0.18);
+  color: #0f172a;
+}
+
+html.dark .lm-fvf-card__icon {
+  color: #eef4ff;
+}
+
+.lm-fvf-card__copy {
+  display: grid;
+  gap: 8px;
+}
+
+.lm-fvf-card__copy h2 {
+  margin: 0;
+  color: #0f172a;
+  font-size: 1.02rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+html.dark .lm-fvf-card__copy h2 {
+  color: #eef4ff;
+}
+
+.lm-fvf-card__copy p {
+  margin: 0;
+  color: #475569;
+  line-height: 1.65;
+}
+
+html.dark .lm-fvf-card__copy p {
+  color: #cbd6e4;
+}
+
+/* =========================================================
+   PANEL
+   ========================================================= */
+
+.lm-fvf-panel {
+  padding: 24px;
+}
+
+/* =========================================================
+   ERROR / LOADING
+   ========================================================= */
+
+.lm-fvf-loading,
+.lm-fvf-error {
+  padding: 24px;
+}
+
+.lm-fvf-loading {
+  color: #475569;
+  font-weight: 600;
+}
+
+html.dark .lm-fvf-loading {
+  color: #cbd6e4;
+}
+
+.lm-fvf-error strong {
+  display: block;
+  color: #0f172a;
+  font-size: 1rem;
+  font-weight: 800;
+}
+
+html.dark .lm-fvf-error strong {
+  color: #eef4ff;
+}
+
+.lm-fvf-error p {
+  margin: 10px 0 0;
+  color: #475569;
+  line-height: 1.65;
+}
+
+html.dark .lm-fvf-error p {
+  color: #cbd6e4;
+}
+
+.lm-fvf-error__btn {
+  margin-top: 16px;
+  min-height: 44px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #0f172a, #1e293b);
+  color: #fff;
+  font-size: 0.92rem;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 14px 30px rgba(15, 23, 42, 0.20);
+}
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 1080px) {
+  .lm-fvf-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 720px) {
+  .lm-fvf-hero__content,
+  .lm-fvf-card,
+  .lm-fvf-panel,
+  .lm-fvf-loading,
+  .lm-fvf-error {
+    padding: 20px;
+  }
+}

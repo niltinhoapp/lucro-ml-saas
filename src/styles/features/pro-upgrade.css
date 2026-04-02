@@ -1,0 +1,142 @@
+/* =========================================================
+   PRO UPGRADE CARD — NOVO MODELO / PREMIUM / LIMPO
+   ========================================================= */
+
+.lm-upgrade-card {
+  border-radius: 24px;
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  background:
+    radial-gradient(720px 220px at 8% 0%, rgba(46, 204, 113, 0.10), transparent 60%),
+    radial-gradient(720px 220px at 100% 0%, rgba(52, 152, 219, 0.10), transparent 60%),
+    rgba(255, 255, 255, 0.98);
+  box-shadow: 0 18px 50px rgba(15, 23, 42, 0.06);
+  overflow: hidden;
+}
+
+html.dark .lm-upgrade-card {
+  background:
+    radial-gradient(720px 220px at 8% 0%, rgba(46, 204, 113, 0.12), transparent 60%),
+    radial-gradient(720px 220px at 100% 0%, rgba(52, 152, 219, 0.12), transparent 60%),
+    rgba(15, 27, 45, 0.98);
+}
+
+.lm-upgrade-card__content {
+  padding: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.lm-upgrade-card__copy {
+  min-width: 0;
+}
+
+.lm-upgrade-card__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 32px;
+  padding: 0 12px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  border: 1px solid rgba(245, 158, 11, 0.16);
+  background: rgba(245, 158, 11, 0.12);
+  color: #b45309;
+}
+
+.lm-upgrade-card__title {
+  margin: 14px 0 0;
+  color: #0f172a;
+  font-size: 1.12rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+html.dark .lm-upgrade-card__title {
+  color: #eef4ff;
+}
+
+.lm-upgrade-card__subtitle {
+  margin: 10px 0 0;
+  color: #475569;
+  line-height: 1.65;
+  max-width: 760px;
+}
+
+html.dark .lm-upgrade-card__subtitle {
+  color: #cbd6e4;
+}
+
+.lm-upgrade-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.lm-upgrade-card__btn {
+  min-height: 44px;
+  padding: 0 16px;
+  border-radius: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  text-decoration: none;
+  font-size: 0.92rem;
+  font-weight: 800;
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease,
+    border-color 0.18s ease,
+    opacity 0.18s ease;
+}
+
+.lm-upgrade-card__btn:hover {
+  transform: translateY(-1px);
+}
+
+.lm-upgrade-card__btn--primary {
+  color: #fff;
+  background: linear-gradient(135deg, #0f172a, #1e293b);
+  box-shadow: 0 14px 30px rgba(15, 23, 42, 0.20);
+}
+
+.lm-upgrade-card__btn--ghost {
+  color: #0f172a;
+  background: transparent;
+  border: 1px solid rgba(148, 163, 184, 0.18);
+}
+
+html.dark .lm-upgrade-card__btn--ghost {
+  color: #eef4ff;
+}
+
+@media (max-width: 900px) {
+  .lm-upgrade-card__content {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .lm-upgrade-card__actions {
+    width: 100%;
+  }
+}
+
+@media (max-width: 720px) {
+  .lm-upgrade-card__content {
+    padding: 20px;
+  }
+
+  .lm-upgrade-card__actions {
+    flex-direction: column;
+  }
+
+  .lm-upgrade-card__btn {
+    width: 100%;
+  }
+}

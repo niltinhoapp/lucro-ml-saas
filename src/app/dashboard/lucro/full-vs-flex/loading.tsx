@@ -1,3 +1,3 @@
 export default function FullVsFlexLoading() {
-  return <div className="lm-strategies-loading">Carregando Full vs Flex...</div>;
+  return <div className="lm-fvf-loading">Carregando Full vs Flex...</div>;
 }

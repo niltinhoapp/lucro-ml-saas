@@ -8,10 +8,11 @@ export default function FullVsFlexError({
   reset: () => void;
 }) {
   return (
-    <div className="lm-strategies-error">
+    <div className="lm-fvf-error">
       <strong>Não foi possível carregar Full vs Flex.</strong>
       <p>{error.message}</p>
-      <button type="button" className="lm-btn-primary" onClick={reset}>
+
+      <button type="button" className="lm-fvf-error__btn" onClick={reset}>
         Tentar novamente
       </button>
     </div>

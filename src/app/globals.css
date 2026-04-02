@@ -29,10 +29,12 @@
 @import "../styles/features/catalogos.css";
 @import "../styles/features/account.css";
 @import "../styles/features/upgrade-modal.css";
+@import "../styles/features/pro-upgrade.css";
 @import "../styles/features/inteligencia.css";
 @import "../styles/features/lucro-diagnostico.css";
 @import "../styles/features/lucro-historico.css";
 @import "../styles/features/lucro-fluxo-caixa.css";
+@import "../styles/features/lucro-full-vs-flex.css";
 @import "../styles/features/operacao-inteligencia.css";
 @import "../styles/features/historico.css";
 @import "../styles/features/operacao-simulador.css";
