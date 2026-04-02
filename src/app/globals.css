@@ -30,6 +30,10 @@
 @import "../styles/features/account.css";
 @import "../styles/features/upgrade-modal.css";
 @import "../styles/features/inteligencia.css";
+@import "../styles/features/lucro-diagnostico.css";
+@import "../styles/features/lucro-historico.css";
+@import "../styles/features/lucro-fluxo-caixa.css";
+@import "../styles/features/operacao-inteligencia.css";
 
 /* congelados: manter temporariamente só para não quebrar legado */
 @import "../styles/features/risk-ai.css";

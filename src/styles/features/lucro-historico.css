@@ -1,0 +1,302 @@
+/* =========================================================
+   LUCRO HISTÓRICO — INDEPENDENTE / PREMIUM / SAAS
+   ========================================================= */
+
+.lm-history-page {
+  display: grid;
+  gap: 24px;
+}
+
+/* =========================================================
+   HERO
+   ========================================================= */
+
+.lm-history-hero {
+  border-radius: 28px;
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  background:
+    radial-gradient(circle at top left, rgba(46, 204, 113, 0.16), transparent 32%),
+    radial-gradient(circle at top right, rgba(52, 152, 219, 0.14), transparent 28%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.96));
+  box-shadow: 0 24px 80px rgba(15, 23, 42, 0.08);
+  padding: 28px;
+}
+
+html.dark .lm-history-hero {
+  background:
+    radial-gradient(circle at top left, rgba(46, 204, 113, 0.18), transparent 32%),
+    radial-gradient(circle at top right, rgba(52, 152, 219, 0.18), transparent 28%),
+    linear-gradient(180deg, rgba(15, 27, 45, 0.98), rgba(18, 34, 57, 0.96));
+}
+
+.lm-history-hero__top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.lm-history-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 34px;
+  padding: 0 14px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  border: 1px solid rgba(37, 99, 235, 0.14);
+  background: rgba(37, 99, 235, 0.08);
+  color: #2563eb;
+}
+
+.lm-history-title {
+  margin: 14px 0 0;
+  color: #0f172a;
+  font-size: clamp(2rem, 3vw, 3rem);
+  line-height: 1.04;
+  font-weight: 900;
+  letter-spacing: -0.045em;
+}
+
+html.dark .lm-history-title {
+  color: #eef4ff;
+}
+
+.lm-history-subtitle {
+  margin: 12px 0 0;
+  max-width: 68ch;
+  color: #475569;
+  line-height: 1.7;
+}
+
+html.dark .lm-history-subtitle {
+  color: #cbd6e4;
+}
+
+.lm-history-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+/* =========================================================
+   MAIN CARD
+   ========================================================= */
+
+.lm-history-card {
+  border-radius: 24px;
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  background: rgba(255, 255, 255, 0.98);
+  box-shadow: 0 18px 50px rgba(15, 23, 42, 0.06);
+  padding: 24px;
+}
+
+html.dark .lm-history-card {
+  background: rgba(15, 27, 45, 0.98);
+}
+
+.lm-history-card__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.lm-history-card__head h2 {
+  margin: 0;
+  color: #0f172a;
+  font-size: 1.12rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+html.dark .lm-history-card__head h2 {
+  color: #eef4ff;
+}
+
+.lm-history-card__subtitle {
+  margin: 8px 0 0;
+  color: #64748b;
+  line-height: 1.6;
+}
+
+html.dark .lm-history-card__subtitle {
+  color: #cbd6e4;
+}
+
+/* =========================================================
+   EMPTY / ALERT
+   ========================================================= */
+
+.lm-history-message {
+  padding: 14px 16px;
+  border-radius: 16px;
+  border: 1px solid transparent;
+  font-size: 0.94rem;
+  line-height: 1.6;
+  font-weight: 600;
+}
+
+.lm-history-message.info {
+  border-color: rgba(59, 130, 246, 0.14);
+  background: rgba(59, 130, 246, 0.08);
+  color: #1d4ed8;
+}
+
+.lm-history-message.danger {
+  border-color: rgba(239, 68, 68, 0.14);
+  background: rgba(239, 68, 68, 0.08);
+  color: #b91c1c;
+}
+
+/* =========================================================
+   LIST
+   ========================================================= */
+
+.lm-history-list {
+  display: grid;
+  gap: 12px;
+}
+
+.lm-history-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 18px;
+  border-radius: 20px;
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  background: #f8fafc;
+  cursor: pointer;
+  transition:
+    transform 0.18s ease,
+    border-color 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.lm-history-row:hover {
+  transform: translateY(-1px);
+  border-color: rgba(52, 152, 219, 0.18);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.05);
+}
+
+html.dark .lm-history-row {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.lm-history-row__left {
+  min-width: 0;
+  display: grid;
+  gap: 6px;
+}
+
+.lm-history-row__title {
+  color: #0f172a;
+  font-size: 0.98rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+html.dark .lm-history-row__title {
+  color: #eef4ff;
+}
+
+.lm-history-row__meta {
+  color: #64748b;
+  font-size: 0.84rem;
+  line-height: 1.5;
+}
+
+.lm-history-row__right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.lm-history-pills {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.lm-history-pill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 0 10px;
+  border-radius: 999px;
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+.lm-history-pill.good {
+  background: rgba(46, 204, 113, 0.12);
+  color: #15803d;
+}
+
+.lm-history-pill.warn {
+  background: rgba(245, 158, 11, 0.14);
+  color: #b45309;
+}
+
+.lm-history-pill.bad {
+  background: rgba(239, 68, 68, 0.12);
+  color: #b91c1c;
+}
+
+.lm-history-row__link {
+  color: #2563eb;
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+
+/* =========================================================
+   FOOTER
+   ========================================================= */
+
+.lm-history-footer {
+  text-align: center;
+  color: #64748b;
+  font-size: 0.84rem;
+}
+
+html.dark .lm-history-footer {
+  color: #9fb0c5;
+}
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 900px) {
+  .lm-history-hero__top,
+  .lm-history-card__head,
+  .lm-history-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .lm-history-row__right {
+    align-items: flex-start;
+  }
+
+  .lm-history-pills {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 720px) {
+  .lm-history-hero,
+  .lm-history-card {
+    padding: 20px;
+  }
+}

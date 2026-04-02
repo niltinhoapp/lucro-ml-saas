@@ -1,0 +1,302 @@
+/* =========================================================
+   PRODUTOS ESTRATÉGIAS — PAGE / ERROR / LOADING
+   ========================================================= */
+
+.lm-strat-page {
+  display: grid;
+  gap: 24px;
+}
+
+.lm-strat-loading,
+.lm-strat-error,
+.lm-strat-loading-card {
+  border-radius: 24px;
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  background: rgba(255, 255, 255, 0.98);
+  box-shadow: 0 18px 50px rgba(15, 23, 42, 0.06);
+}
+
+html.dark .lm-strat-loading,
+html.dark .lm-strat-error,
+html.dark .lm-strat-loading-card {
+  background: rgba(15, 27, 45, 0.98);
+}
+
+/* loading simples */
+.lm-strat-loading {
+  padding: 24px;
+  color: #475569;
+  font-weight: 600;
+}
+
+html.dark .lm-strat-loading {
+  color: #cbd6e4;
+}
+
+/* loading skeleton */
+.lm-strat-loading-card {
+  padding: 24px;
+  display: grid;
+  gap: 14px;
+}
+
+.lm-strat-loading-line {
+  height: 12px;
+  border-radius: 999px;
+  background: linear-gradient(
+    90deg,
+    rgba(226, 232, 240, 0.9),
+    rgba(241, 245, 249, 1),
+    rgba(226, 232, 240, 0.9)
+  );
+  background-size: 200% 100%;
+  animation: lm-strat-shimmer 1.2s linear infinite;
+}
+
+html.dark .lm-strat-loading-line {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.06),
+    rgba(255, 255, 255, 0.10),
+    rgba(255, 255, 255, 0.06)
+  );
+  background-size: 200% 100%;
+}
+
+.lm-strat-loading-line--sm {
+  width: 140px;
+}
+
+.lm-strat-loading-line--lg {
+  width: min(440px, 70%);
+  height: 18px;
+}
+
+.lm-strat-loading-grid {
+  margin-top: 8px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.lm-strat-loading-box {
+  min-height: 120px;
+  border-radius: 20px;
+  background: linear-gradient(
+    90deg,
+    rgba(226, 232, 240, 0.9),
+    rgba(241, 245, 249, 1),
+    rgba(226, 232, 240, 0.9)
+  );
+  background-size: 200% 100%;
+  animation: lm-strat-shimmer 1.2s linear infinite;
+}
+
+html.dark .lm-strat-loading-box {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.06),
+    rgba(255, 255, 255, 0.10),
+    rgba(255, 255, 255, 0.06)
+  );
+  background-size: 200% 100%;
+}
+
+@keyframes lm-strat-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* error */
+.lm-strat-error {
+  padding: 24px;
+}
+
+.lm-strat-error strong {
+  display: block;
+  color: #0f172a;
+  font-size: 1rem;
+  font-weight: 800;
+}
+
+html.dark .lm-strat-error strong {
+  color: #eef4ff;
+}
+
+.lm-strat-error p {
+  margin: 10px 0 0;
+  color: #475569;
+  line-height: 1.65;
+}
+
+html.dark .lm-strat-error p {
+  color: #cbd6e4;
+}
+
+.lm-strat-error__btn {
+  margin-top: 16px;
+  min-height: 44px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #0f172a, #1e293b);
+  color: #fff;
+  font-size: 0.92rem;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 14px 30px rgba(15, 23, 42, 0.20);
+}
+
+@media (max-width: 900px) {
+  .lm-strat-loading-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 720px) {
+  .lm-strat-loading,
+  .lm-strat-error,
+  .lm-strat-loading-card {
+    padding: 20px;
+  }
+}
+/* =========================================================
+   STRATEGIES CLIENT SHELL
+   ========================================================= */
+
+.lm-strat-shell {
+  min-height: 100%;
+}
+
+.lm-strat-container {
+  display: grid;
+  gap: 24px;
+}
+
+.lm-strat-header {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.lm-strat-header__copy {
+  min-width: 0;
+}
+
+.lm-strat-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  padding: 0 14px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  border: 1px solid rgba(59, 130, 246, 0.16);
+  background: rgba(59, 130, 246, 0.08);
+  color: #2563eb;
+}
+
+.lm-strat-title {
+  margin: 14px 0 0;
+  color: #0f172a;
+  font-size: clamp(2rem, 3vw, 2.8rem);
+  line-height: 1.04;
+  font-weight: 900;
+  letter-spacing: -0.045em;
+}
+
+html.dark .lm-strat-title {
+  color: #eef4ff;
+}
+
+.lm-strat-subtitle {
+  margin: 12px 0 0;
+  max-width: 760px;
+  color: #475569;
+  line-height: 1.7;
+}
+
+html.dark .lm-strat-subtitle {
+  color: #cbd6e4;
+}
+
+.lm-strat-unread-box {
+  width: fit-content;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  border-radius: 18px;
+  border: 1px solid rgba(59, 130, 246, 0.16);
+  background: rgba(59, 130, 246, 0.08);
+  color: #1d4ed8;
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
+.lm-strat-unread-box__count {
+  font-weight: 800;
+}
+
+.lm-strat-weekly {
+  display: grid;
+}
+
+.lm-strat-layout {
+  display: grid;
+  grid-template-columns: 360px minmax(0, 1fr);
+  gap: 24px;
+  align-items: start;
+}
+
+.lm-strat-sidebar,
+.lm-strat-main {
+  border-radius: 28px;
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  background: rgba(255, 255, 255, 0.98);
+  box-shadow: 0 18px 50px rgba(15, 23, 42, 0.06);
+}
+
+html.dark .lm-strat-sidebar,
+html.dark .lm-strat-main {
+  background: rgba(15, 27, 45, 0.98);
+}
+
+.lm-strat-sidebar {
+  padding: 16px;
+}
+
+.lm-strat-main {
+  padding: 20px 22px;
+  min-width: 0;
+}
+
+@media (min-width: 900px) {
+  .lm-strat-header {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .lm-strat-unread-box {
+    flex-shrink: 0;
+  }
+}
+
+@media (max-width: 1080px) {
+  .lm-strat-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 720px) {
+  .lm-strat-sidebar,
+  .lm-strat-main {
+    padding: 18px;
+  }
+}

@@ -14,55 +14,69 @@ export default async function FluxoCaixaPage() {
   }
 
   return (
-    <div className="lm-page-section">
-      <section className="lm-hero-surface lm-panel">
-        <div className="lm-page-header">
-          <div>
-            <p className="lm-page-eyebrow">Lucro • Fluxo de Caixa</p>
-            <h1 className="lm-page-title">Fluxo de caixa</h1>
-            <p className="lm-page-subtitle">
-              Entenda entradas, saídas e o fôlego financeiro da operação para
-              decidir compra, giro e reinvestimento com mais segurança.
-            </p>
-          </div>
+    <div className="lm-cashflow-page">
+      <section className="lm-cashflow-hero">
+        <div className="lm-cashflow-hero__content">
+          <span className="lm-cashflow-chip">Lucro • Fluxo de Caixa</span>
+
+          <h1 className="lm-cashflow-title">Fluxo de caixa</h1>
+
+          <p className="lm-cashflow-subtitle">
+            Entenda entradas, saídas e o fôlego financeiro da operação para
+            decidir compra, giro e reinvestimento com mais segurança.
+          </p>
         </div>
       </section>
 
-      <section
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
-          gap: "16px",
-        }}
-      >
-        <article className="lm-panel">
-          <Wallet size={20} />
-          <h2>Visão de caixa</h2>
-          <p>
-            Consolide entradas e saídas para enxergar o saldo operacional com
-            clareza.
-          </p>
+      <section className="lm-cashflow-grid">
+        <article className="lm-cashflow-card">
+          <div className="lm-cashflow-card__icon">
+            <Wallet size={20} />
+          </div>
+
+          <div className="lm-cashflow-card__copy">
+            <h2>Visão de caixa</h2>
+            <p>
+              Consolide entradas e saídas para enxergar o saldo operacional com
+              clareza.
+            </p>
+          </div>
         </article>
 
-        <article className="lm-panel">
-          <ArrowRightLeft size={20} />
-          <h2>Movimento real</h2>
-          <p>
-            Compare períodos e identifique onde o caixa aperta ou ganha fôlego.
-          </p>
+        <article className="lm-cashflow-card">
+          <div className="lm-cashflow-card__icon">
+            <ArrowRightLeft size={20} />
+          </div>
+
+          <div className="lm-cashflow-card__copy">
+            <h2>Movimento real</h2>
+            <p>
+              Compare períodos e identifique onde o caixa aperta ou ganha
+              fôlego.
+            </p>
+          </div>
         </article>
 
-        <article className="lm-panel">
-          <TrendingUp size={20} />
-          <h2>Próximo passo</h2>
-          <p>
-            Use esta leitura para decidir compra, estoque e ritmo de expansão.
-          </p>
+        <article className="lm-cashflow-card">
+          <div className="lm-cashflow-card__icon">
+            <TrendingUp size={20} />
+          </div>
+
+          <div className="lm-cashflow-card__copy">
+            <h2>Próximo passo</h2>
+            <p>
+              Use esta leitura para decidir compra, estoque e ritmo de
+              expansão.
+            </p>
+          </div>
         </article>
       </section>
 
-      <section className="lm-panel">
-        <h2>Em evolução</h2>
+      <section className="lm-cashflow-panel">
+        <div className="lm-cashflow-panel__head">
+          <h2>Em evolução</h2>
+        </div>
+
         <p>
           Esta página já está ativa na V2.1 como base do módulo. O próximo passo
           é ligar os dados reais de caixa e relatórios consolidados.

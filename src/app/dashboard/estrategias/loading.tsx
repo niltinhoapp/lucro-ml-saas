@@ -1,16 +1,15 @@
 export default function StrategiesLoadingPage() {
   return (
-    <div className="lm-strategies-loading-card">
-      <div className="lm-loading-line lm-loading-line--sm" />
-      <div className="lm-loading-line lm-loading-line--lg" />
-      <div className="lm-loading-line" />
-      <div className="lm-loading-grid">
-        <div className="lm-loading-box" />
-        <div className="lm-loading-box" />
-        <div className="lm-loading-box" />
+    <div className="lm-strat-loading-card">
+      <div className="lm-strat-loading-line lm-strat-loading-line--sm" />
+      <div className="lm-strat-loading-line lm-strat-loading-line--lg" />
+      <div className="lm-strat-loading-line" />
+
+      <div className="lm-strat-loading-grid">
+        <div className="lm-strat-loading-box" />
+        <div className="lm-strat-loading-box" />
+        <div className="lm-strat-loading-box" />
       </div>
     </div>
   );
 }
-
-

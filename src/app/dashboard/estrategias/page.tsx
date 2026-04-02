@@ -10,14 +10,12 @@ export default async function StrategiesPage() {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect("/auth/login?next=/dashboard/produtos/estrategiass");
+    redirect("/auth/login?next=/dashboard/produtos/estrategias");
   }
 
   return (
-    <Suspense fallback={<div className="lm-strategies-loading">Carregando estratégias...</div>}>
+    <Suspense fallback={<div className="lm-strat-loading">Carregando estratégias...</div>}>
       <StrategiesShell />
     </Suspense>
   );
 }
-
-

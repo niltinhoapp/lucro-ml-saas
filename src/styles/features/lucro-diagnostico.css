@@ -1,0 +1,577 @@
+/* =========================================================
+   LUCRO DIAGNÓSTICO — INDEPENDENTE / PREMIUM / SAAS
+   ========================================================= */
+
+.lm-diagnostic-page {
+  display: grid;
+  gap: 24px;
+}
+
+/* =========================================================
+   HERO
+   ========================================================= */
+
+.lm-diagnostic-hero {
+  position: relative;
+  overflow: hidden;
+  border-radius: 28px;
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  background:
+    radial-gradient(circle at top left, rgba(46, 204, 113, 0.16), transparent 32%),
+    radial-gradient(circle at top right, rgba(52, 152, 219, 0.14), transparent 28%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.96));
+  box-shadow: 0 24px 80px rgba(15, 23, 42, 0.08);
+}
+
+html.dark .lm-diagnostic-hero {
+  background:
+    radial-gradient(circle at top left, rgba(46, 204, 113, 0.18), transparent 32%),
+    radial-gradient(circle at top right, rgba(52, 152, 219, 0.18), transparent 28%),
+    linear-gradient(180deg, rgba(15, 27, 45, 0.98), rgba(18, 34, 57, 0.96));
+}
+
+.lm-diagnostic-hero__content {
+  padding: 30px;
+  display: grid;
+  gap: 24px;
+}
+
+.lm-diagnostic-hero__top {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(340px, 0.9fr);
+  gap: 22px;
+  align-items: start;
+}
+
+.lm-diagnostic-chip {
+  width: fit-content;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 34px;
+  padding: 0 14px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  border: 1px solid rgba(37, 99, 235, 0.14);
+  background: rgba(37, 99, 235, 0.08);
+  color: #2563eb;
+}
+
+.lm-diagnostic-title {
+  margin: 14px 0 0;
+  color: #0f172a;
+  font-size: clamp(2rem, 3vw, 3rem);
+  line-height: 1.02;
+  font-weight: 900;
+  letter-spacing: -0.045em;
+}
+
+html.dark .lm-diagnostic-title {
+  color: #eef4ff;
+}
+
+.lm-diagnostic-subtitle {
+  margin: 14px 0 0;
+  max-width: 64ch;
+  color: #475569;
+  line-height: 1.7;
+}
+
+html.dark .lm-diagnostic-subtitle {
+  color: #c8d3e3;
+}
+
+.lm-diagnostic-proof {
+  margin-top: 18px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.lm-diagnostic-proof span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 36px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  background: rgba(255, 255, 255, 0.72);
+  color: #334155;
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+
+html.dark .lm-diagnostic-proof span {
+  background: rgba(255, 255, 255, 0.04);
+  color: #d6e0ee;
+}
+
+/* =========================================================
+   FORM
+   ========================================================= */
+
+.lm-diagnostic-form-card {
+  border-radius: 24px;
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 18px 50px rgba(15, 23, 42, 0.06);
+  padding: 22px;
+}
+
+html.dark .lm-diagnostic-form-card {
+  background: rgba(15, 27, 45, 0.92);
+}
+
+.lm-diagnostic-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.lm-diagnostic-field {
+  display: grid;
+  gap: 8px;
+}
+
+.lm-diagnostic-field--full {
+  grid-column: 1 / -1;
+}
+
+.lm-diagnostic-label {
+  color: #334155;
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+
+html.dark .lm-diagnostic-label {
+  color: #d9e3f1;
+}
+
+.lm-diagnostic-input {
+  width: 100%;
+  min-height: 46px;
+  border-radius: 14px;
+  border: 1px solid #dbe4ee;
+  background: #fff;
+  color: #0f172a;
+  padding: 0 14px;
+  font-size: 0.96rem;
+  outline: none;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.lm-diagnostic-input:focus {
+  border-color: rgba(37, 99, 235, 0.28);
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.10);
+}
+
+html.dark .lm-diagnostic-input {
+  background: rgba(255, 255, 255, 0.04);
+  color: #eef4ff;
+  border-color: rgba(148, 163, 184, 0.18);
+}
+
+.lm-diagnostic-submit {
+  margin-top: 16px;
+  width: 100%;
+  min-height: 48px;
+  border: 0;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #0f172a, #1e293b);
+  color: #fff;
+  font-size: 0.95rem;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 14px 30px rgba(15, 23, 42, 0.20);
+  transition: transform 0.18s ease, opacity 0.18s ease, box-shadow 0.18s ease;
+}
+
+.lm-diagnostic-submit:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.24);
+}
+
+.lm-diagnostic-submit:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}
+
+/* =========================================================
+   ERROR
+   ========================================================= */
+
+.lm-diagnostic-error {
+  border-radius: 24px;
+  border: 1px solid rgba(239, 68, 68, 0.16);
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 18px 50px rgba(15, 23, 42, 0.06);
+  padding: 22px;
+}
+
+html.dark .lm-diagnostic-error {
+  background: rgba(15, 27, 45, 0.96);
+}
+
+.lm-diagnostic-error__kicker {
+  color: #dc2626;
+  font-size: 0.82rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.lm-diagnostic-error p {
+  margin: 10px 0 0;
+  color: #475569;
+  line-height: 1.7;
+}
+
+html.dark .lm-diagnostic-error p {
+  color: #d0dae8;
+}
+
+/* =========================================================
+   RESULTADO
+   ========================================================= */
+
+.lm-diagnostic-result-card,
+.lm-diagnostic-section-card {
+  border-radius: 24px;
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  background: rgba(255, 255, 255, 0.98);
+  box-shadow: 0 18px 50px rgba(15, 23, 42, 0.06);
+  padding: 24px;
+}
+
+html.dark .lm-diagnostic-result-card,
+html.dark .lm-diagnostic-section-card {
+  background: rgba(15, 27, 45, 0.98);
+}
+
+.lm-diagnostic-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.lm-diagnostic-card-head h2 {
+  margin: 0;
+  color: #0f172a;
+  font-size: 1.1rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+html.dark .lm-diagnostic-card-head h2 {
+  color: #eef4ff;
+}
+
+.lm-diagnostic-status-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 30px;
+  padding: 0 12px;
+  border-radius: 999px;
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.lm-diagnostic-status-badge.ok {
+  background: rgba(46, 204, 113, 0.12);
+  color: #15803d;
+}
+
+.lm-diagnostic-status-badge.info {
+  background: rgba(59, 130, 246, 0.12);
+  color: #2563eb;
+}
+
+.lm-diagnostic-status-badge.warn {
+  background: rgba(245, 158, 11, 0.14);
+  color: #b45309;
+}
+
+.lm-diagnostic-status-badge.bad,
+.lm-diagnostic-status-badge.danger {
+  background: rgba(239, 68, 68, 0.12);
+  color: #dc2626;
+}
+
+.lm-diagnostic-result-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 0.95fr);
+  gap: 18px;
+  align-items: stretch;
+}
+
+.lm-diagnostic-score-main {
+  display: grid;
+  gap: 12px;
+  padding: 20px;
+  border-radius: 22px;
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  background: linear-gradient(180deg, #f8fafc, #f1f5f9);
+}
+
+html.dark .lm-diagnostic-score-main {
+  background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.02));
+}
+
+.lm-diagnostic-score-main.tone-good {
+  border-color: rgba(46, 204, 113, 0.18);
+}
+
+.lm-diagnostic-score-main.tone-info {
+  border-color: rgba(59, 130, 246, 0.18);
+}
+
+.lm-diagnostic-score-main.tone-warn {
+  border-color: rgba(245, 158, 11, 0.18);
+}
+
+.lm-diagnostic-score-main.tone-danger {
+  border-color: rgba(239, 68, 68, 0.18);
+}
+
+.lm-diagnostic-score-label {
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #64748b;
+}
+
+.lm-diagnostic-score-value {
+  color: #0f172a;
+  font-size: 2.2rem;
+  line-height: 1;
+  font-weight: 900;
+  letter-spacing: -0.04em;
+}
+
+html.dark .lm-diagnostic-score-value {
+  color: #eef4ff;
+}
+
+.lm-diagnostic-score-bar {
+  width: 100%;
+  height: 10px;
+  border-radius: 999px;
+  background: #e2e8f0;
+  overflow: hidden;
+}
+
+html.dark .lm-diagnostic-score-bar {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.lm-diagnostic-score-bar-fill {
+  height: 100%;
+  border-radius: inherit;
+}
+
+.lm-diagnostic-score-bar-fill.tone-good {
+  background: linear-gradient(90deg, #22c55e, #16a34a);
+}
+
+.lm-diagnostic-score-bar-fill.tone-info {
+  background: linear-gradient(90deg, #3b82f6, #2563eb);
+}
+
+.lm-diagnostic-score-bar-fill.tone-warn {
+  background: linear-gradient(90deg, #f59e0b, #d97706);
+}
+
+.lm-diagnostic-score-bar-fill.tone-danger {
+  background: linear-gradient(90deg, #ef4444, #dc2626);
+}
+
+.lm-diagnostic-score-text {
+  margin: 0;
+  color: #475569;
+  line-height: 1.7;
+}
+
+html.dark .lm-diagnostic-score-text {
+  color: #cbd6e4;
+}
+
+/* =========================================================
+   KPIS
+   ========================================================= */
+
+.lm-diagnostic-kpi-grid {
+  display: grid;
+  gap: 12px;
+}
+
+.lm-diagnostic-kpi-card {
+  padding: 16px 18px;
+  border-radius: 18px;
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  background: rgba(255, 255, 255, 0.82);
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.04);
+}
+
+html.dark .lm-diagnostic-kpi-card {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.lm-diagnostic-kpi-card.tone-info {
+  border-color: rgba(59, 130, 246, 0.16);
+}
+
+.lm-diagnostic-kpi-label {
+  color: #64748b;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.lm-diagnostic-kpi-value {
+  margin-top: 8px;
+  color: #0f172a;
+  font-size: 1.16rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+html.dark .lm-diagnostic-kpi-value {
+  color: #eef4ff;
+}
+
+/* =========================================================
+   GRID INFERIOR
+   ========================================================= */
+
+.lm-diagnostic-bottom-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+/* =========================================================
+   PERDAS
+   ========================================================= */
+
+.lm-diagnostic-loss-list {
+  display: grid;
+  gap: 12px;
+}
+
+.lm-diagnostic-loss-item {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px;
+  border-radius: 18px;
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  background: #f8fafc;
+}
+
+html.dark .lm-diagnostic-loss-item {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.lm-diagnostic-loss-copy {
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+}
+
+.lm-diagnostic-loss-title {
+  color: #0f172a;
+  font-size: 0.95rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+html.dark .lm-diagnostic-loss-title {
+  color: #eef4ff;
+}
+
+.lm-diagnostic-loss-meta {
+  color: #64748b;
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.lm-diagnostic-loss-value {
+  flex-shrink: 0;
+  color: #dc2626;
+  font-size: 0.95rem;
+  font-weight: 800;
+}
+
+/* =========================================================
+   ALERTAS / AÇÕES
+   ========================================================= */
+
+.lm-diagnostic-alert-list {
+  display: grid;
+  gap: 10px;
+}
+
+.lm-diagnostic-alert {
+  padding: 14px 16px;
+  border-radius: 16px;
+  border: 1px solid transparent;
+  font-size: 0.92rem;
+  line-height: 1.6;
+  font-weight: 600;
+}
+
+.lm-diagnostic-alert.danger {
+  border-color: rgba(239, 68, 68, 0.14);
+  background: rgba(239, 68, 68, 0.08);
+  color: #b91c1c;
+}
+
+.lm-diagnostic-alert.success {
+  border-color: rgba(34, 197, 94, 0.16);
+  background: rgba(34, 197, 94, 0.08);
+  color: #15803d;
+}
+
+/* =========================================================
+   RESPONSIVO
+   ========================================================= */
+
+@media (max-width: 1080px) {
+  .lm-diagnostic-hero__top,
+  .lm-diagnostic-result-grid,
+  .lm-diagnostic-bottom-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 720px) {
+  .lm-diagnostic-hero__content,
+  .lm-diagnostic-result-card,
+  .lm-diagnostic-section-card,
+  .lm-diagnostic-error {
+    padding: 20px;
+  }
+
+  .lm-diagnostic-form-card {
+    padding: 18px;
+  }
+
+  .lm-diagnostic-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .lm-diagnostic-field--full {
+    grid-column: auto;
+  }
+}

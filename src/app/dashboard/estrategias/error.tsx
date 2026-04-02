@@ -7,15 +7,13 @@ type ErrorPageProps = {
 
 export default function StrategiesErrorPage({ error, reset }: ErrorPageProps) {
   return (
-    <div className="lm-strategies-error">
-      <strong>Não foi possível carregar a Central de Estratégias.</strong>
+    <div className="lm-strat-error">
+      <strong>Não foi possível carregar a central de estratégias.</strong>
       <p>{error.message || "Ocorreu um erro inesperado."}</p>
 
-      <button type="button" className="lm-btn-primary" onClick={() => reset()}>
+      <button type="button" className="lm-strat-error__btn" onClick={() => reset()}>
         Tentar novamente
       </button>
     </div>
   );
 }
-
-

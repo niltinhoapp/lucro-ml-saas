@@ -8,10 +8,11 @@ export default function FluxoCaixaError({
   reset: () => void;
 }) {
   return (
-    <div className="lm-strategies-error">
-      <strong>Não foi possível carregar o Fluxo de Caixa.</strong>
+    <div className="lm-cashflow-error">
+      <strong>Não foi possível carregar o fluxo de caixa.</strong>
       <p>{error.message}</p>
-      <button type="button" className="lm-btn-primary" onClick={reset}>
+
+      <button type="button" className="lm-cashflow-error__btn" onClick={reset}>
         Tentar novamente
       </button>
     </div>

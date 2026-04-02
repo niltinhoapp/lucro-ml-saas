@@ -12,9 +12,9 @@ function getErrorMessage(err: unknown) {
 }
 
 function toneMargem(m: number) {
-  if (m >= 15) return "pill good";
-  if (m >= 8) return "pill warn";
-  return "pill bad";
+  if (m >= 15) return "good";
+  if (m >= 8) return "warn";
+  return "bad";
 }
 
 export default function HistoricoPage() {
@@ -66,91 +66,117 @@ export default function HistoricoPage() {
   }, []);
 
   return (
-    <div className="page-wrap historico-page">
-      <section className="topbar card card-premium">
-        <div>
-          <span className="badge pro">Histórico da operação</span>
-          <h2 style={{ marginTop: 10 }}>Suas análises salvas de lucro e DRE</h2>
-          <p className="subtitle">
-            Revise resultados anteriores, compare cenários e retome análises sem precisar começar do zero.
-          </p>
-        </div>
-
-        <div className="actions">
-          <button className="btn btn-ghost" onClick={() => router.push("/dashboard")}>
-            Voltar ao painel
-          </button>
-          <button className="btn-dark" onClick={() => router.push("/dashboard/diagnostico")}>
-            Nova análise
-          </button>
-        </div>
-      </section>
-
-      <section className="card card-premium">
-        <div className="card-head">
+    <div className="lm-history-page">
+      <section className="lm-history-hero">
+        <div className="lm-history-hero__top">
           <div>
-            <h2>Histórico de análises</h2>
-            <p className="subtitle">
-              {loading ? "Carregando análises..." : `${items.length} análise(s) salva(s)`}
+            <span className="lm-history-chip">Histórico da operação</span>
+            <h1 className="lm-history-title">Suas análises salvas</h1>
+            <p className="lm-history-subtitle">
+              Revise resultados anteriores, compare cenários e retome análises
+              sem precisar começar do zero.
             </p>
           </div>
 
-          <div className="actions">
-            <button className="btn btn-primary" onClick={() => router.push("/dashboard/diagnostico")}>
+          <div className="lm-history-actions">
+            <button
+              className="btn btn-ghost"
+              onClick={() => router.push("/dashboard")}
+            >
+              Voltar ao painel
+            </button>
+
+            <button
+              className="btn-dark"
+              onClick={() => router.push("/dashboard/diagnostico")}
+            >
+              Nova análise
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <section className="lm-history-card">
+        <div className="lm-history-card__head">
+          <div>
+            <h2>Histórico de análises</h2>
+            <p className="lm-history-card__subtitle">
+              {loading
+                ? "Carregando análises..."
+                : `${items.length} análise(s) salva(s)`}
+            </p>
+          </div>
+
+          <div className="lm-history-actions">
+            <button
+              className="btn btn-primary"
+              onClick={() => router.push("/dashboard/diagnostico")}
+            >
               Fazer nova análise
             </button>
           </div>
         </div>
 
-        <div className="card-body">
-          {erro ? <div className="alert danger">{erro}</div> : null}
+        {erro ? <div className="lm-history-message danger">{erro}</div> : null}
 
-          {!loading && !items.length && !erro ? (
-            <div className="alert info">
-              Você ainda não tem análises salvas. Faça sua primeira leitura de lucro para começar a montar seu histórico.
-            </div>
-          ) : null}
+        {!loading && !items.length && !erro ? (
+          <div className="lm-history-message info">
+            Você ainda não tem análises salvas. Faça sua primeira leitura de
+            lucro para começar a montar seu histórico.
+          </div>
+        ) : null}
 
-          <div className="list">
-            {items.map((sim) => (
-              <div
-                key={sim.id}
-                className="row"
-                role="button"
-                tabIndex={0}
-                onClick={() => router.push(`/dashboard/dre?id=${sim.id}`)}
-                onKeyDown={(ev) => {
-                  if (ev.key === "Enter" || ev.key === " ") {
-                    ev.preventDefault();
-                    router.push(`/dashboard/dre?id=${sim.id}`);
-                  }
-                }}
-              >
-                <div style={{ minWidth: 0 }}>
-                  <div className="title">{sim.nome ?? `Análise ${sim.id}`}</div>
-
-                  <div className="meta">
-                    {sim.created_at ? new Date(sim.created_at).toLocaleString("pt-BR") : ""}
-                    {sim.arquivo_nome ? ` • ${sim.arquivo_nome}` : ""}
-                  </div>
+        <div className="lm-history-list">
+          {items.map((sim) => (
+            <div
+              key={sim.id}
+              className="lm-history-row"
+              role="button"
+              tabIndex={0}
+              onClick={() => router.push(`/dashboard/dre?id=${sim.id}`)}
+              onKeyDown={(ev) => {
+                if (ev.key === "Enter" || ev.key === " ") {
+                  ev.preventDefault();
+                  router.push(`/dashboard/dre?id=${sim.id}`);
+                }
+              }}
+            >
+              <div className="lm-history-row__left">
+                <div className="lm-history-row__title">
+                  {sim.nome ?? `Análise ${sim.id}`}
                 </div>
 
-                <div className="right">
-                  <div className="pills">
-                    <span className={Number(sim.lucro || 0) >= 0 ? "pill good" : "pill bad"}>
-                      Lucro: R$ {Number(sim.lucro || 0).toLocaleString("pt-BR")}
-                    </span>
-
-                    <span className={toneMargem(Number(sim.margem || 0))}>
-                      Margem: {Number(sim.margem || 0).toFixed(2)}%
-                    </span>
-                  </div>
-
-                  <div className="small">Abrir análise →</div>
+                <div className="lm-history-row__meta">
+                  {sim.created_at
+                    ? new Date(sim.created_at).toLocaleString("pt-BR")
+                    : ""}
+                  {sim.arquivo_nome ? ` • ${sim.arquivo_nome}` : ""}
                 </div>
               </div>
-            ))}
-          </div>
+
+              <div className="lm-history-row__right">
+                <div className="lm-history-pills">
+                  <span
+                    className={`lm-history-pill ${
+                      Number(sim.lucro || 0) >= 0 ? "good" : "bad"
+                    }`}
+                  >
+                    Lucro: R$ {Number(sim.lucro || 0).toLocaleString("pt-BR")}
+                  </span>
+
+                  <span
+                    className={`lm-history-pill ${toneMargem(
+                      Number(sim.margem || 0)
+                    )}`}
+                  >
+                    Margem: {Number(sim.margem || 0).toFixed(2)}%
+                  </span>
+                </div>
+
+                <div className="lm-history-row__link">Abrir análise →</div>
+              </div>
+            </div>
+          ))}
         </div>
       </section>
 
@@ -159,13 +185,10 @@ export default function HistoricoPage() {
         subtitle="No PRO você acompanha análises, compara cenários e toma decisões com mais consistência ao longo do tempo."
       />
 
-      <div className="small" style={{ textAlign: "center" }}>
-        Lucro ML • histórico de análises • {new Date().toLocaleDateString("pt-BR")}
+      <div className="lm-history-footer">
+        Lucro ML • histórico de análises •{" "}
+        {new Date().toLocaleDateString("pt-BR")}
       </div>
     </div>
   );
 }
-
-
-
-

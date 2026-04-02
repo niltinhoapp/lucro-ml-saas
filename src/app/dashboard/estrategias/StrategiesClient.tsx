@@ -58,45 +58,43 @@ export default function StrategiesClient() {
   }
 
   return (
-    <div className="min-h-screen text-white bg-neutral-950">
-      <div className="px-4 py-6 mx-auto max-w-7xl md:px-6 lg:px-8">
-        <header className="flex flex-col gap-4 mb-6 md:flex-row md:items-center md:justify-between">
-          <div>
-            <p className="inline-flex items-center px-3 py-1 mb-2 text-xs font-medium border rounded-full border-cyan-400/20 bg-cyan-400/10 text-cyan-300">
+    <div className="lm-strat-shell">
+      <div className="lm-strat-container">
+        <header className="lm-strat-header">
+          <div className="lm-strat-header__copy">
+            <span className="lm-strat-chip">
               Plano Plus • Inteligência Estratégica
-            </p>
+            </span>
 
-            <h1 className="text-2xl font-bold tracking-tight md:text-3xl">
-              Central de Estratégias ML
-            </h1>
+            <h1 className="lm-strat-title">Central de Estratégias ML</h1>
 
-            <p className="max-w-2xl mt-2 text-sm text-neutral-400 md:text-base">
+            <p className="lm-strat-subtitle">
               Técnicas práticas para melhorar margem, competitividade,
               posicionamento e tomada de decisão no Mercado Livre.
             </p>
           </div>
 
-          <div className="px-4 py-3 text-sm border rounded-2xl border-cyan-500/20 bg-cyan-500/10">
-            <span className="font-semibold text-cyan-300">
-              🔔 {unreadCount}
-            </span>{" "}
-            estratégia{unreadCount === 1 ? "" : "s"} não lida
-            {unreadCount === 0 ? "" : " disponível"}
+          <div className="lm-strat-unread-box">
+            <span className="lm-strat-unread-box__count">{unreadCount}</span>
+            <span>
+              estratégia{unreadCount === 1 ? "" : "s"} não lida
+              {unreadCount === 0 ? "" : " disponível"}
+            </span>
           </div>
         </header>
 
         {strategyOfWeek && (
-          <div className="mb-6">
+          <section className="lm-strat-weekly">
             <StrategyWeeklyCard
               strategy={strategyOfWeek}
               onOpen={handleSelectStrategy}
               onMarkAsRead={handleMarkAsRead}
             />
-          </div>
+          </section>
         )}
 
-        <div className="grid gap-6 lg:grid-cols-[360px_minmax(0,1fr)]">
-          <aside className="p-4 border rounded-3xl border-white/10 bg-neutral-900">
+        <section className="lm-strat-layout">
+          <aside className="lm-strat-sidebar">
             <StrategyFilters
               selectedFilter={selectedFilter}
               onChange={setSelectedFilter}
@@ -109,18 +107,14 @@ export default function StrategiesClient() {
             />
           </aside>
 
-          <main className="p-5 border rounded-3xl border-white/10 bg-neutral-900 md:p-6">
+          <main className="lm-strat-main">
             <StrategyReader
               strategy={selectedStrategy}
               onMarkAsRead={handleMarkAsRead}
             />
           </main>
-        </div>
+        </section>
       </div>
     </div>
   );
 }
-
-
-
-

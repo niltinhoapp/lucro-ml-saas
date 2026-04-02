@@ -44,9 +44,9 @@ function getScoreTone(score: number) {
 
 function getBadgeClass(scoreTone: string) {
   if (scoreTone === "good") return "ok";
-  if (scoreTone === "info") return "pro";
-  if (scoreTone === "warn") return "bad";
-  return "bad";
+  if (scoreTone === "info") return "info";
+  if (scoreTone === "warn") return "warn";
+  return "danger";
 }
 
 function formatMoney(value: number) {
@@ -119,112 +119,129 @@ export default function DiagnosticoLucroClient() {
   }, []);
 
   return (
-    <div className="market-page page-wrap">
-      <section className="seller-hero seller-hero-diagnostic exec-hero">
-        <div className="exec-hero-top">
-          <div className="exec-hero-copy">
-            <span className="badge pro">Diagnóstico</span>
+    <div className="lm-diagnostic-page">
+      <section className="lm-diagnostic-hero">
+        <div className="lm-diagnostic-hero__content">
+          <div className="lm-diagnostic-hero__top">
+            <div>
+              <span className="lm-diagnostic-chip">Diagnóstico</span>
 
-            <h1 className="exec-title">Analisar lucro</h1>
+              <h1 className="lm-diagnostic-title">Analisar lucro</h1>
 
-            <p className="exec-subtitle">
-              Preencha os dados e veja lucro, margem e preço recomendado.
-            </p>
+              <p className="lm-diagnostic-subtitle">
+                Preencha os dados e veja lucro, margem, perdas ocultas e preço
+                recomendado para decidir com mais segurança.
+              </p>
 
-            <div className="exec-hero-proof">
-              <span className="pill good">Lucro</span>
-              <span className="pill">Margem</span>
-              <span className="pill">Preço</span>
+              <div className="lm-diagnostic-proof">
+                <span>Lucro real</span>
+                <span>Margem</span>
+                <span>Preço recomendado</span>
+              </div>
             </div>
-          </div>
 
-          <div className="seller-form-card exec-form-card">
-            <div className="exec-form-grid">
-              {(Object.keys(form) as Array<keyof FormState>).map((key) => (
-                <div
-                  key={key}
-                  className={key === "produto" ? "exec-field exec-field-full" : "exec-field"}
-                >
-                  <label className="market-label">{formatLabel(key)}</label>
-
-                  <input
-                    className="market-input"
-                    value={form[key]}
-                    onChange={(e) =>
-                      setForm((prev) => ({
-                        ...prev,
-                        [key]: e.target.value,
-                      }))
+            <div className="lm-diagnostic-form-card">
+              <div className="lm-diagnostic-form-grid">
+                {(Object.keys(form) as Array<keyof FormState>).map((key) => (
+                  <div
+                    key={key}
+                    className={
+                      key === "produto"
+                        ? "lm-diagnostic-field lm-diagnostic-field--full"
+                        : "lm-diagnostic-field"
                     }
-                    placeholder={formatLabel(key)}
-                  />
-                </div>
-              ))}
-            </div>
+                  >
+                    <label className="lm-diagnostic-label">
+                      {formatLabel(key)}
+                    </label>
 
-            <button
-              className="btn btn-primary btn-big"
-              type="button"
-              onClick={analisar}
-              disabled={loading}
-            >
-              {loading ? "Analisando..." : "Analisar"}
-            </button>
+                    <input
+                      className="lm-diagnostic-input"
+                      value={form[key]}
+                      onChange={(e) =>
+                        setForm((prev) => ({
+                          ...prev,
+                          [key]: e.target.value,
+                        }))
+                      }
+                      placeholder={formatLabel(key)}
+                    />
+                  </div>
+                ))}
+              </div>
+
+              <button
+                className="lm-diagnostic-submit"
+                type="button"
+                onClick={analisar}
+                disabled={loading}
+              >
+                {loading ? "Analisando..." : "Analisar"}
+              </button>
+            </div>
           </div>
         </div>
       </section>
 
       {error ? (
-        <section className="card card-premium dre-error">
-          <div className="dre-error-kicker">Não foi possível analisar</div>
-          <p className="subtitle" style={{ marginTop: 10 }}>
-            {error}
-          </p>
+        <section className="lm-diagnostic-error">
+          <div className="lm-diagnostic-error__kicker">
+            Não foi possível analisar
+          </div>
+          <p>{error}</p>
         </section>
       ) : null}
 
       {data ? (
         <>
-          <section className="diagnostic-score-card card card-premium">
-            <div className="card-head">
-              <div className="min-w-0">
-                <h2>Resultado</h2>
-              </div>
+          <section className="lm-diagnostic-result-card">
+            <div className="lm-diagnostic-card-head">
+              <h2>Resultado</h2>
 
-              <span className={`badge ${getBadgeClass(scoreTone)}`}>
+              <span
+                className={`lm-diagnostic-status-badge ${getBadgeClass(
+                  scoreTone
+                )}`}
+              >
                 {data.status}
               </span>
             </div>
 
-            <div className="diagnostic-score-grid">
-              <div className={`diagnostic-score-main tone-${scoreTone}`}>
-                <div className="diagnostic-score-label">Score</div>
-                <div className="diagnostic-score-value">{data.score}/100</div>
+            <div className="lm-diagnostic-result-grid">
+              <div className={`lm-diagnostic-score-main tone-${scoreTone}`}>
+                <div className="lm-diagnostic-score-label">Score</div>
+                <div className="lm-diagnostic-score-value">{data.score}/100</div>
 
-                <div className="diagnostic-score-bar">
+                <div className="lm-diagnostic-score-bar">
                   <div
-                    className={`diagnostic-score-bar-fill tone-${scoreTone}`}
+                    className={`lm-diagnostic-score-bar-fill tone-${scoreTone}`}
                     style={{ width: `${Math.max(0, Math.min(100, data.score))}%` }}
                   />
                 </div>
 
-                <p className="diagnostic-score-text">{data.conclusao}</p>
+                <p className="lm-diagnostic-score-text">{data.conclusao}</p>
               </div>
 
-              <div className="exec-kpi-grid diagnostic-kpis">
-                <div className="exec-kpi-card">
-                  <div className="market-kpi-label">Lucro</div>
-                  <div className="exec-kpi-value">{formatMoney(data.lucro)}</div>
+              <div className="lm-diagnostic-kpi-grid">
+                <div className="lm-diagnostic-kpi-card">
+                  <div className="lm-diagnostic-kpi-label">Lucro</div>
+                  <div className="lm-diagnostic-kpi-value">
+                    {formatMoney(data.lucro)}
+                  </div>
                 </div>
 
-                <div className="exec-kpi-card">
-                  <div className="market-kpi-label">Margem</div>
-                  <div className="exec-kpi-value">{data.margem.toFixed(2)}%</div>
+                <div className="lm-diagnostic-kpi-card">
+                  <div className="lm-diagnostic-kpi-label">Margem</div>
+                  <div className="lm-diagnostic-kpi-value">
+                    {data.margem.toFixed(2)}%
+                  </div>
                 </div>
 
-                <div className="exec-kpi-card tone-info">
-                  <div className="market-kpi-label">Preço recomendado</div>
-                  <div className="exec-kpi-value">
+                <div className="lm-diagnostic-kpi-card tone-info">
+                  <div className="lm-diagnostic-kpi-label">
+                    Preço recomendado
+                  </div>
+                  <div className="lm-diagnostic-kpi-value">
                     {formatMoney(data.recomendacaoPreco)}
                   </div>
                 </div>
@@ -232,27 +249,29 @@ export default function DiagnosticoLucroClient() {
             </div>
           </section>
 
-          <section className="market-grid-2">
-            <div className="card card-premium exec-section-card">
-              <div className="card-head">
-                <div className="min-w-0">
-                  <h2>Perdas</h2>
-                </div>
+          <section className="lm-diagnostic-bottom-grid">
+            <div className="lm-diagnostic-section-card">
+              <div className="lm-diagnostic-card-head">
+                <h2>Perdas</h2>
 
-                <span className={`badge ${getBadgeClass(scoreTone)}`}>
+                <span
+                  className={`lm-diagnostic-status-badge ${getBadgeClass(
+                    scoreTone
+                  )}`}
+                >
                   {data.status}
                 </span>
               </div>
 
-              <div className="diagnostic-loss-list">
+              <div className="lm-diagnostic-loss-list">
                 {data.perdas.map((item) => (
-                  <div className="diagnostic-loss-item" key={item.item}>
-                    <div className="diagnostic-loss-copy">
-                      <div className="diagnostic-loss-title">{item.item}</div>
-                      <div className="diagnostic-loss-meta">{item.nivel}</div>
+                  <div className="lm-diagnostic-loss-item" key={item.item}>
+                    <div className="lm-diagnostic-loss-copy">
+                      <div className="lm-diagnostic-loss-title">{item.item}</div>
+                      <div className="lm-diagnostic-loss-meta">{item.nivel}</div>
                     </div>
 
-                    <div className="diagnostic-loss-value">
+                    <div className="lm-diagnostic-loss-value">
                       {formatMoney(item.valor)}
                     </div>
                   </div>
@@ -260,22 +279,20 @@ export default function DiagnosticoLucroClient() {
               </div>
             </div>
 
-            <div className="card card-premium exec-section-card">
-              <div className="card-head">
-                <div className="min-w-0">
-                  <h2>Atenção</h2>
-                </div>
+            <div className="lm-diagnostic-section-card">
+              <div className="lm-diagnostic-card-head">
+                <h2>Atenção</h2>
               </div>
 
-              <div className="market-summary-list">
+              <div className="lm-diagnostic-alert-list">
                 {data.alertas.map((item) => (
-                  <div key={`alerta-${item}`} className="alert danger">
+                  <div key={`alerta-${item}`} className="lm-diagnostic-alert danger">
                     {item}
                   </div>
                 ))}
 
                 {data.acoes.map((item) => (
-                  <div key={`acao-${item}`} className="alert success">
+                  <div key={`acao-${item}`} className="lm-diagnostic-alert success">
                     {item}
                   </div>
                 ))}
@@ -292,7 +309,3 @@ export default function DiagnosticoLucroClient() {
     </div>
   );
 }
-
-
-
-
