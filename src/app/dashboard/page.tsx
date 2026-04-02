@@ -148,7 +148,10 @@ export default async function DashboardPage() {
           </div>
 
           <h1>Painel</h1>
-          <p>Escolha o próximo passo da sua operação sem repetir o que já está no menu lateral.</p>
+          <p>
+            Escolha o próximo passo da sua operação sem repetir o que já está no
+            menu lateral.
+          </p>
         </div>
       </section>
 
@@ -164,9 +167,9 @@ export default async function DashboardPage() {
         />
 
         <ActionCard
-          title="Diagnóstico de lucro"
+          title="Diagnóstico"
           description="Valide margem e veja se o produto realmente sobra dinheiro."
-          href="/dashboard/lucro"
+          href="/dashboard/lucro/diagnostico"
           allowed={hasProAccess}
           plan="pro"
           feature="Diagnóstico de lucro"
@@ -179,7 +182,7 @@ export default async function DashboardPage() {
           href="/dashboard/produtos/catalogos"
           allowed={hasPlusAccess}
           plan="plus"
-          feature="Catálogos de fornecedor"
+          feature="Catálogos"
           icon={Boxes}
         />
       </section>
@@ -202,7 +205,10 @@ export default async function DashboardPage() {
               {strategyNotification.unreadCount > 1 ? "s" : ""}
             </strong>
 
-            <Link href="/dashboard/produtos/estrategias" className="btn btn-primary">
+            <Link
+              href="/dashboard/produtos/estrategias"
+              className="btn btn-primary"
+            >
               Abrir estratégias
             </Link>
           </div>
