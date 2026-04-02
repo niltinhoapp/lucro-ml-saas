@@ -1,13 +1,11 @@
 import Link from "next/link";
 import { createServerClient } from "@/integrations/supabase/server";
-import LockedFeatureTrigger from "@/ui/LockedFeatureTrigger";
 import { getEntitlements } from "@/integrations/supabase/entitlements";
 import {
-  canAccess,
   getPlanLabel,
   type UserPlan,
 } from "@/features/dashboard/shared/dashboard-data";
-import { ArrowRight, BellDot, Crown, Radar, Wallet, Boxes } from "lucide-react";
+import { BellDot, Crown, ArrowRight } from "lucide-react";
 
 type StrategyNotification = {
   title: string;
@@ -53,62 +51,6 @@ async function getStrategyNotification(
   };
 }
 
-function ActionCard({
-  title,
-  description,
-  href,
-  allowed,
-  plan,
-  feature,
-  icon: Icon,
-}: {
-  title: string;
-  description: string;
-  href: string;
-  allowed: boolean;
-  plan?: "pro" | "plus";
-  feature: string;
-  icon: React.ComponentType<{ size?: number }>;
-}) {
-  const content = (
-    <>
-      <div className="dashhome-compact-card-icon">
-        <Icon size={18} />
-      </div>
-
-      <div className="dashhome-compact-card-copy">
-        <h3>{title}</h3>
-        <p>{description}</p>
-      </div>
-
-      <div className="dashhome-compact-card-cta">
-        <span>{allowed ? "Abrir" : "Desbloquear"}</span>
-        <ArrowRight size={15} />
-      </div>
-    </>
-  );
-
-  if (!allowed && plan) {
-    return (
-      <LockedFeatureTrigger
-        className="dashhome-compact-card"
-        plan={plan}
-        feature={feature}
-        title={`Desbloqueie ${feature}`}
-        description={description}
-      >
-        {content}
-      </LockedFeatureTrigger>
-    );
-  }
-
-  return (
-    <Link href={href} className="dashhome-compact-card">
-      {content}
-    </Link>
-  );
-}
-
 export default async function DashboardPage() {
   const supabase = await createServerClient();
 
@@ -135,62 +77,47 @@ export default async function DashboardPage() {
       ? await getStrategyNotification(supabase, user.id, currentPlan)
       : null;
 
-  const hasProAccess = canAccess(currentPlan, "pro");
-  const hasPlusAccess = canAccess(currentPlan, "plus");
-
   return (
-    <div className="page dashhome-compact">
-      <section className="dashhome-compact-header">
-        <div>
-          <div className="dashhome-compact-kicker">
-            <Crown size={14} />
-            <span>{getPlanLabel(currentPlan)}</span>
-          </div>
-
-          <h1>Painel</h1>
-          <p>
-            Escolha o próximo passo da sua operação sem repetir o que já está no
-            menu lateral.
-          </p>
+    <div className="page dashhome-focus">
+      <section className="dashhome-focus-header">
+        <div className="dashhome-focus-kicker">
+          <Crown size={14} />
+          <span>{getPlanLabel(currentPlan)}</span>
         </div>
+
+        <h1>Painel</h1>
+        <p>Veja o que merece sua atenção agora e siga para a próxima decisão.</p>
       </section>
 
-      <section className="dashhome-compact-actions">
-        <ActionCard
-          title="Radar ML"
-          description="Encontre oportunidades antes de investir em estoque."
-          href="/dashboard/produtos/radar"
-          allowed={hasPlusAccess}
-          plan="plus"
-          feature="Radar ML"
-          icon={Radar}
-        />
+      <section className="dashhome-focus-grid">
+        <article className="dashhome-focus-card dashhome-focus-card-strong">
+          <span className="dashhome-focus-label">Foco do momento</span>
+          <h2>Valide margem antes de investir em novos produtos.</h2>
+          <p>
+            Use o menu lateral para abrir Radar, Lucro ou Catálogos conforme a
+            etapa da sua operação.
+          </p>
 
-        <ActionCard
-          title="Diagnóstico"
-          description="Valide margem e veja se o produto realmente sobra dinheiro."
-          href="/dashboard/lucro/diagnostico"
-          allowed={hasProAccess}
-          plan="pro"
-          feature="Diagnóstico de lucro"
-          icon={Wallet}
-        />
+          <div className="dashhome-focus-inline">
+            <Link href="/dashboard/lucro/diagnostico" className="btn btn-primary">
+              Validar margem
+            </Link>
+          </div>
+        </article>
 
-        <ActionCard
-          title="Catálogos"
-          description="Leia catálogos de fornecedor e destaque os itens com mais potencial."
-          href="/dashboard/produtos/catalogos"
-          allowed={hasPlusAccess}
-          plan="plus"
-          feature="Catálogos"
-          icon={Boxes}
-        />
+        <article className="dashhome-focus-card">
+          <span className="dashhome-focus-label">Plano atual</span>
+          <h3>{getPlanLabel(currentPlan)}</h3>
+          <p>
+            O menu lateral organiza seus módulos por Produtos, Lucro, Operação e Conta.
+          </p>
+        </article>
       </section>
 
       {strategyNotification && (
-        <section className="dashhome-compact-highlight">
-          <div className="dashhome-compact-highlight-copy">
-            <span className="dashhome-compact-highlight-badge">
+        <section className="dashhome-focus-highlight">
+          <div className="dashhome-focus-highlight-copy">
+            <span className="dashhome-focus-badge">
               <BellDot size={14} />
               PLUS
             </span>
@@ -199,17 +126,15 @@ export default async function DashboardPage() {
             <p>{strategyNotification.summary}</p>
           </div>
 
-          <div className="dashhome-compact-highlight-side">
+          <div className="dashhome-focus-highlight-side">
             <strong>
               {strategyNotification.unreadCount} nova
               {strategyNotification.unreadCount > 1 ? "s" : ""}
             </strong>
 
-            <Link
-              href="/dashboard/produtos/estrategias"
-              className="btn btn-primary"
-            >
+            <Link href="/dashboard/produtos/estrategias" className="btn btn-primary">
               Abrir estratégias
+              <ArrowRight size={15} />
             </Link>
           </div>
         </section>

@@ -97,8 +97,7 @@ function getUpgradeCopy(label: string, plan: PlanGate) {
     },
     Simulador: {
       title: "Desbloqueie Simulador",
-      description:
-        "Teste a compra antes de colocar dinheiro em estoque.",
+      description: "Teste a compra antes de colocar dinheiro em estoque.",
     },
     Kits: {
       title: "Desbloqueie Kits",
@@ -169,9 +168,6 @@ export default function SidebarNavClient({
 
           <div className="sidebar-link-main-copy">
             <div className="sidebar-link-main-title">Painel</div>
-            <div className="sidebar-link-main-subtitle">
-              Resumo rápido da operação
-            </div>
           </div>
 
           <BarChart3 size={16} className="sidebar-link-main-trailing" />
@@ -212,7 +208,8 @@ export default function SidebarNavClient({
                     );
 
                     if (!allowed && item.requiredPlan) {
-                      const copy = getUpgradeCopy(item.label, item.requiredPlan);
+                      const requiredPlan = item.requiredPlan;
+                      const copy = getUpgradeCopy(item.label, requiredPlan);
 
                       return (
                         <button
@@ -226,7 +223,7 @@ export default function SidebarNavClient({
                           onClick={() =>
                             setModalState({
                               open: true,
-                              plan: item.requiredPlan!,
+                              plan: requiredPlan,
                               title: copy.title,
                               description: copy.description,
                               feature: item.label,
@@ -240,12 +237,12 @@ export default function SidebarNavClient({
                               <span
                                 className={[
                                   "sidebar-item-badge",
-                                  item.requiredPlan === "plus"
+                                  requiredPlan === "plus"
                                     ? "is-plus"
                                     : "is-pro",
                                 ].join(" ")}
                               >
-                                {item.requiredPlan.toUpperCase()}
+                                {requiredPlan.toUpperCase()}
                               </span>
                             )}
                             <Lock size={14} />

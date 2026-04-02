@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { logoutAction } from "@/app/(public)/auth/logout/actions";
 import { createServerClient } from "@/integrations/supabase/server";
 import { normalizeProfilePlan } from "@/lib/plans";
@@ -6,7 +5,7 @@ import SidebarNavClient, {
   type SidebarModule,
   type UserPlan,
 } from "@/ui/SidebarNavClient";
-import { Crown, Sparkles, Gem, LogOut } from "lucide-react";
+import { LogOut } from "lucide-react";
 
 const modules: SidebarModule[] = [
   {
@@ -94,6 +93,10 @@ const modules: SidebarModule[] = [
         label: "Planos",
         href: "/checkout",
       },
+      {
+        label: "Ir para o site",
+        href: "/",
+      },
     ],
   },
 ];
@@ -105,20 +108,6 @@ function toSidebarPlan(plan: string | null | undefined): UserPlan {
   if (normalized === "pro") return "pro";
   if (normalized === "free_trial") return "free";
   return "preview";
-}
-
-function getPlanLabel(plan: UserPlan) {
-  if (plan === "plus") return "PLUS";
-  if (plan === "pro") return "PRO";
-  if (plan === "free") return "FREE";
-  return "PREVIEW";
-}
-
-function getPlanMessage(plan: UserPlan) {
-  if (plan === "plus") return "Plano completo ativo.";
-  if (plan === "pro") return "Lucro e operação liberados.";
-  if (plan === "free") return "Desbloqueie mais módulos.";
-  return "Explore os recursos disponíveis.";
 }
 
 export default async function Sidebar() {
@@ -142,49 +131,14 @@ export default async function Sidebar() {
 
   return (
     <aside className="sidebar-modular shrink-0">
-      <div className="sidebar-card sidebar-card-brand">
-        <div className="sidebar-brand-row">
-          <div className="sidebar-link-main-icon" aria-hidden="true">
-            <Sparkles size={18} />
-          </div>
-
-          <div className="sidebar-brand-copy">
-            <h2 className="sidebar-brand-title">Lucro ML</h2>
-            <p className="sidebar-brand-subtitle">Centro de decisão do seller</p>
-          </div>
-
-          <span className="sidebar-plan-chip">
-            <Crown size={12} />
-            {getPlanLabel(currentPlan)}
-          </span>
-        </div>
+      <div className="sidebar-minimal-brand">
+        <span className="sidebar-minimal-brand-mark" />
+        <span className="sidebar-minimal-brand-text">Lucro ML</span>
       </div>
 
       <SidebarNavClient modules={modules} currentPlan={currentPlan} />
 
-      <div className="sidebar-clean-card">
-        <div className="sidebar-clean-top">
-          <div>
-            <div className="sidebar-clean-title">Plano atual</div>
-            <p className="sidebar-clean-text">{getPlanMessage(currentPlan)}</p>
-          </div>
-
-          <span className="sidebar-plan-mini-chip">
-            <Gem size={13} />
-            {getPlanLabel(currentPlan)}
-          </span>
-        </div>
-
-        <div className="sidebar-session-actions">
-          <Link href="/checkout" className="sidebar-secondary-btn">
-            Ver planos
-          </Link>
-
-          <Link href="/" className="sidebar-secondary-btn">
-            Ir para o site
-          </Link>
-        </div>
-
+      <div className="sidebar-logout-wrap">
         <form action={logoutAction}>
           <button type="submit" className="sidebar-logout-btn">
             <LogOut size={15} />
