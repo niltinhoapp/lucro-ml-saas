@@ -6,113 +6,41 @@ import {
   canAccess,
   type UserPlan,
 } from "@/features/dashboard/shared/dashboard-data";
-import LockedFeatureTrigger from "@/ui/LockedFeatureTrigger";
 import {
-  ArrowRight,
-  Boxes,
   Crown,
+  ArrowRight,
   ShoppingBag,
   Wallet,
+  Boxes,
   Settings2,
-  BellDot,
 } from "lucide-react";
-
-type StrategyNotification = {
-  title: string;
-  summary: string;
-  unreadCount: number;
-};
-
-async function getStrategyNotification(
-  supabase: Awaited<ReturnType<typeof createServerClient>>,
-  userId: string,
-  currentPlan: UserPlan
-): Promise<StrategyNotification | null> {
-  if (currentPlan !== "plus") return null;
-
-  const { data: strategies, error } = await supabase
-    .from("strategies")
-    .select("id, title, summary, access_level, published_at")
-    .eq("access_level", "plus")
-    .not("published_at", "is", null)
-    .order("published_at", { ascending: false });
-
-  if (error || !strategies?.length) return null;
-
-  const strategyIds = strategies.map((item) => item.id);
-
-  const { data: reads } = await supabase
-    .from("user_strategy_reads")
-    .select("strategy_id")
-    .eq("user_id", userId)
-    .in("strategy_id", strategyIds);
-
-  const readIds = new Set((reads ?? []).map((item) => item.strategy_id));
-  const unreadStrategies = strategies.filter((item) => !readIds.has(item.id));
-
-  if (!unreadStrategies.length) return null;
-
-  const firstUnread = unreadStrategies[0];
-
-  return {
-    title: firstUnread.title,
-    summary: firstUnread.summary,
-    unreadCount: unreadStrategies.length,
-  };
-}
 
 function HubCard({
   title,
   description,
   href,
   icon: Icon,
-  allowed = true,
-  plan,
-  feature,
 }: {
   title: string;
   description: string;
   href: string;
-  icon: React.ComponentType<{ size?: number }>;
-  allowed?: boolean;
-  plan?: "pro" | "plus";
-  feature?: string;
+  icon: any;
 }) {
-  const content = (
-    <>
-      <div className="dashboard-hub-card-icon">
+  return (
+    <Link href={href} className="hub-card">
+      <div className="hub-card-icon">
         <Icon size={20} />
       </div>
 
-      <div className="dashboard-hub-card-copy">
+      <div className="hub-card-copy">
         <h2>{title}</h2>
         <p>{description}</p>
       </div>
 
-      <div className="dashboard-hub-card-cta">
-        <span>{allowed ? "Abrir área" : "Desbloquear"}</span>
+      <div className="hub-card-cta">
+        <span>Acessar</span>
         <ArrowRight size={16} />
       </div>
-    </>
-  );
-
-  if (!allowed && plan && feature) {
-    return (
-      <LockedFeatureTrigger
-        className="dashboard-hub-card"
-        plan={plan}
-        feature={feature}
-        title={`Desbloqueie ${feature}`}
-        description={description}
-      >
-        {content}
-      </LockedFeatureTrigger>
-    );
-  }
-
-  return (
-    <Link href={href} className="dashboard-hub-card">
-      {content}
     </Link>
   );
 }
@@ -128,102 +56,73 @@ export default async function DashboardPage() {
 
   if (user) {
     const ent = await getEntitlements(supabase, user.id);
-
-    if (
-      ent.plan === "free_trial" ||
-      ent.plan === "pro" ||
-      ent.plan === "plus"
-    ) {
-      currentPlan = ent.plan;
-    }
+    currentPlan = ent.plan as UserPlan;
   }
 
-  const hasProAccess = canAccess(currentPlan, "pro");
-  const hasPlusAccess = canAccess(currentPlan, "plus");
-
-  const strategyNotification =
-    user && currentPlan === "plus"
-      ? await getStrategyNotification(supabase, user.id, currentPlan)
-      : null;
-
   return (
-    <div className="page dashboard-hub">
-      <section className="dashboard-hub-header">
-        <div className="dashboard-hub-kicker">
+    <div className="page hub-root">
+      {/* HEADER */}
+      <section className="hub-header">
+        <div className="hub-badge">
           <Crown size={14} />
-          <span>{getPlanLabel(currentPlan)}</span>
+          {getPlanLabel(currentPlan)}
         </div>
 
-        <h1>Escolha sua próxima decisão</h1>
+        <h1>O que você quer analisar agora?</h1>
+
         <p>
-          Entre pela área certa da sua operação e avance com mais clareza, sem
-          repetir navegação desnecessária.
+          Escolha a etapa da sua operação e avance com mais clareza.
         </p>
       </section>
 
-      <section className="dashboard-hub-grid">
+      {/* AÇÃO PRINCIPAL */}
+      <section className="hub-main-action">
+        <div className="hub-main-card">
+          <h2>Comece pelo lucro</h2>
+
+          <p>
+            Antes de comprar ou escalar, valide se o produto realmente deixa margem.
+          </p>
+
+          <Link
+            href="/dashboard/lucro/diagnostico"
+            className="btn btn-primary"
+          >
+            Analisar lucro agora
+          </Link>
+        </div>
+      </section>
+
+      {/* NAVEGAÇÃO */}
+      <section className="hub-grid">
         <HubCard
           title="Produtos"
-          description="Descubra oportunidades, leia catálogos e veja estratégias para vender melhor."
+          description="Radar, Catálogos e Estratégias para encontrar oportunidades."
           href="/dashboard/produtos"
           icon={ShoppingBag}
-          allowed={hasPlusAccess}
-          plan="plus"
-          feature="Produtos"
         />
 
         <HubCard
           title="Lucro"
-          description="Valide margem, veja DRE, fluxo de caixa e compare Full vs Flex."
+          description="Diagnóstico, DRE e fluxo de caixa da operação."
           href="/dashboard/lucro"
           icon={Wallet}
-          allowed={hasProAccess}
-          plan="pro"
-          feature="Lucro"
         />
 
         <HubCard
           title="Operação"
-          description="Simule compra, monte kits e use inteligência para decidir melhor."
+          description="Simulação, kits e decisões antes da compra."
           href="/dashboard/operacao"
           icon={Boxes}
-          allowed={hasProAccess}
-          plan="pro"
-          feature="Operação"
         />
 
         <HubCard
           title="Conta"
-          description="Veja integrações, ajuda e planos da sua conta em um só lugar."
+          description="Integrações, ajuda e configurações da conta."
           href="/dashboard/conta"
           icon={Settings2}
         />
       </section>
-
-      {strategyNotification && (
-        <section className="dashboard-hub-highlight">
-          <div className="dashboard-hub-highlight-copy">
-            <span className="dashboard-hub-highlight-badge">
-              <BellDot size={14} />
-              PLUS
-            </span>
-
-            <h2>{strategyNotification.title}</h2>
-            <p>{strategyNotification.summary}</p>
-          </div>
-
-          <div className="dashboard-hub-highlight-side">
-            <strong>
-              {strategyNotification.unreadCount} nova
-              {strategyNotification.unreadCount > 1 ? "s" : ""}
-            </strong>
-
-            <Link href="/dashboard/produtos/estrategias" className="btn btn-primary">
-              Abrir estratégias
-            </Link>
-          </div>
-        </section>
-      )}
     </div>
   );
 }
