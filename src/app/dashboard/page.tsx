@@ -3,9 +3,19 @@ import { createServerClient } from "@/integrations/supabase/server";
 import { getEntitlements } from "@/integrations/supabase/entitlements";
 import {
   getPlanLabel,
+  canAccess,
   type UserPlan,
 } from "@/features/dashboard/shared/dashboard-data";
-import { BellDot, Crown, ArrowRight } from "lucide-react";
+import LockedFeatureTrigger from "@/ui/LockedFeatureTrigger";
+import {
+  ArrowRight,
+  Boxes,
+  Crown,
+  ShoppingBag,
+  Wallet,
+  Settings2,
+  BellDot,
+} from "lucide-react";
 
 type StrategyNotification = {
   title: string;
@@ -51,6 +61,62 @@ async function getStrategyNotification(
   };
 }
 
+function HubCard({
+  title,
+  description,
+  href,
+  icon: Icon,
+  allowed = true,
+  plan,
+  feature,
+}: {
+  title: string;
+  description: string;
+  href: string;
+  icon: React.ComponentType<{ size?: number }>;
+  allowed?: boolean;
+  plan?: "pro" | "plus";
+  feature?: string;
+}) {
+  const content = (
+    <>
+      <div className="dashboard-hub-card-icon">
+        <Icon size={20} />
+      </div>
+
+      <div className="dashboard-hub-card-copy">
+        <h2>{title}</h2>
+        <p>{description}</p>
+      </div>
+
+      <div className="dashboard-hub-card-cta">
+        <span>{allowed ? "Abrir área" : "Desbloquear"}</span>
+        <ArrowRight size={16} />
+      </div>
+    </>
+  );
+
+  if (!allowed && plan && feature) {
+    return (
+      <LockedFeatureTrigger
+        className="dashboard-hub-card"
+        plan={plan}
+        feature={feature}
+        title={`Desbloqueie ${feature}`}
+        description={description}
+      >
+        {content}
+      </LockedFeatureTrigger>
+    );
+  }
+
+  return (
+    <Link href={href} className="dashboard-hub-card">
+      {content}
+    </Link>
+  );
+}
+
 export default async function DashboardPage() {
   const supabase = await createServerClient();
 
@@ -72,52 +138,72 @@ export default async function DashboardPage() {
     }
   }
 
+  const hasProAccess = canAccess(currentPlan, "pro");
+  const hasPlusAccess = canAccess(currentPlan, "plus");
+
   const strategyNotification =
     user && currentPlan === "plus"
       ? await getStrategyNotification(supabase, user.id, currentPlan)
       : null;
 
   return (
-    <div className="page dashhome-focus">
-      <section className="dashhome-focus-header">
-        <div className="dashhome-focus-kicker">
+    <div className="page dashboard-hub">
+      <section className="dashboard-hub-header">
+        <div className="dashboard-hub-kicker">
           <Crown size={14} />
           <span>{getPlanLabel(currentPlan)}</span>
         </div>
 
-        <h1>Painel</h1>
-        <p>Veja o que merece sua atenção agora e siga para a próxima decisão.</p>
+        <h1>Escolha sua próxima decisão</h1>
+        <p>
+          Entre pela área certa da sua operação e avance com mais clareza, sem
+          repetir navegação desnecessária.
+        </p>
       </section>
 
-      <section className="dashhome-focus-grid">
-        <article className="dashhome-focus-card dashhome-focus-card-strong">
-          <span className="dashhome-focus-label">Foco do momento</span>
-          <h2>Valide margem antes de investir em novos produtos.</h2>
-          <p>
-            Use o menu lateral para abrir Radar, Lucro ou Catálogos conforme a
-            etapa da sua operação.
-          </p>
+      <section className="dashboard-hub-grid">
+        <HubCard
+          title="Produtos"
+          description="Descubra oportunidades, leia catálogos e veja estratégias para vender melhor."
+          href="/dashboard/produtos"
+          icon={ShoppingBag}
+          allowed={hasPlusAccess}
+          plan="plus"
+          feature="Produtos"
+        />
 
-          <div className="dashhome-focus-inline">
-            <Link href="/dashboard/lucro/diagnostico" className="btn btn-primary">
-              Validar margem
-            </Link>
-          </div>
-        </article>
+        <HubCard
+          title="Lucro"
+          description="Valide margem, veja DRE, fluxo de caixa e compare Full vs Flex."
+          href="/dashboard/lucro"
+          icon={Wallet}
+          allowed={hasProAccess}
+          plan="pro"
+          feature="Lucro"
+        />
 
-        <article className="dashhome-focus-card">
-          <span className="dashhome-focus-label">Plano atual</span>
-          <h3>{getPlanLabel(currentPlan)}</h3>
-          <p>
-            O menu lateral organiza seus módulos por Produtos, Lucro, Operação e Conta.
-          </p>
-        </article>
+        <HubCard
+          title="Operação"
+          description="Simule compra, monte kits e use inteligência para decidir melhor."
+          href="/dashboard/operacao"
+          icon={Boxes}
+          allowed={hasProAccess}
+          plan="pro"
+          feature="Operação"
+        />
+
+        <HubCard
+          title="Conta"
+          description="Veja integrações, ajuda e planos da sua conta em um só lugar."
+          href="/dashboard/conta"
+          icon={Settings2}
+        />
       </section>
 
       {strategyNotification && (
-        <section className="dashhome-focus-highlight">
-          <div className="dashhome-focus-highlight-copy">
-            <span className="dashhome-focus-badge">
+        <section className="dashboard-hub-highlight">
+          <div className="dashboard-hub-highlight-copy">
+            <span className="dashboard-hub-highlight-badge">
               <BellDot size={14} />
               PLUS
             </span>
@@ -126,7 +212,7 @@ export default async function DashboardPage() {
             <p>{strategyNotification.summary}</p>
           </div>
 
-          <div className="dashhome-focus-highlight-side">
+          <div className="dashboard-hub-highlight-side">
             <strong>
               {strategyNotification.unreadCount} nova
               {strategyNotification.unreadCount > 1 ? "s" : ""}
@@ -134,7 +220,6 @@ export default async function DashboardPage() {
 
             <Link href="/dashboard/produtos/estrategias" className="btn btn-primary">
               Abrir estratégias
-              <ArrowRight size={15} />
             </Link>
           </div>
         </section>

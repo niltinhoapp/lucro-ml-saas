@@ -1,169 +1,209 @@
 /* =========================================================
-   DASHBOARD HOME — FOCUS MODE
+   DASHBOARD HUB — ENTRADA POR ÁREA / SEM SIDEBAR
    ========================================================= */
 
-.dashhome-focus {
+.dashboard-hub-shell {
+  min-height: 100vh;
+  background: var(--bg);
+}
+
+.dashboard-hub-main {
+  width: 100%;
+  padding: 30px 30px 40px;
+}
+
+.dashboard-hub {
   width: 100%;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 22px;
 }
 
-.dashhome-focus-header,
-.dashhome-focus-card,
-.dashhome-focus-highlight {
-  border-radius: 24px;
+.dashboard-hub-header,
+.dashboard-hub-card,
+.dashboard-hub-highlight {
+  border-radius: 28px;
   border: 1px solid var(--border);
   background: var(--surface);
   box-shadow: var(--shadow-sm);
 }
 
-html.dark .dashhome-focus-header,
-html.dark .dashhome-focus-card,
-html.dark .dashhome-focus-highlight {
+html.dark .dashboard-hub-header,
+html.dark .dashboard-hub-card,
+html.dark .dashboard-hub-highlight {
   background: linear-gradient(180deg, rgba(15, 27, 45, 0.98), rgba(18, 34, 57, 0.96));
 }
 
-.dashhome-focus-header {
-  padding: 22px 24px;
+.dashboard-hub-header {
+  padding: 28px 30px;
   background:
-    radial-gradient(620px 220px at 10% 0%, rgba(52, 152, 219, 0.10), transparent 60%),
-    radial-gradient(620px 220px at 100% 0%, rgba(46, 204, 113, 0.08), transparent 60%),
+    radial-gradient(720px 240px at 8% 0%, rgba(52, 152, 219, 0.12), transparent 60%),
+    radial-gradient(720px 240px at 100% 0%, rgba(46, 204, 113, 0.10), transparent 60%),
     var(--surface);
 }
 
-html.dark .dashhome-focus-header {
+html.dark .dashboard-hub-header {
   background:
-    radial-gradient(620px 220px at 10% 0%, rgba(52, 152, 219, 0.14), transparent 60%),
-    radial-gradient(620px 220px at 100% 0%, rgba(46, 204, 113, 0.10), transparent 60%),
+    radial-gradient(720px 240px at 8% 0%, rgba(52, 152, 219, 0.16), transparent 60%),
+    radial-gradient(720px 240px at 100% 0%, rgba(46, 204, 113, 0.12), transparent 60%),
     linear-gradient(180deg, rgba(15, 27, 45, 0.98), rgba(18, 34, 57, 0.96));
 }
 
-.dashhome-focus-kicker,
-.dashhome-focus-badge {
+.dashboard-hub-kicker,
+.dashboard-hub-highlight-badge {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  min-height: 34px;
-  padding: 0 12px;
+  min-height: 36px;
+  padding: 0 14px;
   border-radius: 999px;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 900;
   letter-spacing: 0.04em;
 }
 
-.dashhome-focus-kicker {
+.dashboard-hub-kicker {
   border: 1px solid rgba(46, 204, 113, 0.20);
   background: linear-gradient(135deg, rgba(46, 204, 113, 0.14), rgba(52, 152, 219, 0.10));
   color: var(--text);
 }
 
-.dashhome-focus-header h1 {
-  margin: 14px 0 0;
+.dashboard-hub-header h1 {
+  margin: 16px 0 0;
   color: var(--text);
-  font-size: clamp(2rem, 1.8rem + 0.9vw, 2.7rem);
-  line-height: 1.04;
-  letter-spacing: -0.04em;
+  font-size: clamp(2.3rem, 2rem + 1vw, 3.4rem);
+  line-height: 1.02;
+  letter-spacing: -0.05em;
 }
 
-.dashhome-focus-header p {
-  margin: 10px 0 0;
-  max-width: 64ch;
+.dashboard-hub-header p {
+  margin: 12px 0 0;
+  max-width: 68ch;
+  color: var(--text-soft);
+  line-height: 1.7;
+}
+
+.dashboard-hub-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.dashboard-hub-card {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-height: 240px;
+  padding: 24px;
+  color: inherit;
+  text-decoration: none;
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease,
+    border-color 0.18s ease;
+}
+
+.dashboard-hub-card::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 4px;
+  background: linear-gradient(90deg, rgba(52, 152, 219, 0.9), rgba(46, 204, 113, 0.9));
+  opacity: 0.95;
+}
+
+.dashboard-hub-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(46, 204, 113, 0.22);
+  box-shadow:
+    0 22px 52px rgba(15, 23, 42, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.dashboard-hub-card-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, rgba(52, 152, 219, 0.14), rgba(46, 204, 113, 0.12));
+  border: 1px solid rgba(52, 152, 219, 0.18);
+  color: var(--text);
+  box-shadow: var(--shadow-xs);
+}
+
+.dashboard-hub-card-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.dashboard-hub-card-copy h2 {
+  margin: 0;
+  color: var(--text);
+  font-size: 1.18rem;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+}
+
+.dashboard-hub-card-copy p {
+  margin: 0;
   color: var(--text-soft);
   line-height: 1.65;
 }
 
-.dashhome-focus-grid {
-  display: grid;
-  grid-template-columns: 1.35fr 0.65fr;
-  gap: 16px;
-}
-
-.dashhome-focus-card {
-  padding: 22px;
-}
-
-.dashhome-focus-card-strong {
-  background:
-    radial-gradient(620px 220px at 10% 0%, rgba(46, 204, 113, 0.10), transparent 60%),
-    radial-gradient(580px 220px at 100% 0%, rgba(52, 152, 219, 0.10), transparent 60%),
-    var(--surface);
-}
-
-html.dark .dashhome-focus-card-strong {
-  background:
-    radial-gradient(620px 220px at 10% 0%, rgba(46, 204, 113, 0.12), transparent 60%),
-    radial-gradient(580px 220px at 100% 0%, rgba(52, 152, 219, 0.12), transparent 60%),
-    linear-gradient(180deg, rgba(15, 27, 45, 0.98), rgba(18, 34, 57, 0.96));
-}
-
-.dashhome-focus-label {
+.dashboard-hub-card-cta {
+  margin-top: auto;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
   display: inline-flex;
-  font-size: 11px;
-  font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--text-muted);
+  align-items: center;
+  gap: 8px;
+  color: var(--secondary-strong);
+  font-weight: 800;
 }
 
-.dashhome-focus-card h2,
-.dashhome-focus-card h3 {
-  margin: 12px 0 0;
-  color: var(--text);
-  letter-spacing: -0.02em;
-}
-
-.dashhome-focus-card p {
-  margin: 10px 0 0;
-  color: var(--text-soft);
-  line-height: 1.6;
-}
-
-.dashhome-focus-inline {
-  margin-top: 18px;
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
-.dashhome-focus-highlight {
+.dashboard-hub-highlight {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 18px;
-  padding: 22px;
+  padding: 22px 24px;
   background:
     radial-gradient(760px 240px at 10% 0%, rgba(46, 204, 113, 0.12), transparent 60%),
     radial-gradient(640px 240px at 92% 0%, rgba(52, 152, 219, 0.12), transparent 60%),
     var(--surface);
 }
 
-html.dark .dashhome-focus-highlight {
+html.dark .dashboard-hub-highlight {
   background:
     radial-gradient(760px 240px at 10% 0%, rgba(46, 204, 113, 0.14), transparent 60%),
     radial-gradient(640px 240px at 92% 0%, rgba(52, 152, 219, 0.14), transparent 60%),
     linear-gradient(180deg, rgba(15, 27, 45, 0.98), rgba(18, 34, 57, 0.96));
 }
 
-.dashhome-focus-badge {
+.dashboard-hub-highlight-badge {
   border: 1px solid var(--border);
   background: var(--surface-soft);
   color: var(--text);
 }
 
-.dashhome-focus-highlight-copy h2 {
+.dashboard-hub-highlight-copy h2 {
   margin: 12px 0 0;
   color: var(--text);
   font-size: 1.08rem;
 }
 
-.dashhome-focus-highlight-copy p {
+.dashboard-hub-highlight-copy p {
   margin: 10px 0 0;
   color: var(--text-soft);
   line-height: 1.6;
 }
 
-.dashhome-focus-highlight-side {
+.dashboard-hub-highlight-side {
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -171,35 +211,43 @@ html.dark .dashhome-focus-highlight {
   flex-shrink: 0;
 }
 
-.dashhome-focus-highlight-side strong {
+.dashboard-hub-highlight-side strong {
   color: var(--text);
   font-size: 0.95rem;
 }
 
+button[data-locked-trigger="true"].dashboard-hub-card {
+  color: inherit;
+}
+
 @media (max-width: 980px) {
-  .dashhome-focus-grid {
+  .dashboard-hub-grid {
     grid-template-columns: 1fr;
+  }
+
+  .dashboard-hub-main {
+    padding: 22px 18px 30px;
   }
 }
 
 @media (max-width: 760px) {
-  .dashhome-focus-header,
-  .dashhome-focus-card,
-  .dashhome-focus-highlight {
+  .dashboard-hub-header,
+  .dashboard-hub-card,
+  .dashboard-hub-highlight {
     padding: 18px;
   }
 
-  .dashhome-focus-highlight {
+  .dashboard-hub-highlight {
     flex-direction: column;
     align-items: flex-start;
   }
 
-  .dashhome-focus-highlight-side {
+  .dashboard-hub-highlight-side {
     width: 100%;
     align-items: stretch;
   }
 
-  .dashhome-focus-highlight-side .btn {
+  .dashboard-hub-highlight-side .btn {
     width: 100%;
     justify-content: center;
   }
