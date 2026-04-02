@@ -34,6 +34,8 @@
 @import "../styles/features/lucro-historico.css";
 @import "../styles/features/lucro-fluxo-caixa.css";
 @import "../styles/features/operacao-inteligencia.css";
+@import "../styles/features/historico.css";
+@import "../styles/features/operacao-simulador.css";
 
 /* congelados: manter temporariamente só para não quebrar legado */
 @import "../styles/features/risk-ai.css";

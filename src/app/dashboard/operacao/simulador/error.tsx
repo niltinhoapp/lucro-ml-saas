@@ -8,10 +8,11 @@ export default function SimuladorError({
   reset: () => void;
 }) {
   return (
-    <div className="lm-strategies-error">
-      <strong>Não foi possível carregar o Simulador.</strong>
+    <div className="lm-sim-error">
+      <strong>Não foi possível carregar o simulador.</strong>
       <p>{error.message}</p>
-      <button type="button" className="lm-btn-primary" onClick={reset}>
+
+      <button type="button" className="lm-sim-error__btn" onClick={reset}>
         Tentar novamente
       </button>
     </div>

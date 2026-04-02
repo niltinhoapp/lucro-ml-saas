@@ -88,7 +88,7 @@ export default function HistoricoPage() {
 
             <button
               className="btn-dark"
-              onClick={() => router.push("/dashboard/diagnostico")}
+              onClick={() => router.push("/dashboard/lucro/diagnostico")}
             >
               Nova análise
             </button>
@@ -110,7 +110,7 @@ export default function HistoricoPage() {
           <div className="lm-history-actions">
             <button
               className="btn btn-primary"
-              onClick={() => router.push("/dashboard/diagnostico")}
+              onClick={() => router.push("/dashboard/lucro/diagnostico")}
             >
               Fazer nova análise
             </button>
@@ -133,11 +133,11 @@ export default function HistoricoPage() {
               className="lm-history-row"
               role="button"
               tabIndex={0}
-              onClick={() => router.push(`/dashboard/dre?id=${sim.id}`)}
+              onClick={() => router.push(`/dashboard/lucro/dre?id=${sim.id}`)}
               onKeyDown={(ev) => {
                 if (ev.key === "Enter" || ev.key === " ") {
                   ev.preventDefault();
-                  router.push(`/dashboard/dre?id=${sim.id}`);
+                  router.push(`/dashboard/lucro/dre?id=${sim.id}`);
                 }
               }}
             >
