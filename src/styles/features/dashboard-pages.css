@@ -1,0 +1,127 @@
+/* =========================================================
+   DASHBOARD PAGES — BASE COMPARTILHADA
+   Usar em páginas internas de lucro, operação, relatórios etc.
+   ========================================================= */
+
+.lm-page-section,
+.lm-page-section * {
+  color: inherit;
+}
+
+.lm-page-section {
+  display: grid;
+  gap: 24px;
+}
+
+.lm-page-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.lm-page-eyebrow {
+  margin: 0 0 8px;
+  color: #2563eb !important;
+  font-size: 0.82rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.lm-page-title {
+  margin: 0;
+  color: #0f172a !important;
+  font-size: clamp(1.8rem, 3vw, 2.6rem);
+  line-height: 1.05;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+}
+
+.lm-page-subtitle {
+  margin: 12px 0 0;
+  color: #475569 !important;
+  line-height: 1.7;
+  max-width: 760px;
+}
+
+.lm-hero-surface {
+  border-radius: 28px;
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  background:
+    radial-gradient(circle at top left, rgba(46, 204, 113, 0.16), transparent 32%),
+    radial-gradient(circle at top right, rgba(52, 152, 219, 0.14), transparent 28%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.96)) !important;
+  box-shadow: 0 24px 80px rgba(15, 23, 42, 0.08);
+}
+
+.lm-panel {
+  border-radius: 24px;
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  background: rgba(255, 255, 255, 0.98) !important;
+  box-shadow: 0 18px 50px rgba(15, 23, 42, 0.06);
+  padding: 24px;
+}
+
+.lm-panel h1,
+.lm-panel h2,
+.lm-panel h3,
+.lm-panel strong,
+.lm-panel svg {
+  color: #0f172a !important;
+}
+
+.lm-panel p,
+.lm-panel span,
+.lm-panel li {
+  color: #475569 !important;
+}
+
+.lm-panel a {
+  color: #2563eb !important;
+}
+
+/* =========================================================
+   CONTRASTE CONTROLADO
+   ========================================================= */
+
+.lm-page-section .lm-hero-surface,
+.lm-page-section .lm-panel {
+  background: rgba(255, 255, 255, 0.98) !important;
+}
+
+.lm-page-section .lm-page-title,
+.lm-page-section .lm-panel h1,
+.lm-page-section .lm-panel h2,
+.lm-page-section .lm-panel h3,
+.lm-page-section .lm-panel strong,
+.lm-page-section .lm-panel svg {
+  color: #0f172a !important;
+}
+
+.lm-page-section .lm-page-subtitle,
+.lm-page-section .lm-panel p,
+.lm-page-section .lm-panel span,
+.lm-page-section .lm-panel li {
+  color: #475569 !important;
+}
+
+.lm-page-section .lm-panel a {
+  color: #2563eb !important;
+}
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 720px) {
+  .lm-panel,
+  .lm-hero-surface {
+    padding: 20px;
+  }
+
+  .lm-page-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}

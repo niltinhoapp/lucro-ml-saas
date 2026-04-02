@@ -1,5 +1,5 @@
 /* =========================================================
-   DASHHOME PREMIUM — CONSOLIDADO
+   DASHHOME PREMIUM — SOMENTE HOME
    ========================================================= */
 
 .dashhome-premium {
@@ -54,7 +54,7 @@
   background:
     radial-gradient(900px 360px at 8% 0%, rgba(52, 152, 219, 0.14), transparent 60%),
     radial-gradient(700px 320px at 92% 0%, rgba(46, 204, 113, 0.10), transparent 60%),
-    linear-gradient(180deg, rgba(255,255,255,0.96), rgba(248,251,253,0.98));
+    linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(248, 251, 253, 0.98));
   box-shadow: var(--shadow-md);
 }
 
@@ -62,7 +62,7 @@ html.dark .dashhome-premium-hero {
   background:
     radial-gradient(900px 360px at 8% 0%, rgba(52, 152, 219, 0.18), transparent 60%),
     radial-gradient(700px 320px at 92% 0%, rgba(46, 204, 113, 0.14), transparent 60%),
-    linear-gradient(180deg, rgba(15,27,45,0.98), rgba(18,34,57,0.98));
+    linear-gradient(180deg, rgba(15, 27, 45, 0.98), rgba(18, 34, 57, 0.98));
 }
 
 .dashhome-premium-gridline {
@@ -70,10 +70,10 @@ html.dark .dashhome-premium-hero {
   inset: 0;
   pointer-events: none;
   background-image:
-    linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px);
+    linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
   background-size: 28px 28px;
-  mask-image: linear-gradient(to bottom, rgba(0,0,0,0.30), transparent 75%);
+  mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.30), transparent 75%);
   z-index: 1;
 }
 
@@ -85,9 +85,9 @@ html.dark .dashhome-premium-hero {
   padding: 1px;
   background: linear-gradient(
     135deg,
-    rgba(52,152,219,0.24),
-    rgba(46,204,113,0.22),
-    rgba(52,152,219,0.10)
+    rgba(52, 152, 219, 0.24),
+    rgba(46, 204, 113, 0.22),
+    rgba(52, 152, 219, 0.10)
   );
   -webkit-mask:
     linear-gradient(#fff 0 0) content-box,
@@ -159,9 +159,9 @@ html.dark .dashhome-premium-hero {
 
 .dashhome-premium-plan {
   color: #0b3b24;
-  background: linear-gradient(135deg, rgba(46,204,113,0.20), rgba(52,152,219,0.14));
-  border: 1px solid rgba(46,204,113,0.26);
-  box-shadow: 0 12px 26px rgba(46,204,113,0.10);
+  background: linear-gradient(135deg, rgba(46, 204, 113, 0.20), rgba(52, 152, 219, 0.14));
+  border: 1px solid rgba(46, 204, 113, 0.26);
+  box-shadow: 0 12px 26px rgba(46, 204, 113, 0.10);
 }
 
 html.dark .dashhome-premium-plan {
@@ -205,14 +205,14 @@ html.dark .dashhome-premium-plan {
   padding: 10px 12px;
   border-radius: 14px;
   border: 1px solid var(--border);
-  background: rgba(255,255,255,0.52);
+  background: rgba(255, 255, 255, 0.52);
   color: var(--text);
   font-size: 13px;
   font-weight: 700;
 }
 
 html.dark .dashhome-premium-proof span {
-  background: rgba(255,255,255,0.04);
+  background: rgba(255, 255, 255, 0.04);
 }
 
 .dashhome-premium-hero-actions {
@@ -242,12 +242,12 @@ html.dark .dashhome-premium-proof span {
   padding: 14px 16px;
   border-radius: 18px;
   border: 1px solid var(--border);
-  background: rgba(255,255,255,0.48);
+  background: rgba(255, 255, 255, 0.48);
   box-shadow: var(--shadow-xs);
 }
 
 html.dark .dashhome-premium-stat {
-  background: rgba(255,255,255,0.04);
+  background: rgba(255, 255, 255, 0.04);
 }
 
 .dashhome-premium-stat-label {
@@ -290,7 +290,7 @@ html.dark .dashhome-premium-highlight,
 html.dark .dashhome-premium-quick-card,
 html.dark .dashhome-premium-module-card,
 html.dark .dashhome-premium-bottom-card {
-  background: linear-gradient(180deg, rgba(15,27,45,0.98), rgba(18,34,57,0.96));
+  background: linear-gradient(180deg, rgba(15, 27, 45, 0.98), rgba(18, 34, 57, 0.96));
 }
 
 .dashhome-premium-side-card {
@@ -299,16 +299,16 @@ html.dark .dashhome-premium-bottom-card {
 
 .dashhome-premium-side-card-strong {
   background:
-    radial-gradient(620px 220px at 10% 0%, rgba(46,204,113,0.12), transparent 60%),
-    radial-gradient(580px 220px at 100% 0%, rgba(52,152,219,0.10), transparent 60%),
+    radial-gradient(620px 220px at 10% 0%, rgba(46, 204, 113, 0.12), transparent 60%),
+    radial-gradient(580px 220px at 100% 0%, rgba(52, 152, 219, 0.10), transparent 60%),
     var(--surface);
 }
 
 html.dark .dashhome-premium-side-card-strong {
   background:
-    radial-gradient(620px 220px at 10% 0%, rgba(46,204,113,0.14), transparent 60%),
-    radial-gradient(580px 220px at 100% 0%, rgba(52,152,219,0.12), transparent 60%),
-    linear-gradient(180deg, rgba(15,27,45,0.98), rgba(18,34,57,0.96));
+    radial-gradient(620px 220px at 10% 0%, rgba(46, 204, 113, 0.14), transparent 60%),
+    radial-gradient(580px 220px at 100% 0%, rgba(52, 152, 219, 0.12), transparent 60%),
+    linear-gradient(180deg, rgba(15, 27, 45, 0.98), rgba(18, 34, 57, 0.96));
 }
 
 .dashhome-premium-side-top {
@@ -349,8 +349,8 @@ html.dark .dashhome-premium-side-card-strong {
   min-height: 28px;
   padding: 0 10px;
   border-radius: 999px;
-  border: 1px solid rgba(46,204,113,0.20);
-  background: rgba(46,204,113,0.10);
+  border: 1px solid rgba(46, 204, 113, 0.20);
+  background: rgba(46, 204, 113, 0.10);
   font-size: 11px;
   font-weight: 800;
   color: var(--text);
@@ -412,17 +412,17 @@ html.dark .dashhome-premium-side-card-strong {
     box-shadow 0.18s ease,
     border-color 0.18s ease;
   box-shadow:
-    0 16px 36px rgba(15,23,42,0.06),
-    inset 0 1px 0 rgba(255,255,255,0.04);
+    0 16px 36px rgba(15, 23, 42, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
 .dashhome-premium-quick-card:hover,
 .dashhome-premium-module-card:hover {
   transform: translateY(-4px);
   box-shadow:
-    0 24px 56px rgba(15,23,42,0.10),
-    inset 0 1px 0 rgba(255,255,255,0.06);
-  border-color: rgba(46,204,113,0.24);
+    0 24px 56px rgba(15, 23, 42, 0.10),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  border-color: rgba(46, 204, 113, 0.24);
 }
 
 .dashhome-premium-quick-card::before,
@@ -431,7 +431,7 @@ html.dark .dashhome-premium-side-card-strong {
   position: absolute;
   inset: 0 0 auto 0;
   height: 3px;
-  background: linear-gradient(90deg, rgba(52,152,219,0.9), rgba(46,204,113,0.9));
+  background: linear-gradient(90deg, rgba(52, 152, 219, 0.9), rgba(46, 204, 113, 0.9));
   opacity: 0.9;
 }
 
@@ -442,9 +442,8 @@ html.dark .dashhome-premium-side-card-strong {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background:
-    linear-gradient(135deg, rgba(52,152,219,0.14), rgba(46,204,113,0.12));
-  border: 1px solid rgba(52,152,219,0.18);
+  background: linear-gradient(135deg, rgba(52, 152, 219, 0.14), rgba(46, 204, 113, 0.12));
+  border: 1px solid rgba(52, 152, 219, 0.18);
   color: var(--text);
   box-shadow: var(--shadow-xs);
 }
@@ -508,16 +507,16 @@ html.dark .dashhome-premium-side-card-strong {
   gap: 18px;
   padding: 22px;
   background:
-    radial-gradient(760px 240px at 10% 0%, rgba(46,204,113,0.12), transparent 60%),
-    radial-gradient(640px 240px at 92% 0%, rgba(52,152,219,0.12), transparent 60%),
+    radial-gradient(760px 240px at 10% 0%, rgba(46, 204, 113, 0.12), transparent 60%),
+    radial-gradient(640px 240px at 92% 0%, rgba(52, 152, 219, 0.12), transparent 60%),
     var(--surface);
 }
 
 html.dark .dashhome-premium-highlight {
   background:
-    radial-gradient(760px 240px at 10% 0%, rgba(46,204,113,0.14), transparent 60%),
-    radial-gradient(640px 240px at 92% 0%, rgba(52,152,219,0.14), transparent 60%),
-    linear-gradient(180deg, rgba(15,27,45,0.98), rgba(18,34,57,0.96));
+    radial-gradient(760px 240px at 10% 0%, rgba(46, 204, 113, 0.14), transparent 60%),
+    radial-gradient(640px 240px at 92% 0%, rgba(52, 152, 219, 0.14), transparent 60%),
+    linear-gradient(180deg, rgba(15, 27, 45, 0.98), rgba(18, 34, 57, 0.96));
 }
 
 .dashhome-premium-highlight h3 {
@@ -558,8 +557,8 @@ html.dark .dashhome-premium-highlight {
     box-shadow 0.18s ease,
     border-color 0.18s ease;
   box-shadow:
-    0 16px 36px rgba(15,23,42,0.06),
-    inset 0 1px 0 rgba(255,255,255,0.03);
+    0 16px 36px rgba(15, 23, 42, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.03);
 }
 
 .dashhome-premium-module-title {
@@ -626,7 +625,7 @@ html.dark .dashhome-premium-highlight {
 
 .dashhome-premium-module-item:hover {
   transform: translateY(-1px);
-  border-color: rgba(52,152,219,0.18);
+  border-color: rgba(52, 152, 219, 0.18);
   box-shadow: var(--shadow-xs);
 }
 
@@ -670,16 +669,16 @@ html.dark .dashhome-premium-highlight {
 
 .dashhome-premium-bottom-card-plus {
   background:
-    radial-gradient(700px 240px at 8% 0%, rgba(46,204,113,0.10), transparent 60%),
-    radial-gradient(700px 240px at 100% 0%, rgba(52,152,219,0.10), transparent 60%),
+    radial-gradient(700px 240px at 8% 0%, rgba(46, 204, 113, 0.10), transparent 60%),
+    radial-gradient(700px 240px at 100% 0%, rgba(52, 152, 219, 0.10), transparent 60%),
     var(--surface);
 }
 
 html.dark .dashhome-premium-bottom-card-plus {
   background:
-    radial-gradient(700px 240px at 8% 0%, rgba(46,204,113,0.12), transparent 60%),
-    radial-gradient(700px 240px at 100% 0%, rgba(52,152,219,0.12), transparent 60%),
-    linear-gradient(180deg, rgba(15,27,45,0.98), rgba(18,34,57,0.96));
+    radial-gradient(700px 240px at 8% 0%, rgba(46, 204, 113, 0.12), transparent 60%),
+    radial-gradient(700px 240px at 100% 0%, rgba(52, 152, 219, 0.12), transparent 60%),
+    linear-gradient(180deg, rgba(15, 27, 45, 0.98), rgba(18, 34, 57, 0.96));
 }
 
 .dashhome-premium-bottom-card h3 {
@@ -710,6 +709,21 @@ html.dark .dashhome-premium-bottom-card-plus {
   font-size: 13px;
   font-weight: 700;
   color: var(--text);
+}
+
+/* =========================================================
+   LOCKED TRIGGER FIX
+   ========================================================= */
+
+button[data-locked-trigger="true"].dashhome-premium-quick-card,
+button[data-locked-trigger="true"].dashhome-premium-module-item {
+  color: inherit;
+}
+
+button[data-locked-trigger="true"].btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* =========================================================
@@ -769,157 +783,4 @@ html.dark .dashhome-premium-bottom-card-plus {
     width: 100%;
     justify-content: center;
   }
-}
-button[data-locked-trigger="true"].dashhome-premium-quick-card,
-button[data-locked-trigger="true"].dashhome-premium-module-item {
-  color: inherit;
-}
-
-button[data-locked-trigger="true"].btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-/* ===== V2.2 fix: páginas novas de lucro/operação ===== */
-
-.lm-page-section,
-.lm-page-section * {
-  color: inherit;
-}
-
-.lm-page-section {
-  display: grid;
-  gap: 24px;
-}
-
-.lm-page-header {
-  display: flex;
-  justify-content: space-between;
-  gap: 16px;
-  align-items: flex-start;
-}
-
-.lm-page-eyebrow {
-  margin: 0 0 8px;
-  color: #2563eb !important;
-  font-size: 0.82rem;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-}
-
-.lm-page-title {
-  margin: 0;
-  color: #0f172a !important;
-  font-size: clamp(1.8rem, 3vw, 2.6rem);
-  line-height: 1.05;
-  font-weight: 800;
-  letter-spacing: -0.04em;
-}
-
-.lm-page-subtitle {
-  margin: 12px 0 0;
-  color: #475569 !important;
-  line-height: 1.7;
-  max-width: 760px;
-}
-
-.lm-hero-surface {
-  border-radius: 28px;
-  border: 1px solid rgba(148, 163, 184, 0.16);
-  background:
-    radial-gradient(circle at top left, rgba(46, 204, 113, 0.16), transparent 32%),
-    radial-gradient(circle at top right, rgba(52, 152, 219, 0.14), transparent 28%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.96));
-  box-shadow: 0 24px 80px rgba(15, 23, 42, 0.08);
-}
-
-.lm-panel {
-  border-radius: 24px;
-  border: 1px solid rgba(148, 163, 184, 0.14);
-  background: rgba(255, 255, 255, 0.98) !important;
-  box-shadow: 0 18px 50px rgba(15, 23, 42, 0.06);
-  padding: 24px;
-}
-
-.lm-panel h1,
-.lm-panel h2,
-.lm-panel h3,
-.lm-panel strong,
-.lm-panel svg {
-  color: #0f172a !important;
-}
-
-.lm-panel p,
-.lm-panel span,
-.lm-panel li {
-  color: #475569 !important;
-}
-
-.lm-panel a {
-  color: #2563eb !important;
-}
-
-@media (max-width: 720px) {
-  .lm-panel,
-  .lm-hero-surface {
-    padding: 20px;
-  }
-}
-/* ===== Fix de contraste para páginas novas do dashboard ===== */
-
-.lm-page-section {
-  display: grid;
-  gap: 24px;
-}
-
-.lm-page-section .lm-hero-surface,
-.lm-page-section .lm-panel {
-  background: rgba(255, 255, 255, 0.98) !important;
-}
-
-.lm-page-section .lm-hero-surface {
-  border-radius: 28px;
-  border: 1px solid rgba(148, 163, 184, 0.16);
-  background:
-    radial-gradient(circle at top left, rgba(46, 204, 113, 0.16), transparent 32%),
-    radial-gradient(circle at top right, rgba(52, 152, 219, 0.14), transparent 28%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.96)) !important;
-  box-shadow: 0 24px 80px rgba(15, 23, 42, 0.08);
-}
-
-.lm-page-section .lm-panel {
-  border-radius: 24px;
-  border: 1px solid rgba(148, 163, 184, 0.14);
-  box-shadow: 0 18px 50px rgba(15, 23, 42, 0.06);
-  padding: 24px;
-}
-
-.lm-page-section .lm-page-eyebrow {
-  margin: 0 0 8px;
-  color: #2563eb !important;
-  font-size: 0.82rem;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-}
-
-.lm-page-section .lm-page-title,
-.lm-page-section .lm-panel h1,
-.lm-page-section .lm-panel h2,
-.lm-page-section .lm-panel h3,
-.lm-page-section .lm-panel strong,
-.lm-page-section .lm-panel svg {
-  color: #0f172a !important;
-}
-
-.lm-page-section .lm-page-subtitle,
-.lm-page-section .lm-panel p,
-.lm-page-section .lm-panel span,
-.lm-page-section .lm-panel li {
-  color: #475569 !important;
-}
-
-.lm-page-section .lm-panel a {
-  color: #2563eb !important;
 }
