@@ -1,0 +1,50 @@
+.public-shell {
+  min-height: 100vh;
+  padding: 18px;
+}
+
+.public-header {
+  width: 100%;
+}
+
+.public-header-inner {
+  max-width: 1180px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.public-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.public-brand-link {
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  color: var(--text);
+  text-decoration: none;
+}
+
+.public-header-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.public-main {
+  width: 100%;
+}
+
+.public-hero-actions,
+.public-cta-actions {
+  margin-top: 16px;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}

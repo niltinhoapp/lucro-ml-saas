@@ -6,62 +6,53 @@ import SidebarNavClient, {
   type SidebarModule,
   type UserPlan,
 } from "@/ui/SidebarNavClient";
-import { Crown, Sparkles, Gem } from "lucide-react";
+import { Crown, Sparkles, Gem, LogOut } from "lucide-react";
 
 const modules: SidebarModule[] = [
   {
     title: "Produtos",
     icon: "produtos",
-    defaultOpen: true,
     items: [
       {
         label: "Radar ML",
         href: "/dashboard/produtos/radar",
         requiredPlan: "plus",
-        description: "Descubra produtos com boa procura e menor concorrência.",
       },
       {
-        label: "Catálogos de fornecedor",
+        label: "Catálogos",
         href: "/dashboard/produtos/catalogos",
         requiredPlan: "plus",
-        description: "Leia catálogos e descubra produtos com potencial.",
       },
       {
-        label: "Estratégias ML",
+        label: "Estratégias",
         href: "/dashboard/produtos/estrategias",
         requiredPlan: "plus",
-        description: "Acesse estratégias práticas para vender melhor.",
       },
     ],
   },
   {
     title: "Lucro",
     icon: "lucro",
-    defaultOpen: true,
     items: [
       {
-        label: "Diagnóstico de lucro",
-        href: "/dashboard/diagnostico",
+        label: "Diagnóstico",
+        href: "/dashboard/lucro/diagnostico",
         requiredPlan: "pro",
-        description: "Veja rapidamente onde sua operação perde margem.",
       },
       {
-        label: "Lucro real e DRE",
-        href: "/dashboard/dre",
+        label: "DRE",
+        href: "/dashboard/lucro/dre",
         requiredPlan: "pro",
-        description: "Organize taxas, custos e resultado final do negócio.",
       },
       {
         label: "Fluxo de caixa",
         href: "/dashboard/lucro/fluxo-caixa",
         requiredPlan: "pro",
-        description: "Acompanhe entradas, saídas e fôlego financeiro.",
       },
       {
         label: "Full vs Flex",
         href: "/dashboard/lucro/full-vs-flex",
         requiredPlan: "pro",
-        description: "Compare cenários logísticos e escolha melhor.",
       },
     ],
   },
@@ -70,38 +61,19 @@ const modules: SidebarModule[] = [
     icon: "operacao",
     items: [
       {
-        label: "Simulador de compra",
+        label: "Simulador",
         href: "/dashboard/operacao/simulador",
         requiredPlan: "pro",
-        description: "Avalie risco, retorno e capital antes de comprar.",
       },
       {
-        label: "Gerador de kits",
-        href: "/dashboard/kits",
+        label: "Kits",
+        href: "/dashboard/operacao/kits",
         requiredPlan: "pro",
-        description: "Monte combinações para elevar ticket e giro.",
       },
       {
-        label: "Inteligência de mercado",
-        href: "/dashboard/inteligencia",
+        label: "Inteligência",
+        href: "/dashboard/operacao/inteligencia",
         requiredPlan: "pro",
-        description: "Receba apoio para decidir o que priorizar.",
-      },
-    ],
-  },
-  {
-    title: "Estratégia",
-    icon: "estrategia",
-    items: [
-      {
-        label: "Ajuda para seller",
-        href: "/dashboard/ajuda",
-        description: "Veja por onde começar e como usar os módulos.",
-      },
-      {
-        label: "Planos e upgrade",
-        href: "/checkout",
-        description: "Compare recursos e desbloqueie novos módulos.",
       },
     ],
   },
@@ -113,12 +85,14 @@ const modules: SidebarModule[] = [
         label: "Integrações ML",
         href: "/dashboard/conta",
         requiredPlan: "plus",
-        description: "Conecte sua conta do Mercado Livre e veja o status.",
       },
       {
-        label: "Voltar para o site",
-        href: "/",
-        description: "Retorne para a página principal do Lucro ML.",
+        label: "Ajuda",
+        href: "/dashboard/ajuda",
+      },
+      {
+        label: "Planos",
+        href: "/checkout",
       },
     ],
   },
@@ -136,24 +110,15 @@ function toSidebarPlan(plan: string | null | undefined): UserPlan {
 function getPlanLabel(plan: UserPlan) {
   if (plan === "plus") return "PLUS";
   if (plan === "pro") return "PRO";
-  if (plan === "free") return "FREE TRIAL";
+  if (plan === "free") return "FREE";
   return "PREVIEW";
 }
 
 function getPlanMessage(plan: UserPlan) {
-  if (plan === "plus") {
-    return "Você está no plano mais completo.";
-  }
-
-  if (plan === "pro") {
-    return "Seu plano já cobre lucro e operação.";
-  }
-
-  if (plan === "free") {
-    return "Ative mais módulos para decidir com mais segurança.";
-  }
-
-  return "Explore o sistema e desbloqueie recursos premium.";
+  if (plan === "plus") return "Plano completo ativo.";
+  if (plan === "pro") return "Lucro e operação liberados.";
+  if (plan === "free") return "Desbloqueie mais módulos.";
+  return "Explore os recursos disponíveis.";
 }
 
 export default async function Sidebar() {
@@ -177,98 +142,56 @@ export default async function Sidebar() {
 
   return (
     <aside className="sidebar-modular shrink-0">
-      <div className="sidebar-card">
-        <div className="sidebar-brand-top">
-          <div>
-           <div className="sidebar-link-main-icon" style={{ marginBottom: 12 }}>
-  <Sparkles size={18} />
-</div>
+      <div className="sidebar-card sidebar-card-brand">
+        <div className="sidebar-brand-row">
+          <div className="sidebar-link-main-icon" aria-hidden="true">
+            <Sparkles size={18} />
+          </div>
 
+          <div className="sidebar-brand-copy">
             <h2 className="sidebar-brand-title">Lucro ML</h2>
-            <p className="sidebar-brand-subtitle">
-              Layout modular para seller do Mercado Livre
-            </p>
+            <p className="sidebar-brand-subtitle">Centro de decisão do seller</p>
           </div>
 
           <span className="sidebar-plan-chip">
-            <Crown size={12} style={{ marginRight: 6 }} />
+            <Crown size={12} />
             {getPlanLabel(currentPlan)}
           </span>
-        </div>
-
-        <div className="sidebar-brand-grid">
-          <div className="sidebar-mini-stat">
-            <div className="sidebar-mini-label">Estrutura</div>
-            <div className="sidebar-mini-value">Menu por módulos</div>
-          </div>
-
-          <div className="sidebar-mini-stat">
-            <div className="sidebar-mini-label">Planos</div>
-            <div className="sidebar-mini-value">Free Trial, Pro e Plus</div>
-          </div>
         </div>
       </div>
 
       <SidebarNavClient modules={modules} currentPlan={currentPlan} />
 
       <div className="sidebar-clean-card">
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            gap: 10,
-            flexWrap: "wrap",
-            marginBottom: 10,
-          }}
-        >
+        <div className="sidebar-clean-top">
           <div>
             <div className="sidebar-clean-title">Plano atual</div>
-            <p className="sidebar-clean-text" style={{ marginTop: 6 }}>
-              {getPlanMessage(currentPlan)}
-            </p>
+            <p className="sidebar-clean-text">{getPlanMessage(currentPlan)}</p>
           </div>
 
-          <span
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 6,
-              minHeight: 28,
-              padding: "0 10px",
-              borderRadius: 999,
-              border: "1px solid rgba(46,204,113,.20)",
-              background: "rgba(46,204,113,.10)",
-              fontSize: 11,
-              fontWeight: 800,
-              color: "var(--text)",
-            }}
-          >
+          <span className="sidebar-plan-mini-chip">
             <Gem size={13} />
             {getPlanLabel(currentPlan)}
           </span>
         </div>
 
         <div className="sidebar-session-actions">
-          <Link href="/dashboard/conta" className="sidebar-secondary-btn">
-            Conta
-          </Link>
-
           <Link href="/checkout" className="sidebar-secondary-btn">
-            Planos e upgrade
+            Ver planos
           </Link>
 
-          <form action={logoutAction}>
-            <button type="submit" className="sidebar-danger-btn">
-              Encerrar sessão
-            </button>
-          </form>
+          <Link href="/" className="sidebar-secondary-btn">
+            Ir para o site
+          </Link>
         </div>
+
+        <form action={logoutAction}>
+          <button type="submit" className="sidebar-logout-btn">
+            <LogOut size={15} />
+            Sair
+          </button>
+        </form>
       </div>
     </aside>
   );
 }
-
-
-
-

@@ -34,21 +34,13 @@ export default async function RegisterPage(props: Props) {
 
   return (
     <div className="auth-shell">
-      <div className="auth-wrap">
-        <section className="auth-panel">
-          <span className="auth-eyebrow">Teste rápido</span>
-          <h1 className="auth-title">Crie sua conta e comece com segurança</h1>
-          <p className="auth-subtitle">
-            Em poucos minutos você acessa o sistema e começa a ver onde está o
-            lucro, o alerta e o próximo passo da operação.
-          </p>
-        </section>
-
+      <div className="auth-wrap auth-wrap-single">
         <section className="auth-card">
-          <div className="auth-card-head">
-            <h2 className="auth-card-title">Criar conta</h2>
+          <div className="auth-card-head auth-card-head-centered">
+            <span className="auth-eyebrow">Lucro ML</span>
+            <h1 className="auth-card-title">Criar conta</h1>
             <p className="auth-card-subtitle">
-              Comece com Google ou cadastre seu acesso por e-mail.
+              Comece rápido e organize suas decisões com mais clareza.
             </p>
           </div>
 
@@ -105,14 +97,13 @@ export default async function RegisterPage(props: Props) {
           </form>
 
           <div className="auth-footer">
-            Já tem conta? <Link href={`/auth/login?next=${encodeURIComponent(next)}`}>Entrar</Link>
+            Já tem conta?{" "}
+            <Link href={`/auth/login?next=${encodeURIComponent(next)}`}>
+              Entrar
+            </Link>
           </div>
         </section>
       </div>
     </div>
   );
 }
-
-
-
-

@@ -4,45 +4,35 @@ import ThemeToggle from "../../ThemeToggle";
 
 export default function PublicLayout({ children }: { children: ReactNode }) {
   return (
-    <div className="page-wrap" style={{ minHeight: "100vh", padding: "18px" }}>
-      <header
-        style={{
-          maxWidth: "1180px",
-          width: "100%",
-          margin: "0 auto",
-          display: "flex",
-          justifyContent: "space-between",
-          gap: 12,
-          alignItems: "center",
-          flexWrap: "wrap",
-        }}
-      >
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <Link href="/" style={{ fontWeight: 900, letterSpacing: "-0.03em" }}>
-            LUCRO ML
-          </Link>
-          <span className="badge pro">PRO</span>
-        </div>
+    <div className="public-shell">
+      <header className="public-header">
+        <div className="public-header-inner">
+          <div className="public-brand">
+            <Link href="/" className="public-brand-link">
+              LUCRO ML
+            </Link>
+            <span className="badge pro">SELLER</span>
+          </div>
 
-        <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
-          <ThemeToggle />
-          <Link className="btn btn-ghost" href="/raio-x">
-            Raio-X grátis
-          </Link>
-          <Link className="btn btn-ghost" href="/demo">
-            Demo
-          </Link>
-          <Link className="btn btn-primary" href="/auth/login">
-            Entrar
-          </Link>
+          <div className="public-header-actions">
+            <ThemeToggle />
+
+            <Link className="btn btn-ghost" href="/raio-x">
+              Raio-X grátis
+            </Link>
+
+            <Link className="btn btn-ghost" href="/demo">
+              Demo
+            </Link>
+
+            <Link className="btn btn-primary" href="/auth/login">
+              Entrar
+            </Link>
+          </div>
         </div>
       </header>
 
-      <div>{children}</div>
+      <main className="public-main">{children}</main>
     </div>
   );
 }
-
-
-
-

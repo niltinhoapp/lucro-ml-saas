@@ -38,9 +38,9 @@ export default async function LoginPage(props: Props) {
         <section className="auth-card">
           <div className="auth-card-head auth-card-head-centered">
             <span className="auth-eyebrow">Lucro ML</span>
-           
+            <h1 className="auth-card-title">Entrar</h1>
             <p className="auth-card-subtitle">
-              Use Google ou entre com e-mail e senha para acessar seu painel.
+              Acesse seu painel com Google ou com e-mail e senha.
             </p>
           </div>
 
@@ -80,12 +80,6 @@ export default async function LoginPage(props: Props) {
               />
             </div>
 
-            <div className="auth-inline-links">
-              <Link href="/auth/esqueci-senha" className="auth-link">
-                Esqueci minha senha
-              </Link>
-            </div>
-
             <button type="submit" className="btn btn-primary btn-block">
               Entrar
             </button>
@@ -102,7 +96,3 @@ export default async function LoginPage(props: Props) {
     </div>
   );
 }
-
-
-
-
