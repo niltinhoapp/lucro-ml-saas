@@ -23,23 +23,25 @@ export default async function Page({
     );
   }
 
+
   const ent = await getEntitlements(supabase, user.id);
 
-  if (ent.plan === "free_trial" || ent.plan === "free_blocked") {
-    return (
-      <PlanGate
-        requiredPlan="pro"
-        title="Lucro real"
-        description="Veja o resultado da operação com mais clareza."
-        bullets={[
-          "Acompanhe receita, custos e lucro.",
-          "Veja onde sua margem está apertando.",
-        ]}
-      >
-        <div />
-      </PlanGate>
-    );
-  }
+if (!ent.canCreateReports) {
+  return (
+    <PlanGate
+      ent={ent}
+      requiredPlan="pro"
+      title="Lucro real"
+      description="Veja o resultado da operação com mais clareza."
+      bullets={[
+        "Acompanhe receita, custos e lucro.",
+        "Veja onde sua margem está apertando.",
+      ]}
+    >
+      <div />
+    </PlanGate>
+  );
+}
 
   if (!id || id === "undefined") {
     redirect("/dashboard/historico");

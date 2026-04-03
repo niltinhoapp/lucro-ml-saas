@@ -1,126 +1,87 @@
+// /integrations/supabase/entitlements.ts
+
 import { SupabaseClient } from "@supabase/supabase-js";
-import { PLAN_SPECS, normalizeProfilePlan, type ProfilePlan } from "@/lib/plans";
+import {
+  PLAN_SPECS,
+  normalizeProfilePlan,
+  subscriptionPlanToProfilePlan,
+  isSubscriptionPlan,
+  type ProfilePlan,
+} from "@/lib/plans";
 
 type Entitlements = {
   plan: ProfilePlan;
   isPro: boolean;
   isPlus: boolean;
   hasPaidAccess: boolean;
-  trialActive: boolean;
-  trialExpired: boolean;
 
   canUseApp: boolean;
   canCreateReports: boolean;
   canExport: boolean;
   canUploadSpreadsheet: boolean;
   canUseCatalogAnalysis: boolean;
-  canAccessStrategies: boolean;
+  canUseMlConnection: boolean;
 
   maxReports: number;
   aiDailyLimit: number;
 };
 
+function isActive(status?: string | null) {
+  return ["active", "approved", "authorized"].includes(
+    String(status ?? "").toLowerCase()
+  );
+}
+
 export async function getEntitlements(
   supabase: SupabaseClient,
   userId: string
 ): Promise<Entitlements> {
-  if (process.env.FORCE_ALL_USERS_PLUS === "true") {
-    return {
-      plan: "plus",
-      isPro: false,
-      isPlus: true,
-      hasPaidAccess: true,
-      trialActive: false,
-      trialExpired: false,
+  const [profileRes, subsRes] = await Promise.all([
+    supabase
+      .from("profiles")
+      .select("plan")
+      .eq("id", userId)
+      .maybeSingle(),
 
-      canUseApp: true,
-      canCreateReports: true,
-      canExport: true,
-      canUploadSpreadsheet: true,
-      canUseCatalogAnalysis: true,
-      canAccessStrategies: true,
+    supabase
+      .from("subscriptions")
+      .select("plan, status, updated_at")
+      .eq("user_id", userId)
+      .order("updated_at", { ascending: false }),
+  ]);
 
-      maxReports: 999999,
-      aiDailyLimit: 999999,
-    };
-  }
+  const profilePlan = normalizeProfilePlan(profileRes.data?.plan);
 
-  const { data, error } = await supabase
-    .from("profiles")
-    .select("plan, trial_ends_at, pro_until")
-    .eq("id", userId)
-    .single<{
-      plan: string | null;
-      trial_ends_at: string | null;
-      pro_until: string | null;
-    }>();
+  const activeSub = (subsRes.data ?? []).find(
+    (s) => isActive(s.status) && isSubscriptionPlan(String(s.plan))
+  );
 
-  if (error || !data) {
-    return {
-      plan: "free_trial",
-      isPro: false,
-      isPlus: false,
-      hasPaidAccess: false,
-      trialActive: false,
-      trialExpired: true,
+  const subscriptionPlan =
+    activeSub?.plan && isSubscriptionPlan(activeSub.plan)
+      ? subscriptionPlanToProfilePlan(activeSub.plan)
+      : null;
 
-      canUseApp: false,
-      canCreateReports: false,
-      canExport: false,
-      canUploadSpreadsheet: false,
-      canUseCatalogAnalysis: false,
-      canAccessStrategies: false,
+  const effectivePlan: ProfilePlan = subscriptionPlan ?? profilePlan;
+  const spec = PLAN_SPECS[effectivePlan];
 
-      maxReports: 0,
-      aiDailyLimit: 0,
-    };
-  }
-
-  const now = Date.now();
-  const plan = normalizeProfilePlan(data.plan);
-  const spec = PLAN_SPECS[plan];
-
-  const trialEnds = data.trial_ends_at
-    ? new Date(data.trial_ends_at).getTime()
-    : 0;
-
-  const trialActive = trialEnds > now;
-  const trialExpired = !trialActive;
-
-  const explicitProTime = data.pro_until
-    ? now <= new Date(data.pro_until).getTime()
-    : false;
-
-  const isPro = plan === "pro";
-  const isPlus = plan === "plus";
-  const hasPaidAccess = isPro || isPlus || explicitProTime;
+  const isPro = effectivePlan === "pro";
+  const isPlus = effectivePlan === "plus";
+  const hasPaidAccess = isPro || isPlus;
 
   return {
-    plan,
+    plan: effectivePlan,
     isPro,
     isPlus,
     hasPaidAccess,
-    trialActive,
-    trialExpired,
 
-    canUseApp: hasPaidAccess || trialActive,
-    canCreateReports: hasPaidAccess || trialActive,
-    canExport: hasPaidAccess ? spec.canExport : false,
-    canUploadSpreadsheet: hasPaidAccess ? spec.canUploadSpreadsheet : false,
+    canUseApp: hasPaidAccess,
+    canCreateReports: hasPaidAccess,
+    canExport: spec.canExport,
+    canUploadSpreadsheet: spec.canUploadSpreadsheet,
+    canUseCatalogAnalysis: spec.canUseCatalogAnalysis,
+    canUseMlConnection: spec.canUseMlConnection,
 
-    canUseCatalogAnalysis: isPlus,
-    canAccessStrategies: isPlus,
-
-    maxReports: hasPaidAccess
-      ? spec.reportsLimit
-      : PLAN_SPECS.free_trial.reportsLimit,
-
-    aiDailyLimit: hasPaidAccess
-      ? spec.aiDailyLimit
-      : PLAN_SPECS.free_trial.aiDailyLimit,
+    maxReports: spec.reportsLimit,
+    aiDailyLimit: spec.aiDailyLimit,
   };
 }
-
-
-
-

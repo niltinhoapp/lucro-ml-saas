@@ -24,9 +24,9 @@ export default async function CatalogosPage() {
   const ent = await getEntitlements(supabase, user.id);
 
   // BLOQUEIO SEVERO DE PLANO
-  if (!ent.isPlus) {
-    redirect("/checkout?plan=plus");
-  }
+  if (!ent.canUseCatalogAnalysis) {
+  redirect("/checkout?plan=plus&feature=catalogos");
+}
 
   const { data: recentCatalogs, error } = await supabase
     .from("supplier_catalogs")

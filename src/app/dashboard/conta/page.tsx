@@ -5,8 +5,9 @@ import {
   RefreshCcw,
   ShieldCheck,
 } from "lucide-react";
+
 import { createServerClient } from "@/integrations/supabase/server";
-import { getPlanSpec, normalizeProfilePlan } from "@/lib/plans";
+import { getEntitlements } from "@/integrations/supabase/entitlements";
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 
@@ -52,9 +53,11 @@ function statusMessage(value: string | undefined) {
   }
 }
 
-function getPlanLabel(label: string) {
-  if (label.toLowerCase().includes("free")) return "FREE";
-  return label.toUpperCase();
+function getPlanLabel(ent: any) {
+  if (!ent) return "FREE";
+  if (ent.isPlus) return "PLUS";
+  if (ent.isPro) return "PRO";
+  return "FREE";
 }
 
 export default async function ContaPage({
@@ -69,21 +72,15 @@ export default async function ContaPage({
     data: { user },
   } = await supabase.auth.getUser();
 
+  let ent = null;
   let currentPlan = "FREE";
   let canConnectMl = false;
 
   if (user) {
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("plan")
-      .eq("id", user.id)
-      .maybeSingle();
+    ent = await getEntitlements(supabase, user.id);
 
-    const normalizedPlan = normalizeProfilePlan(profile?.plan);
-    const planSpec = getPlanSpec(normalizedPlan);
-
-    currentPlan = getPlanLabel(planSpec.label);
-    canConnectMl = planSpec.canUseMlConnection;
+    currentPlan = getPlanLabel(ent);
+    canConnectMl = ent.canUseMlConnection;
   }
 
   const { data: connection } = user
@@ -125,7 +122,10 @@ export default async function ContaPage({
                 : "Conectar Mercado Livre"}
             </a>
           ) : (
-            <Link href="/checkout?plan=plus&feature=ml" className="btn btn-primary">
+            <Link
+              href="/checkout?plan=plus&feature=ml"
+              className="btn btn-primary"
+            >
               Liberar no Plus
             </Link>
           )}
@@ -182,8 +182,6 @@ export default async function ContaPage({
           ) : (
             <p className="muted">
               Você ainda não conectou sua conta do Mercado Livre ao LucroML.
-              Quando a conexão for autorizada, o sistema salvará o vínculo com
-              segurança para usar nos recursos disponíveis do seu plano.
             </p>
           )}
         </section>
@@ -195,21 +193,10 @@ export default async function ContaPage({
           </div>
 
           <ul className="account-checklist">
-            <li>
-              <CheckCircle2 size={16} /> Mais integração entre sua conta e os
-              módulos do LucroML
-            </li>
-            <li>
-              <CheckCircle2 size={16} /> Base para leitura de desempenho e
-              evolução dos recursos premium
-            </li>
-            <li>
-              <CheckCircle2 size={16} /> Preparação para conectar dados reais ao
-              Radar ML
-            </li>
-            <li>
-              <CheckCircle2 size={16} /> Recurso disponível no plano Plus
-            </li>
+            <li><CheckCircle2 size={16} /> Integração com módulos</li>
+            <li><CheckCircle2 size={16} /> Leitura de desempenho</li>
+            <li><CheckCircle2 size={16} /> Base para Radar ML</li>
+            <li><CheckCircle2 size={16} /> Recurso do plano Plus</li>
           </ul>
         </section>
 
@@ -221,25 +208,16 @@ export default async function ContaPage({
 
           <div className="route-list">
             <div className="route-item">
-              <strong>1. Você autoriza</strong>
-              <span>
-                O LucroML abre a tela oficial do Mercado Livre para você aprovar
-                a conexão.
-              </span>
+              <strong>1. Autoriza</strong>
+              <span>Você aprova no Mercado Livre</span>
             </div>
             <div className="route-item">
-              <strong>2. A conta é vinculada</strong>
-              <span>
-                Após a autorização, sua conta fica conectada ao LucroML com
-                segurança.
-              </span>
+              <strong>2. Conecta</strong>
+              <span>Conta vinculada com segurança</span>
             </div>
             <div className="route-item">
-              <strong>3. Os módulos evoluem</strong>
-              <span>
-                A conexão prepara o sistema para análises mais inteligentes e
-                recursos premium mais fortes.
-              </span>
+              <strong>3. Evolui</strong>
+              <span>Mais inteligência no sistema</span>
             </div>
           </div>
         </section>
@@ -252,23 +230,16 @@ export default async function ContaPage({
 
           <div className="route-list">
             <div className="route-item">
-              <strong>Radar ML mais forte</strong>
-              <span>
-                Cruzar dados reais da sua conta com oportunidades e sinais do
-                mercado.
-              </span>
+              <strong>Radar ML</strong>
+              <span>Com dados reais da conta</span>
             </div>
             <div className="route-item">
-              <strong>Leitura da operação</strong>
-              <span>
-                Ampliar a análise do seu desempenho dentro do LucroML.
-              </span>
+              <strong>Operação</strong>
+              <span>Análise mais profunda</span>
             </div>
             <div className="route-item">
-              <strong>Mais inteligência</strong>
-              <span>
-                Preparar a base para módulos cada vez mais úteis para seller.
-              </span>
+              <strong>Inteligência</strong>
+              <span>Evolução contínua</span>
             </div>
           </div>
 
@@ -277,14 +248,10 @@ export default async function ContaPage({
             target="_blank"
             className="inline-link-external"
           >
-            Saiba mais sobre a integração <ExternalLink size={14} />
+            Saiba mais <ExternalLink size={14} />
           </Link>
         </section>
       </div>
     </div>
   );
 }
-
-
-
-

@@ -44,6 +44,34 @@ type SavedCatalog = {
   created_at?: string | null;
 };
 
+type RadarBadge =
+  | "oportunidade_real"
+  | "avaliar_com_cuidado"
+  | "evitar";
+
+type RadarItem = {
+  nome: string;
+  categoria?: string;
+  custo: number;
+  preco: number;
+  score: number;
+  margem: number;
+  lucro: number;
+  status: "excelente" | "atenção" | "risco";
+  badge: RadarBadge;
+  insights: string[];
+  alertas: string[];
+  recomendacoes: string[];
+  meta: Record<string, any>;
+};
+
+type RadarResult = {
+  ranking: RadarItem[];
+  oportunidades: RadarItem[];
+  atentos: RadarItem[];
+  risco: RadarItem[];
+};
+
 type Props = {
   initialResult?: unknown;
   savedCatalogs?: SavedCatalog[];
@@ -132,6 +160,45 @@ function normalizeCatalogResult(input: any): CatalogAnalysisResult | null {
   };
 }
 
+function normalizeRadarItem(item: any): RadarItem {
+  return {
+    nome: item?.nome ?? "Produto",
+    categoria: item?.categoria ?? "",
+    custo: toNumber(item?.custo ?? 0),
+    preco: toNumber(item?.preco ?? 0),
+    score: toNumber(item?.score ?? 0),
+    margem: toNumber(item?.margem ?? 0),
+    lucro: toNumber(item?.lucro ?? 0),
+    status: item?.status ?? "atenção",
+    badge: item?.badge ?? "avaliar_com_cuidado",
+    insights: Array.isArray(item?.insights) ? item.insights : [],
+    alertas: Array.isArray(item?.alertas) ? item.alertas : [],
+    recomendacoes: Array.isArray(item?.recomendacoes)
+      ? item.recomendacoes
+      : [],
+    meta: item?.meta && typeof item.meta === "object" ? item.meta : {},
+  };
+}
+
+function normalizeRadarResult(input: any): RadarResult | null {
+  if (!input || typeof input !== "object") return null;
+
+  return {
+    ranking: Array.isArray(input?.ranking)
+      ? input.ranking.map(normalizeRadarItem)
+      : [],
+    oportunidades: Array.isArray(input?.oportunidades)
+      ? input.oportunidades.map(normalizeRadarItem)
+      : [],
+    atentos: Array.isArray(input?.atentos)
+      ? input.atentos.map(normalizeRadarItem)
+      : [],
+    risco: Array.isArray(input?.risco)
+      ? input.risco.map(normalizeRadarItem)
+      : [],
+  };
+}
+
 function riskLabel(risk?: string) {
   const value = (risk ?? "").toLowerCase();
   if (value === "baixo" || value === "low") return "Baixo";
@@ -160,6 +227,18 @@ function formatDate(value?: string | null) {
   return date.toLocaleString("pt-BR");
 }
 
+function radarBadgeText(badge?: RadarBadge) {
+  if (badge === "oportunidade_real") return "Oportunidade real";
+  if (badge === "evitar") return "Evitar";
+  return "Avaliar";
+}
+
+function radarBadgeClass(badge?: RadarBadge) {
+  if (badge === "oportunidade_real") return "catalog-risk-low";
+  if (badge === "evitar") return "catalog-risk-high";
+  return "catalog-risk-medium";
+}
+
 export default function CatalogoAnalyzerClient({
   initialResult,
   savedCatalogs = [],
@@ -167,6 +246,7 @@ export default function CatalogoAnalyzerClient({
   const [result, setResult] = useState<CatalogAnalysisResult | null>(
     normalizeCatalogResult(initialResult)
   );
+  const [radar, setRadar] = useState<RadarResult | null>(null);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [savedCatalogId, setSavedCatalogId] = useState<string | null>(null);
@@ -185,6 +265,17 @@ export default function CatalogoAnalyzerClient({
     ];
   }, [result, summary]);
 
+  const radarStats = useMemo(() => {
+    if (!radar) return null;
+
+    return [
+      { label: "Ranking", value: String(radar.ranking.length) },
+      { label: "Oportunidades reais", value: String(radar.oportunidades.length) },
+      { label: "Avaliar", value: String(radar.atentos.length) },
+      { label: "Evitar", value: String(radar.risco.length) },
+    ];
+  }, [radar]);
+
   async function onFileChange(file?: File | null) {
     if (!file) {
       setError("Selecione um arquivo.");
@@ -194,6 +285,7 @@ export default function CatalogoAnalyzerClient({
     setUploading(true);
     setError(null);
     setSavedCatalogId(null);
+    setRadar(null);
 
     try {
       const formData = new FormData();
@@ -225,16 +317,19 @@ export default function CatalogoAnalyzerClient({
       }
 
       const normalized = normalizeCatalogResult(payload?.result ?? payload);
+      const normalizedRadar = normalizeRadarResult(payload?.radar);
 
       if (!normalized) {
         throw new Error("A análise retornou em formato inválido.");
       }
 
       setResult(normalized);
+      setRadar(normalizedRadar);
       setSavedCatalogId(payload?.savedCatalogId ?? null);
     } catch (err: any) {
       setError(err?.message || "Erro ao analisar catálogo.");
       setResult(null);
+      setRadar(null);
     } finally {
       setUploading(false);
     }
@@ -246,7 +341,9 @@ export default function CatalogoAnalyzerClient({
         <div className="catalog-drop-head">
           <div>
             <p className="catalog-card-title">Enviar catálogo</p>
-            <p className="catalog-card-desc">PDF, TXT ou CSV</p>
+            <p className="catalog-card-desc">
+              PDF, TXT ou CSV para leitura e priorização
+            </p>
           </div>
 
           <span className="badge pro">PLUS</span>
@@ -262,7 +359,7 @@ export default function CatalogoAnalyzerClient({
 
           {uploading && (
             <div className="alert info" style={{ marginTop: 12 }}>
-              Analisando catálogo...
+              Analisando catálogo e montando Radar ML...
             </div>
           )}
 
@@ -283,6 +380,130 @@ export default function CatalogoAnalyzerClient({
         </div>
       </section>
 
+      {radarStats && (
+        <section className="catalog-grid-4">
+          {radarStats.map((item) => (
+            <div key={item.label} className="catalog-stat">
+              <p className="catalog-stat-label">{item.label}</p>
+              <p className="catalog-stat-value">{item.value}</p>
+            </div>
+          ))}
+        </section>
+      )}
+
+      {radar?.oportunidades?.length ? (
+        <section className="catalog-card">
+          <div className="card-head">
+            <div>
+              <h3 className="catalog-card-title">Radar ML</h3>
+              <p className="catalog-card-desc">
+                Prioridade de leitura: o que merece atenção primeiro
+              </p>
+            </div>
+          </div>
+
+          <div className="catalog-highlights-grid" style={{ marginTop: 16 }}>
+            {radar.oportunidades.slice(0, 6).map((item, index) => (
+              <div
+                key={`${item.nome}-${index}`}
+                className="catalog-card"
+                style={{ padding: 16 }}
+              >
+                <div className="card-head">
+                  <div>
+                    <p className="catalog-product-name">{item.nome}</p>
+                    {item.categoria ? (
+                      <p className="catalog-product-sub">{item.categoria}</p>
+                    ) : null}
+                  </div>
+
+                  <span className={radarBadgeClass(item.badge)}>
+                    {radarBadgeText(item.badge)}
+                  </span>
+                </div>
+
+                <div className="catalog-grid-4" style={{ marginTop: 12 }}>
+                  <div className="catalog-stat">
+                    <p className="catalog-stat-label">Score</p>
+                    <p className="catalog-stat-value">{item.score}</p>
+                  </div>
+
+                  <div className="catalog-stat">
+                    <p className="catalog-stat-label">Margem</p>
+                    <p className="catalog-stat-value">
+                      {item.margem.toFixed(1)}%
+                    </p>
+                  </div>
+
+                  <div className="catalog-stat">
+                    <p className="catalog-stat-label">Lucro</p>
+                    <p className="catalog-stat-value">
+                      R$ {item.lucro.toFixed(2)}
+                    </p>
+                  </div>
+
+                  <div className="catalog-stat">
+                    <p className="catalog-stat-label">Preço</p>
+                    <p className="catalog-stat-value">
+                      R$ {item.preco.toFixed(2)}
+                    </p>
+                  </div>
+                </div>
+
+                {item.alertas?.length > 0 ? (
+                  <div style={{ marginTop: 14 }}>
+                    <div className="alert info">{item.alertas[0]}</div>
+                  </div>
+                ) : null}
+              </div>
+            ))}
+          </div>
+        </section>
+      ) : null}
+
+      {radar?.risco?.length ? (
+        <section className="catalog-card">
+          <div className="card-head">
+            <div>
+              <h3 className="catalog-card-title">Evitar agora</h3>
+              <p className="catalog-card-desc">
+                Produtos com score fraco para o cenário atual
+              </p>
+            </div>
+          </div>
+
+          <div className="catalog-highlights-grid" style={{ marginTop: 16 }}>
+            {radar.risco.slice(0, 4).map((item, index) => (
+              <div
+                key={`${item.nome}-${index}`}
+                className="catalog-card"
+                style={{ padding: 16 }}
+              >
+                <div className="card-head">
+                  <div>
+                    <p className="catalog-product-name">{item.nome}</p>
+                  </div>
+
+                  <span className={radarBadgeClass(item.badge)}>
+                    {radarBadgeText(item.badge)}
+                  </span>
+                </div>
+
+                <div style={{ marginTop: 12 }}>
+                  <p className="catalog-card-desc">Score: {item.score}</p>
+                </div>
+
+                {item.alertas?.length > 0 ? (
+                  <div style={{ marginTop: 12 }}>
+                    <div className="alert danger">{item.alertas[0]}</div>
+                  </div>
+                ) : null}
+              </div>
+            ))}
+          </div>
+        </section>
+      ) : null}
+
       {stats && (
         <section className="catalog-grid-4">
           {stats.map((item) => (
@@ -299,7 +520,7 @@ export default function CatalogoAnalyzerClient({
           <section className="catalog-card">
             <div className="card-head">
               <div>
-                <h3 className="catalog-card-title">Resumo</h3>
+                <h3 className="catalog-card-title">Resumo da leitura</h3>
                 <p className="catalog-card-desc">{result.fileName}</p>
               </div>
 
@@ -310,7 +531,7 @@ export default function CatalogoAnalyzerClient({
 
             {summary.extractionQuality === "baixa" && (
               <div className="alert info" style={{ marginTop: 14 }}>
-                Leitura fraca. Revise o arquivo.
+                Leitura fraca. Revise o arquivo antes de decidir compra.
               </div>
             )}
 
@@ -334,8 +555,13 @@ export default function CatalogoAnalyzerClient({
           </section>
 
           <section className="catalog-card">
-            <div>
-              <h3 className="catalog-card-title">Produtos</h3>
+            <div className="card-head">
+              <div>
+                <h3 className="catalog-card-title">Produtos encontrados</h3>
+                <p className="catalog-card-desc">
+                  Visão detalhada para conferência final
+                </p>
+              </div>
             </div>
 
             {rows.length === 0 ? (
@@ -442,7 +668,3 @@ export default function CatalogoAnalyzerClient({
     </div>
   );
 }
-
-
-
-
