@@ -8,6 +8,8 @@ export type ParsedCatalogRow = {
   productName: string;
 
   supplierCost: number | null;
+  mlPriceAvg?: number | null;
+
   unitPrice: number | null;
   boxPrice: number | null;
   unitsPerBox: number | null;

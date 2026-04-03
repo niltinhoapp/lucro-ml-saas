@@ -3,6 +3,11 @@ import type { ParsedCatalogRow } from "./types";
 import { getCatalogAiCache, saveCatalogAiCache } from "@/server/catalog/cache";
 import { sha256String } from "@/lib/catalog/hash";
 
+const CACHE_VERSION = "v3";
+const DEFAULT_MODEL = process.env.OPENAI_MODEL || "gpt-4.1-mini";
+const DEFAULT_TIMEOUT_MS = 60000;
+const DEFAULT_MAX_CHARS = Number(process.env.CATALOG_MAX_TEXT_CHARS || "18000");
+
 const ItemSchema = z.object({
   sku: z.string().nullable(),
   model: z.string().nullable(),
@@ -10,6 +15,7 @@ const ItemSchema = z.object({
   category: z.string().nullable(),
   productName: z.string(),
   supplierCost: z.number().nullable(),
+  mlPriceAvg: z.number().nullable(),
   unitPrice: z.number().nullable(),
   boxPrice: z.number().nullable(),
   unitsPerBox: z.number().int().nullable(),
@@ -22,81 +28,67 @@ const ResponseSchema = z.object({
   items: z.array(ItemSchema),
 });
 
-type CacheHit = {
-  structured_json?: unknown;
-  items_count?: number | null;
-  input_tokens?: number | null;
-  output_tokens?: number | null;
-};
-
-type ResponsesApiContent = {
-  text?: string;
-  output_text?: string;
-} | null | undefined;
-
-type ResponsesApiBlock = {
-  content?: ResponsesApiContent[];
-} | null;
-
-type ResponsesApiUsage = {
-  input_tokens?: number;
-  output_tokens?: number;
-};
-
-type ResponsesApiResponse = {
-  output_text?: string;
-  output?: ResponsesApiBlock[];
-  usage?: ResponsesApiUsage;
-};
-
-type JsonPrimitiveType =
-  | "string"
-  | "number"
-  | "integer"
-  | "array"
-  | "object"
-  | "null";
-
-type JsonSchemaScalar =
-  | { type: JsonPrimitiveType }
-  | { type: JsonPrimitiveType[] };
-
-type JsonSchemaArray = {
-  type: "array";
-  items: JsonSchemaProperty;
-};
-
-type JsonSchemaObject = {
-  type: "object";
-  additionalProperties: false;
-  properties: Record<string, JsonSchemaProperty>;
-  required: string[];
-};
-
-type JsonSchemaProperty =
-  | JsonSchemaScalar
-  | JsonSchemaArray
-  | JsonSchemaObject;
-
-type JsonSchema = JsonSchemaObject;
-
-type ExtractCatalogItemsWithAIInput = {
+type ExtractInput = {
   extractedText: string;
   maxChars?: number;
 };
 
-type ExtractCatalogItemsWithAIResult = {
+type ExtractResult = {
   items: ParsedCatalogRow[];
   inputTokens?: number;
   outputTokens?: number;
   cached?: boolean;
 };
 
+type CacheHit = {
+  structured_json?: unknown;
+  input_tokens?: number | null;
+  output_tokens?: number | null;
+};
+
+type ResponsesApiUsage = {
+  input_tokens?: number;
+  output_tokens?: number;
+};
+
+type ResponsesApiOutputContent = {
+  text?: string;
+  output_text?: string;
+  type?: string;
+};
+
+type ResponsesApiOutputBlock = {
+  content?: ResponsesApiOutputContent[];
+};
+
+type ResponsesApiResponse = {
+  output_text?: string;
+  output?: ResponsesApiOutputBlock[];
+  usage?: ResponsesApiUsage;
+};
+
 function normalizeSpaces(value: string): string {
   return value.replace(/\s+/g, " ").trim();
 }
 
-function cleanJsonText(raw: string): string {
+function normalizeNullableString(value: string | null | undefined): string | null {
+  const normalized = normalizeSpaces(String(value ?? ""));
+  return normalized || null;
+}
+
+function toPositiveNumber(value: number | null | undefined): number | null {
+  return typeof value === "number" && Number.isFinite(value) && value > 0
+    ? Number(value.toFixed(2))
+    : null;
+}
+
+function toPositiveInteger(value: number | null | undefined): number | null {
+  return typeof value === "number" && Number.isInteger(value) && value > 0
+    ? value
+    : null;
+}
+
+function cleanJson(raw: string): string {
   return raw
     .replace(/^```json\s*/i, "")
     .replace(/^```\s*/i, "")
@@ -104,7 +96,64 @@ function cleanJsonText(raw: string): string {
     .trim();
 }
 
-function extractTextFromResponsesApi(data: ResponsesApiResponse): string {
+function clipText(text: string, maxChars: number): string {
+  if (!text) return "";
+  return text.length > maxChars ? text.slice(0, maxChars) : text;
+}
+
+function buildPrompt(text: string): string {
+  return [
+    "Você recebe texto extraído de catálogo de fornecedor.",
+    "Extraia apenas produtos reais e responda somente JSON válido.",
+    "",
+    "IGNORE:",
+    "- especificações soltas sem produto",
+    "- promoções isoladas",
+    "- títulos de seção/categoria sem item",
+    "- descrições repetidas",
+    "- linhas quebradas que não formem produto",
+    "",
+    "REGRAS:",
+    "- NÃO invente preço",
+    "- NÃO invente SKU",
+    "- priorize linhas com nome + preço",
+    "- agrupe dados do mesmo produto",
+    "- supplierCost = custo real do fornecedor",
+    "- mlPriceAvg = preço de mercado somente se ele estiver explícito no texto; senão null",
+    "- se houver unitPrice, use unitPrice",
+    "- se houver boxPrice e unitsPerBox, permita cálculo posterior",
+    "- productName curto, limpo e objetivo",
+    "- specs com no máximo 6 entradas úteis",
+    "- confidence entre 0 e 1",
+    "- se não tiver segurança, retorne items vazio",
+    "",
+    "FORMATO:",
+    JSON.stringify({
+      items: [
+        {
+          sku: "string|null",
+          model: "string|null",
+          brand: "string|null",
+          category: "string|null",
+          productName: "string",
+          supplierCost: 0,
+          mlPriceAvg: 0,
+          unitPrice: 0,
+          boxPrice: 0,
+          unitsPerBox: 0,
+          specs: ["string"],
+          notes: "string|null",
+          confidence: 0.9,
+        },
+      ],
+    }),
+    "",
+    "TEXTO:",
+    text,
+  ].join("\n");
+}
+
+function extractOutputText(data: ResponsesApiResponse): string {
   if (typeof data.output_text === "string" && data.output_text.trim()) {
     return data.output_text.trim();
   }
@@ -136,85 +185,14 @@ function extractTextFromResponsesApi(data: ResponsesApiResponse): string {
   return parts.join("\n").trim();
 }
 
-function buildPrompt(catalogText: string): string {
-  return [
-    "Você receberá o texto extraído de um catálogo de fornecedor.",
-    "Extraia apenas produtos reais.",
-    "",
-    "IGNORE COMPLETAMENTE:",
-    "- especificações técnicas isoladas sem produto",
-    "- observações genéricas",
-    "- promoções soltas",
-    "- linhas repetidas de descrição",
-    "- quantidade por caixa isolada sem produto",
-    "- linhas como cor, voltagem, peso, dimensões, potência, canal, saída, material, temperatura, modo, função, quando vierem sem contexto do item",
-    "",
-    "REGRAS:",
-    "- um item deve ter nome de produto e pelo menos um preço/custo OU forte evidência de item de catálogo",
-    "- supplierCost deve ser o custo unitário",
-    "- se houver boxPrice e unitsPerBox, calcule supplierCost = boxPrice / unitsPerBox",
-    "- não invente preço",
-    "- não invente SKU",
-    "- productName deve ser curto, limpo e objetivo",
-    "- specs deve conter no máximo 6 especificações curtas úteis",
-    "- confidence deve ser um número entre 0 e 1",
-    "- retorne SOMENTE JSON válido",
-    "",
-    "FORMATO EXATO:",
-    JSON.stringify({
-      items: [
-        {
-          sku: "string|null",
-          model: "string|null",
-          brand: "string|null",
-          category: "string|null",
-          productName: "string",
-          supplierCost: 0,
-          unitPrice: 0,
-          boxPrice: 0,
-          unitsPerBox: 0,
-          specs: ["string"],
-          notes: "string|null",
-          confidence: 0.95,
-        },
-      ],
-    }),
-    "",
-    "Se não tiver segurança, retorne items vazio.",
-    "",
-    "Texto do catálogo:",
-    catalogText,
-  ].join("\n");
-}
-
-function toPositiveNumber(value: number | null): number | null {
-  return typeof value === "number" && Number.isFinite(value) && value > 0
-    ? Number(value.toFixed(2))
-    : null;
-}
-
-function toPositiveInteger(value: number | null): number | null {
-  return typeof value === "number" && Number.isInteger(value) && value > 0
-    ? value
-    : null;
-}
-
-function mapItemToParsedRow(item: z.infer<typeof ItemSchema>): ParsedCatalogRow {
-  const normalizedSku = item.sku ? normalizeSpaces(item.sku) : null;
-  const normalizedModel = item.model
-    ? normalizeSpaces(item.model)
-    : normalizedSku;
-  const normalizedBrand = item.brand ? normalizeSpaces(item.brand) : null;
-  const normalizedCategory = item.category
-    ? normalizeSpaces(item.category)
-    : null;
-
+function mapItem(item: z.infer<typeof ItemSchema>): ParsedCatalogRow {
   const unitPrice = toPositiveNumber(item.unitPrice);
   const boxPrice = toPositiveNumber(item.boxPrice);
   const unitsPerBox = toPositiveInteger(item.unitsPerBox);
   const directSupplierCost = toPositiveNumber(item.supplierCost);
+  const mlPriceAvg = toPositiveNumber(item.mlPriceAvg);
 
-  let supplierCost: number | null = directSupplierCost;
+  let supplierCost = directSupplierCost;
 
   if (!supplierCost && unitPrice) {
     supplierCost = unitPrice;
@@ -225,141 +203,109 @@ function mapItemToParsedRow(item: z.infer<typeof ItemSchema>): ParsedCatalogRow 
   }
 
   return {
-    sku: normalizedSku,
-    model: normalizedModel,
-    brand: normalizedBrand,
-    category: normalizedCategory,
+    sku: normalizeNullableString(item.sku),
+    model: normalizeNullableString(item.model) ?? normalizeNullableString(item.sku),
+    brand: normalizeNullableString(item.brand),
+    category: normalizeNullableString(item.category),
     productName: normalizeSpaces(item.productName),
     supplierCost,
+    mlPriceAvg,
     unitPrice,
     boxPrice,
     unitsPerBox,
-    specs: item.specs.map(normalizeSpaces).filter(Boolean).slice(0, 6),
-    notes: item.notes ? normalizeSpaces(item.notes) : null,
-    confidence: item.confidence,
+    specs: item.specs
+      .map(normalizeSpaces)
+      .filter(Boolean)
+      .slice(0, 6),
+    notes: normalizeNullableString(item.notes),
+    confidence: Number.isFinite(item.confidence) ? item.confidence : 0.5,
   };
 }
 
-function buildSchema(): JsonSchema {
-  return {
-    type: "object",
-    additionalProperties: false,
-    properties: {
-      items: {
-        type: "array",
-        items: {
-          type: "object",
-          additionalProperties: false,
-          properties: {
-            sku: { type: ["string", "null"] },
-            model: { type: ["string", "null"] },
-            brand: { type: ["string", "null"] },
-            category: { type: ["string", "null"] },
-            productName: { type: "string" },
-            supplierCost: { type: ["number", "null"] },
-            unitPrice: { type: ["number", "null"] },
-            boxPrice: { type: ["number", "null"] },
-            unitsPerBox: { type: ["integer", "null"] },
-            specs: {
-              type: "array",
-              items: { type: "string" },
-            },
-            notes: { type: ["string", "null"] },
-            confidence: { type: "number" },
-          },
-          required: [
-            "sku",
-            "model",
-            "brand",
-            "category",
-            "productName",
-            "supplierCost",
-            "unitPrice",
-            "boxPrice",
-            "unitsPerBox",
-            "specs",
-            "notes",
-            "confidence",
-          ],
-        },
-      },
-    },
-    required: ["items"],
-  };
+function dedupeParsedRows(items: ParsedCatalogRow[]): ParsedCatalogRow[] {
+  const map = new Map<string, ParsedCatalogRow>();
+
+  for (const item of items) {
+    const key =
+      item.sku?.toLowerCase() ||
+      `${item.productName.toLowerCase()}::${Number(item.supplierCost ?? 0).toFixed(2)}`;
+
+    const existing = map.get(key);
+
+    if (!existing) {
+      map.set(key, item);
+      continue;
+    }
+
+    const existingScore =
+      (existing.confidence ?? 0) +
+      (existing.supplierCost ? 1 : 0) +
+      (existing.mlPriceAvg ? 1 : 0) +
+      (existing.specs?.length ?? 0) * 0.05;
+
+    const nextScore =
+      (item.confidence ?? 0) +
+      (item.supplierCost ? 1 : 0) +
+      (item.mlPriceAvg ? 1 : 0) +
+      (item.specs?.length ?? 0) * 0.05;
+
+    if (nextScore >= existingScore) {
+      map.set(key, item);
+    }
+  }
+
+  return Array.from(map.values());
 }
 
 export async function extractCatalogItemsWithAI(
-  input: ExtractCatalogItemsWithAIInput
-): Promise<ExtractCatalogItemsWithAIResult> {
+  input: ExtractInput
+): Promise<ExtractResult> {
   const apiKey = process.env.OPENAI_API_KEY;
-  const model = process.env.OPENAI_MODEL || "gpt-4.1-mini";
-  const maxChars = Number(process.env.CATALOG_MAX_TEXT_CHARS || "40000");
-  const cacheVersion = "v1";
 
   if (!apiKey) {
     throw new Error("Missing OPENAI_API_KEY");
   }
 
-  const rawText = (input.extractedText || "").trim();
+  const rawText = normalizeSpaces(input.extractedText || "");
 
   if (!rawText) {
     return { items: [] };
   }
 
-  const effectiveMaxChars =
+  const maxChars =
     typeof input.maxChars === "number" && input.maxChars > 0
       ? input.maxChars
-      : maxChars;
+      : DEFAULT_MAX_CHARS;
 
-  const clippedText =
-    rawText.length > effectiveMaxChars
-      ? rawText.slice(0, effectiveMaxChars)
-      : rawText;
+  const clippedText = clipText(rawText, maxChars);
 
   const cacheKey = sha256String(
     JSON.stringify({
-      version: cacheVersion,
-      model,
+      version: CACHE_VERSION,
+      model: DEFAULT_MODEL,
       text: clippedText,
     })
   );
 
-  const cacheHit = (await getCatalogAiCache(
-    cacheKey,
-    cacheVersion
-  )) as CacheHit | null;
+  const cache = (await getCatalogAiCache(cacheKey, CACHE_VERSION)) as CacheHit | null;
 
-  if (cacheHit?.structured_json) {
-    console.log("[catalog/cache] HIT", {
-      cacheKey,
-      items: cacheHit.items_count ?? 0,
-    });
-
-    const parsed = ResponseSchema.parse(cacheHit.structured_json);
-    const items = parsed.items.map(mapItemToParsedRow);
+  if (cache?.structured_json) {
+    const parsed = ResponseSchema.parse(cache.structured_json);
+    const items = dedupeParsedRows(parsed.items.map(mapItem));
 
     return {
       items,
-      inputTokens: cacheHit.input_tokens ?? undefined,
-      outputTokens: cacheHit.output_tokens ?? undefined,
+      inputTokens: cache.input_tokens ?? undefined,
+      outputTokens: cache.output_tokens ?? undefined,
       cached: true,
     };
   }
 
-  console.log("[catalog/cache] MISS", { cacheKey });
-
   const prompt = buildPrompt(clippedText);
-  const schema = buildSchema();
-
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 30000);
+  const timeout = setTimeout(() => controller.abort(), DEFAULT_TIMEOUT_MS);
 
   try {
-    console.log("[catalog/ai] chamando Responses API", {
-      model,
-      chars: clippedText.length,
-    });
-
     const response = await fetch("https://api.openai.com/v1/responses", {
       method: "POST",
       headers: {
@@ -368,7 +314,7 @@ export async function extractCatalogItemsWithAI(
       },
       signal: controller.signal,
       body: JSON.stringify({
-        model,
+        model: DEFAULT_MODEL,
         input: [
           {
             role: "system",
@@ -386,10 +332,7 @@ export async function extractCatalogItemsWithAI(
         ],
         text: {
           format: {
-            type: "json_schema",
-            name: "catalog_extract",
-            schema,
-            strict: true,
+            type: "json_object",
           },
         },
         truncation: "auto",
@@ -403,45 +346,47 @@ export async function extractCatalogItemsWithAI(
         throw new Error("OPENAI_INSUFFICIENT_QUOTA");
       }
 
-      throw new Error(`OPENAI_${response.status}: ${errText}`);
+      console.error("[catalog/ai] erro OpenAI:", errText);
+      return { items: [] };
     }
 
     const data = (await response.json()) as ResponsesApiResponse;
-    const structuredText = extractTextFromResponsesApi(data);
+    const rawOutput = extractOutputText(data);
 
-    if (!structuredText) {
-      console.error("[catalog/ai] resposta vazia da OpenAI");
-      return { items: [] };
+    if (!rawOutput) {
+      console.error("[catalog/ai] resposta vazia");
+      return {
+        items: [],
+        inputTokens: data.usage?.input_tokens,
+        outputTokens: data.usage?.output_tokens,
+      };
     }
 
     let parsedJson: unknown;
 
     try {
-      parsedJson = JSON.parse(cleanJsonText(structuredText));
+      parsedJson = JSON.parse(cleanJson(rawOutput));
     } catch {
-      console.error("[catalog/ai] erro ao parsear JSON:", structuredText);
-      return { items: [] };
+      console.error("[catalog/ai] JSON inválido:", rawOutput);
+      return {
+        items: [],
+        inputTokens: data.usage?.input_tokens,
+        outputTokens: data.usage?.output_tokens,
+      };
     }
 
     const parsed = ResponseSchema.parse(parsedJson);
-    const items = parsed.items.map(mapItemToParsedRow);
+    const items = dedupeParsedRows(parsed.items.map(mapItem));
 
     await saveCatalogAiCache({
       cacheKey,
-      version: cacheVersion,
-      model,
+      version: CACHE_VERSION,
+      model: DEFAULT_MODEL,
       extractedText: clippedText,
       structuredJson: parsed,
       itemsCount: items.length,
       inputTokens: data.usage?.input_tokens ?? null,
       outputTokens: data.usage?.output_tokens ?? null,
-    });
-
-    console.log("[catalog/cache] salvo", {
-      cacheKey,
-      items: items.length,
-      inputTokens: data.usage?.input_tokens,
-      outputTokens: data.usage?.output_tokens,
     });
 
     return {
@@ -450,6 +395,9 @@ export async function extractCatalogItemsWithAI(
       outputTokens: data.usage?.output_tokens,
       cached: false,
     };
+  } catch (error) {
+    console.error("[catalog/ai] erro:", error);
+    return { items: [] };
   } finally {
     clearTimeout(timeout);
   }

@@ -315,7 +315,61 @@ export async function fetchMlMe(accessToken: string): Promise<MlUserProfile> {
     });
     throw error;
   }
+
 }
+  export async function mlFetch<T = unknown>(
+  path: string,
+  options?: {
+    accessToken?: string;
+    method?: string;
+    body?: any;
+  }
+): Promise<T> {
+  const env = getMlEnv();
+
+  const url = `${env.apiBaseUrl}${path}`;
+
+  const headers: Record<string, string> = {
+    accept: "application/json",
+  };
+
+  if (options?.accessToken) {
+    headers.Authorization = `Bearer ${options.accessToken}`;
+  }
+
+  if (options?.body) {
+    headers["content-type"] = "application/json";
+  }
+
+  logMl("mlFetch request", {
+    path,
+    hasToken: Boolean(options?.accessToken),
+    method: options?.method ?? "GET",
+  });
+
+  try {
+    const response = await fetchWithTimeout(url, {
+      method: options?.method ?? "GET",
+      headers,
+      body: options?.body ? JSON.stringify(options.body) : undefined,
+      cache: "no-store",
+    });
+
+    const data = await ensureOk<T>(
+      response,
+      "Mercado Livre API error"
+    );
+
+    return data;
+  } catch (error) {
+    logMlError("mlFetch failed", error, {
+      path,
+    });
+    throw error;
+  }
+
+}
+
 
 
 
