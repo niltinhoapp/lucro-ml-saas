@@ -2,8 +2,112 @@ import { NextResponse } from "next/server";
 import { analyzeCatalogBuffer } from "@/lib/catalog/analyze";
 import { createServerClient } from "@/integrations/supabase/server";
 import { getEntitlements } from "@/integrations/supabase/entitlements";
+import { runRadar } from "@/core/radar/radar.engine";
 
 export const runtime = "nodejs";
+
+type CatalogRow = {
+  productName: string;
+  sku?: string | null;
+  brand?: string | null;
+  category?: string | null;
+  supplierCost?: number | null;
+  unitsPerBox?: number | null;
+  notes?: string | null;
+  model?: string | null;
+  unitPrice?: number | null;
+  boxPrice?: number | null;
+  specs?: unknown;
+  mlPriceAvg?: number | null;
+  mlPriceMin?: number | null;
+  mlPriceMax?: number | null;
+  estimatedMargin?: number | null;
+  estimatedProfit?: number | null;
+  estimatedFees?: number | null;
+  estimatedShipping?: number | null;
+  demandScore?: number | null;
+  competitionScore?: number | null;
+  opportunityScore?: number | null;
+  riskLevel?: string | null;
+  worthBuying?: boolean | string | null;
+  aiSummary?: unknown;
+};
+
+type AnalyzeCatalogResult = {
+  mode: string;
+  rows: CatalogRow[];
+  aiSummary?: {
+    parsedRows?: number;
+    [key: string]: unknown;
+  } | null;
+};
+
+function getFileTitle(fileName: string) {
+  return fileName.replace(/\.[^.]+$/, "");
+}
+
+function getSourceType(fileName: string) {
+  return fileName.toLowerCase().endsWith(".pdf") ? "pdf" : "spreadsheet";
+}
+
+function isStructuredResult(result: AnalyzeCatalogResult) {
+  return (
+    result.mode === "structured" &&
+    Array.isArray(result.rows) &&
+    result.rows.length > 0
+  );
+}
+
+function mapRowsToRadar(rows: CatalogRow[]) {
+  return rows
+    .filter((row) => row.productName && (row.supplierCost ?? 0) > 0)
+    .map((row) => ({
+      nome: row.productName,
+      custo: Number(row.supplierCost ?? 0),
+      categoria: row.category ?? "",
+      precoSugerido:
+        Number(row.mlPriceAvg ?? 0) ||
+        Number(row.mlPriceMax ?? 0) ||
+        undefined,
+    }));
+}
+
+async function createCatalogRunLog(params: {
+  sb: Awaited<ReturnType<typeof createServerClient>>;
+  catalogId: string;
+  userId: string;
+  status: "success" | "error";
+  message: string;
+  details?: string;
+  mode?: string;
+  parsedRows?: number;
+  radarSummary?: {
+    total?: number;
+    oportunidades?: number;
+    atentos?: number;
+    risco?: number;
+  };
+}) {
+  const { sb, catalogId, userId, status, message, details, mode, parsedRows, radarSummary } =
+    params;
+
+  await sb.from("catalog_runs").insert({
+    catalog_id: catalogId,
+    user_id: userId,
+    step: "analyze",
+    status,
+    logs: [
+      {
+        at: new Date().toISOString(),
+        message,
+        details,
+        mode,
+        parsedRows,
+        radarSummary,
+      },
+    ],
+  });
+}
 
 export async function POST(req: Request) {
   console.log("==================================================");
@@ -80,7 +184,10 @@ export async function POST(req: Request) {
     }
 
     console.log("[api/catalogos/analisar] iniciando analyzeCatalogBuffer...");
-    const result = await analyzeCatalogBuffer(fileName, buffer);
+    const result = (await analyzeCatalogBuffer(
+      fileName,
+      buffer
+    )) as AnalyzeCatalogResult;
 
     console.log("[api/catalogos/analisar] análise concluída");
     console.log(
@@ -89,15 +196,28 @@ export async function POST(req: Request) {
     );
     console.log("[api/catalogos/analisar] mode:", result.mode);
 
-    const title = fileName.replace(/\.[^.]+$/, "");
-    const sourceType = fileName.toLowerCase().endsWith(".pdf")
-      ? "pdf"
-      : "spreadsheet";
+    const title = getFileTitle(fileName);
+    const sourceType = getSourceType(fileName);
+    const structured = isStructuredResult(result);
 
-    const isStructured =
-      result.mode === "structured" &&
-      Array.isArray(result.rows) &&
-      result.rows.length > 0;
+    let radar: ReturnType<typeof runRadar> | null = null;
+
+    if (structured) {
+      const radarProducts = mapRowsToRadar(result.rows);
+
+      if (radarProducts.length > 0) {
+        radar = runRadar({ produtos: radarProducts });
+        console.log(
+          "[api/catalogos/analisar] radar gerado:",
+          radar.ranking.length,
+          "itens"
+        );
+      } else {
+        console.log(
+          "[api/catalogos/analisar] radar não gerado: sem itens válidos"
+        );
+      }
+    }
 
     console.log("[api/catalogos/analisar] salvando supplier_catalogs...");
     const { data: catalog, error: catalogError } = await sb
@@ -107,9 +227,9 @@ export async function POST(req: Request) {
         title,
         file_name: fileName,
         source_type: sourceType,
-        status: isStructured ? "analyzed" : "parsed",
-        items_count: isStructured ? result.rows.length : 0,
-        parsed_at: isStructured ? new Date().toISOString() : null,
+        status: structured ? "analyzed" : "parsed",
+        items_count: structured ? result.rows.length : 0,
+        parsed_at: structured ? new Date().toISOString() : null,
       })
       .select("id")
       .single();
@@ -127,7 +247,7 @@ export async function POST(req: Request) {
 
     console.log("[api/catalogos/analisar] catalog.id:", catalog.id);
 
-    if (isStructured) {
+    if (structured) {
       console.log("[api/catalogos/analisar] salvando supplier_catalog_items...");
 
       const itemPayload = result.rows.map((row) => ({
@@ -175,18 +295,15 @@ export async function POST(req: Request) {
           itemsError
         );
 
-        await sb.from("catalog_runs").insert({
-          catalog_id: catalog.id,
-          user_id: user.id,
-          step: "analyze",
+        await createCatalogRunLog({
+          sb,
+          catalogId: catalog.id,
+          userId: user.id,
           status: "error",
-          logs: [
-            {
-              at: new Date().toISOString(),
-              message: "Catálogo salvo, mas houve falha ao salvar os itens.",
-              details: String(itemsError.message || "unknown_error"),
-            },
-          ],
+          message: "Catálogo salvo, mas houve falha ao salvar os itens.",
+          details: String(itemsError.message || "unknown_error"),
+          mode: result.mode,
+          parsedRows: result.aiSummary?.parsedRows ?? 0,
         });
 
         return NextResponse.json(
@@ -196,6 +313,7 @@ export async function POST(req: Request) {
               "Catálogo salvo, mas houve falha ao salvar os itens analisados.",
             savedCatalogId: catalog.id,
             result,
+            radar,
           },
           { status: 200 }
         );
@@ -267,19 +385,16 @@ export async function POST(req: Request) {
               analysisError
             );
 
-            await sb.from("catalog_runs").insert({
-              catalog_id: catalog.id,
-              user_id: user.id,
-              step: "analyze",
+            await createCatalogRunLog({
+              sb,
+              catalogId: catalog.id,
+              userId: user.id,
               status: "error",
-              logs: [
-                {
-                  at: new Date().toISOString(),
-                  message:
-                    "Catálogo e itens salvos, mas houve falha ao salvar a análise detalhada.",
-                  details: String(analysisError.message || "unknown_error"),
-                },
-              ],
+              message:
+                "Catálogo e itens salvos, mas houve falha ao salvar a análise detalhada.",
+              details: String(analysisError.message || "unknown_error"),
+              mode: result.mode,
+              parsedRows: result.aiSummary?.parsedRows ?? 0,
             });
 
             return NextResponse.json(
@@ -289,6 +404,7 @@ export async function POST(req: Request) {
                   "Catálogo e itens salvos, mas houve falha ao salvar a análise detalhada.",
                 savedCatalogId: catalog.id,
                 result,
+                radar,
               },
               { status: 200 }
             );
@@ -305,29 +421,25 @@ export async function POST(req: Request) {
       );
     }
 
-    const { error: runError } = await sb.from("catalog_runs").insert({
-      catalog_id: catalog.id,
-      user_id: user.id,
-      step: "analyze",
+    await createCatalogRunLog({
+      sb,
+      catalogId: catalog.id,
+      userId: user.id,
       status: "success",
-      logs: [
-        {
-          at: new Date().toISOString(),
-          message: isStructured
-            ? `Análise concluída com ${result.rows.length} itens estruturados.`
-            : "Análise concluída sem estrutura confiável. Catálogo mantido em revisão.",
-          mode: result.mode,
-          parsedRows: result.aiSummary?.parsedRows ?? 0,
-        },
-      ],
+      message: structured
+        ? `Análise concluída com ${result.rows.length} itens estruturados.`
+        : "Análise concluída sem estrutura confiável. Catálogo mantido em revisão.",
+      mode: result.mode,
+      parsedRows: result.aiSummary?.parsedRows ?? 0,
+      radarSummary: radar
+        ? {
+            total: radar.ranking.length,
+            oportunidades: radar.oportunidades.length,
+            atentos: radar.atentos.length,
+            risco: radar.risco.length,
+          }
+        : undefined,
     });
-
-    if (runError) {
-      console.error(
-        "[api/catalogos/analisar] erro ao salvar catalog_runs:",
-        runError
-      );
-    }
 
     console.log("[api/catalogos/analisar] finalizado com sucesso");
     console.log("==================================================");
@@ -336,6 +448,7 @@ export async function POST(req: Request) {
       ok: true,
       savedCatalogId: catalog.id,
       result,
+      radar,
     });
   } catch (error) {
     console.error("[api/catalogos/analisar] erro fatal:", error);
