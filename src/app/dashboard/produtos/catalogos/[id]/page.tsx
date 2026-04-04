@@ -23,9 +23,9 @@ function riskLabel(value: string | null) {
 }
 
 function riskClass(value: string | null) {
-  if (value === "low") return "good";
-  if (value === "medium") return "warn";
-  if (value === "high") return "danger";
+  if (value === "low") return "lm-badge-success";
+  if (value === "medium") return "lm-badge-warning";
+  if (value === "high") return "lm-badge-danger";
   return "";
 }
 
@@ -47,7 +47,6 @@ export default async function CatalogoDetalhePage({
 
   const ent = await getEntitlements(supabase, user.id);
 
-  // BLOQUEIO SEVERO: só PLUS entra
   if (!ent.isPlus) {
     redirect("/checkout?plan=plus");
   }
@@ -69,8 +68,7 @@ export default async function CatalogoDetalhePage({
       "id, raw_name, normalized_name, supplier_sku, brand, category, supplier_cost, min_qty, unit, notes, raw_data, created_at"
     )
     .eq("catalog_id", catalog.id)
-    .eq("user_id", user.id)
-    .order("created_at", { ascending: true });
+    .eq("user_id", user.id);
 
   const items = (itemsData ?? []) as CatalogDbItem[];
   const itemIds = items.map((item) => item.id);
@@ -79,7 +77,7 @@ export default async function CatalogoDetalhePage({
     ? await supabase
         .from("catalog_item_analysis")
         .select(
-          "id, item_id, ml_search_term, ml_price_avg, ml_price_min, ml_price_max, estimated_fees, estimated_shipping, estimated_margin, estimated_profit, demand_score, competition_score, opportunity_score, risk_level, analysis, ai_summary, created_at, updated_at"
+          "id, item_id, ml_price_avg, estimated_margin, estimated_profit, opportunity_score, risk_level, ai_summary"
         )
         .in("item_id", itemIds)
         .eq("user_id", user.id)
@@ -92,166 +90,170 @@ export default async function CatalogoDetalhePage({
     ])
   );
 
-  const promising = (analysisData ?? []).filter(
-    (entry) => (entry as CatalogDbAnalysis).risk_level === "low"
-  ).length;
+  // 🔥 CLASSIFICAÇÃO INTELIGENTE (CORE DO UX)
+  const enriched = items.map((item) => {
+    const analysis = analysisMap.get(item.id);
 
-  const avgScore = (analysisData ?? []).length
-    ? (analysisData ?? []).reduce(
-        (acc, entry) =>
-          acc + Number((entry as CatalogDbAnalysis).opportunity_score ?? 0),
-        0
-      ) / (analysisData ?? []).length
-    : 0;
+    return {
+      item,
+      analysis,
+      score: Number(analysis?.opportunity_score ?? 0),
+      risk: analysis?.risk_level ?? "high",
+    };
+  });
+
+  const oportunidades = enriched.filter((e) => e.risk === "low");
+  const revisar = enriched.filter((e) => e.risk === "medium");
+  const evitar = enriched.filter((e) => e.risk === "high");
 
   return (
-    <div className="market-page page-wrap">
-      <section className="seller-hero seller-hero-overview exec-hero">
-        <div className="exec-hero-top">
-          <div className="exec-hero-copy">
-            <span className="badge pro">Detalhe do catálogo</span>
-            <h1 className="exec-title">{catalog.title}</h1>
-            <p className="exec-subtitle">
-              Revise os itens salvos e veja o que vale testar, comprar ou
-              descartar.
-            </p>
-          </div>
+    <div className="lm-page lm-catalog-detail">
+      {/* HEADER */}
+      <header className="lm-header">
+        <div>
+          <span className="lm-eyebrow">Catálogo analisado</span>
+          <h1>{catalog.title}</h1>
+          <p>
+            Decida rápido: foque no que tem margem e evite travar dinheiro em
+            estoque ruim.
+          </p>
+        </div>
 
-          <div className="catalog-detail-actions">
-            <Link href="/dashboard/produtos/catalogos" className="btn btn-secondary">
-              Voltar
-            </Link>
-            <Link href="/dashboard/operacao/simulador" className="btn btn-primary">
-              Simular compra
-            </Link>
-          </div>
+        <div className="lm-actions">
+          <Link href="/dashboard/produtos/catalogos" className="btn btn-ghost">
+            Voltar
+          </Link>
+          <Link href="/dashboard/operacao/simulador" className="btn btn-primary">
+            Simular compra
+          </Link>
+        </div>
+      </header>
+
+      {/* 🔥 DECISÃO RÁPIDA */}
+      <section className="lm-decision">
+        <div className="lm-decision-card success">
+          <strong>{oportunidades.length}</strong>
+          <span>Oportunidades reais</span>
+        </div>
+
+        <div className="lm-decision-card warning">
+          <strong>{revisar.length}</strong>
+          <span>Revisar</span>
+        </div>
+
+        <div className="lm-decision-card danger">
+          <strong>{evitar.length}</strong>
+          <span>Evitar</span>
         </div>
       </section>
 
-      <section className="catalog-stats-grid">
-        <div className="card catalog-stat-card">
-          <div className="market-kpi-label">Status</div>
-          <div className="market-kpi-value">{catalog.status}</div>
-        </div>
+      {/* 🟢 OPORTUNIDADES */}
+      <section className="lm-section">
+        <h2>O que vale olhar primeiro</h2>
 
-        <div className="card catalog-stat-card">
-          <div className="market-kpi-label">Itens</div>
-          <div className="market-kpi-value">{catalog.items_count}</div>
-        </div>
-
-        <div className="card catalog-stat-card">
-          <div className="market-kpi-label">Promissores</div>
-          <div className="market-kpi-value">{promising}</div>
-        </div>
-
-        <div className="card catalog-stat-card">
-          <div className="market-kpi-label">Score médio</div>
-          <div className="market-kpi-value">{avgScore.toFixed(0)}</div>
-        </div>
-      </section>
-
-      <section className="card card-premium">
-        <div className="card-head">
-          <div>
-            <h2>Resumo do arquivo</h2>
-            <p className="subtitle">
-              Tipo: <strong>{catalog.source_type}</strong> • criado em{" "}
-              <strong>
-                {new Date(catalog.created_at).toLocaleString("pt-BR")}
-              </strong>
-            </p>
+        {!oportunidades.length ? (
+          <div className="lm-empty">
+            Nenhuma oportunidade clara encontrada nesse catálogo.
           </div>
-        </div>
-
-        <div className="catalog-history-meta">
-          <span className="pill">Arquivo: {catalog.file_name ?? "—"}</span>
-          <span className="pill">
-            Última atualização:{" "}
-            {new Date(catalog.updated_at).toLocaleString("pt-BR")}
-          </span>
-          <span className="pill">
-            Parse:{" "}
-            {catalog.parsed_at
-              ? new Date(catalog.parsed_at).toLocaleString("pt-BR")
-              : "—"}
-          </span>
-        </div>
-      </section>
-
-      <section className="card card-premium">
-        <div className="card-head">
-          <div>
-            <h2>Itens salvos</h2>
-            <p className="subtitle">
-              Veja custo, margem, score e risco de cada item.
-            </p>
-          </div>
-        </div>
-
-        {!items.length ? (
-          <div className="alert warn">Esse catálogo ainda não possui itens salvos.</div>
         ) : (
-          <div className="catalog-table-wrap">
-            <table className="catalog-table">
-              <thead>
-                <tr>
-                  <th>Produto</th>
-                  <th>Custo</th>
-                  <th>Preço médio ML</th>
-                  <th>Margem</th>
-                  <th>Lucro</th>
-                  <th>Score</th>
-                  <th>Risco</th>
-                </tr>
-              </thead>
-              <tbody>
-                {items.map((item) => {
-                  const analysis = analysisMap.get(item.id);
+          <div className="lm-grid">
+            {oportunidades.map(({ item, analysis }) => (
+              <div key={item.id} className="lm-product-card">
+                <h3>{item.raw_name}</h3>
 
-                  return (
-                    <tr key={item.id}>
-                      <td>
-                        <div className="catalog-product-name">{item.raw_name}</div>
-                        <div className="catalog-product-meta">
-                          {item.category ?? "Geral"} •{" "}
-                          {item.brand ?? "Marca não identificada"}
-                        </div>
-                        <div className="catalog-row-summary">
-                          {analysis?.ai_summary ??
-                            item.notes ??
-                            "Sem resumo disponível."}
-                        </div>
-                      </td>
-                      <td>{brl(item.supplier_cost)}</td>
-                      <td>{brl(analysis?.ml_price_avg)}</td>
-                      <td>
-                        {Number(analysis?.estimated_margin ?? 0).toFixed(1)}%
-                      </td>
-                      <td>{brl(analysis?.estimated_profit)}</td>
-                      <td>
-                        <strong>{analysis?.opportunity_score ?? 0}</strong>
-                      </td>
-                      <td>
-                        <span
-                          className={`badge ${riskClass(
-                            analysis?.risk_level ?? null
-                          )}`}
-                        >
-                          {riskLabel(analysis?.risk_level ?? null)}
-                        </span>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+                <div className="lm-product-metrics">
+                  <div>
+                    <span>Lucro</span>
+                    <strong>{brl(analysis?.estimated_profit)}</strong>
+                  </div>
+                  <div>
+                    <span>Margem</span>
+                    <strong>
+                      {Number(analysis?.estimated_margin ?? 0).toFixed(1)}%
+                    </strong>
+                  </div>
+                </div>
+
+                <p className="lm-product-summary">
+                  {analysis?.ai_summary ?? "Validar concorrência e preço."}
+                </p>
+              </div>
+            ))}
           </div>
         )}
+      </section>
+
+      {/* 🟡 REVISAR */}
+      {!!revisar.length && (
+        <section className="lm-section">
+          <h2>Produtos para revisar</h2>
+
+          <div className="lm-grid">
+            {revisar.map(({ item }) => (
+              <div key={item.id} className="lm-product-card warn">
+                <h3>{item.raw_name}</h3>
+                <p>Exige validação de preço e concorrência.</p>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* 🔴 EVITAR */}
+      {!!evitar.length && (
+        <section className="lm-section">
+          <h2>Evitar</h2>
+
+          <div className="lm-grid">
+            {evitar.map(({ item }) => (
+              <div key={item.id} className="lm-product-card danger">
+                <h3>{item.raw_name}</h3>
+                <p>Margem ruim ou risco alto.</p>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* 📊 TABELA FINAL */}
+      <section className="lm-section">
+        <h2>Visão completa</h2>
+
+        <div className="lm-table-wrap">
+          <table className="lm-table">
+            <thead>
+              <tr>
+                <th>Produto</th>
+                <th>Custo</th>
+                <th>Preço ML</th>
+                <th>Margem</th>
+                <th>Lucro</th>
+                <th>Score</th>
+                <th>Risco</th>
+              </tr>
+            </thead>
+            <tbody>
+              {enriched.map(({ item, analysis }) => (
+                <tr key={item.id}>
+                  <td>{item.raw_name}</td>
+                  <td>{brl(item.supplier_cost)}</td>
+                  <td>{brl(analysis?.ml_price_avg)}</td>
+                  <td>
+                    {Number(analysis?.estimated_margin ?? 0).toFixed(1)}%
+                  </td>
+                  <td>{brl(analysis?.estimated_profit)}</td>
+                  <td>{analysis?.opportunity_score ?? 0}</td>
+                  <td>
+                    <span className={riskClass(analysis?.risk_level ?? null)}>
+                      {riskLabel(analysis?.risk_level ?? null)}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </section>
     </div>
   );
 }
-
-
-
-
