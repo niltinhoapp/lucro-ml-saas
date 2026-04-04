@@ -252,22 +252,20 @@ async function mlGet<T>(
     }
   }
 
-  const isPrivateUsersEndpoint = path.startsWith("/users");
-
   const headers: Record<string, string> = {
     Accept: "application/json",
     "Accept-Language": "pt-BR,pt;q=0.9,en;q=0.8",
     "User-Agent": "LucroML/1.0",
   };
 
-  if (accessToken && isPrivateUsersEndpoint) {
+  if (accessToken) {
     headers.Authorization = `Bearer ${accessToken}`;
   }
 
   logStep(traceId, "calling mercado livre endpoint", {
     path,
     hasAccessToken: Boolean(accessToken),
-    sendingAuthorization: Boolean(accessToken && isPrivateUsersEndpoint),
+    sendingAuthorization: Boolean(accessToken),
   });
 
   const controller = new AbortController();
@@ -317,13 +315,6 @@ async function mlGet<T>(
     }
 
     return JSON.parse(raw) as T;
-  } catch (error) {
-    logError(traceId, "mercado livre request failed", error, {
-      path,
-      hasAccessToken: Boolean(accessToken),
-      sendingAuthorization: Boolean(accessToken && isPrivateUsersEndpoint),
-    });
-    throw error;
   } finally {
     clearTimeout(timeout);
   }
