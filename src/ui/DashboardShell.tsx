@@ -15,9 +15,9 @@ import {
 
 const menuMain = [
   { label: "Visão Geral", href: "/dashboard", icon: LayoutDashboard },
-  { label: "DRE", href: "/dashboard/dre", icon: BarChart3 },
+  { label: "DRE", href: "/dashboard/lucro/dre", icon: BarChart3 },
   { label: "Fluxo de Caixa", href: "/dashboard/lucro/fluxo-caixa", icon: Wallet },
-  { label: "Full vs Flex", href: "/dashboard/lucro/full-vs-flex", icon: Truck },
+  { label: "Full vs Flex", href: "/dashboard/lucro", icon: Truck },
   { label: "Histórico", href: "/dashboard/historico", icon: History },
 ];
 
@@ -122,6 +122,7 @@ export default function DashboardShell({
     </div>
   );
 }
+
 
 
 

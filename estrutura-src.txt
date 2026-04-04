@@ -1,0 +1,511 @@
+Listagem de caminhos de pasta
+O número de série do volume é 5CE7-4463
+D:\USUARIO1\NILTINHO\NOVA PASTA\LUCRO-ML-SAAS-ML-OAUTH\SRC
+|   proxy.ts
+|   ThemeProvider.tsx
+|   ThemeToggle.tsx
+|   
++---app
+|   |   globals.css
+|   |   layout.tsx
+|   |   page.tsx
+|   |   
+|   +---(app)
+|   |       layout.tsx
+|   |       
+|   +---(public)
+|   |   |   layout.tsx
+|   |   |   page.tsx
+|   |   |   
+|   |   +---auth
+|   |   |   +---callback
+|   |   |   |       route.ts
+|   |   |   |       
+|   |   |   +---login
+|   |   |   |       actions.ts
+|   |   |   |       page.tsx
+|   |   |   |       
+|   |   |   +---logout
+|   |   |   |       actions.ts
+|   |   |   |       page.tsx
+|   |   |   |       
+|   |   |   \---register
+|   |   |           actions.ts
+|   |   |           page.tsx
+|   |   |           
+|   |   +---demo
+|   |   |       page.tsx
+|   |   |       
+|   |   +---login
+|   |   |       page.tsx
+|   |   |       
+|   |   \---raio-x
+|   |           page.tsx
+|   |           
+|   +---api
+|   |   +---ai
+|   |   |   +---dre-insights
+|   |   |   |       route.ts
+|   |   |   |       
+|   |   |   +---dre-risk
+|   |   |   |       route.ts
+|   |   |   |       
+|   |   |   +---full-vs-flex
+|   |   |   |       route.ts
+|   |   |   |       
+|   |   |   +---hidden-loss
+|   |   |   |       route.ts
+|   |   |   |       
+|   |   |   +---kit-generator
+|   |   |   |       route.ts
+|   |   |   |       
+|   |   |   +---opportunity-radar
+|   |   |   |   |   route.ts
+|   |   |   |   |   _shared.ts
+|   |   |   |   |   
+|   |   |   |   +---favorites
+|   |   |   |   |       route.ts
+|   |   |   |   |       
+|   |   |   |   +---history
+|   |   |   |   |       route.ts
+|   |   |   |   |       
+|   |   |   |   \---ranking
+|   |   |   |           route.ts
+|   |   |   |           
+|   |   |   +---planilha-diagnostic
+|   |   |   |       route.ts
+|   |   |   |       
+|   |   |   +---price-suggest
+|   |   |   |       route.ts
+|   |   |   |       
+|   |   |   +---product-score
+|   |   |   |       route.ts
+|   |   |   |       
+|   |   |   +---produtos-rank
+|   |   |   |       route.ts
+|   |   |   |       
+|   |   |   \---stock-buy-simulator
+|   |   |           route.ts
+|   |   |           
+|   |   +---auth
+|   |   |   \---entitlements
+|   |   |           route.ts
+|   |   |           
+|   |   +---billing
+|   |   |   \---subscribe
+|   |   |           route.ts
+|   |   |           
+|   |   +---caixa
+|   |   |   |   route.ts
+|   |   |   |   
+|   |   |   +---upload
+|   |   |   |       route.ts
+|   |   |   |       
+|   |   |   \---[id]
+|   |   |           route.ts
+|   |   |           
+|   |   +---catalogos
+|   |   |   \---analisar
+|   |   |           route.ts
+|   |   |           
+|   |   +---catalogs
+|   |   |   +---upload
+|   |   |   |       route.ts
+|   |   |   |       
+|   |   |   \---[id]
+|   |   |           route.ts
+|   |   |           
+|   |   +---internal
+|   |   |   |   f.ts
+|   |   |   |   
+|   |   |   \---catalog-worker
+|   |   |           route.ts
+|   |   |           
+|   |   +---ml
+|   |   |   +---notifications
+|   |   |   |       route.ts
+|   |   |   |       
+|   |   |   \---oauth
+|   |   |       +---callback
+|   |   |       |       route.ts
+|   |   |       |       
+|   |   |       \---start
+|   |   |               route.ts
+|   |   |               
+|   |   +---mp
+|   |   |   +---create-subscription
+|   |   |   |       route.ts
+|   |   |   |       
+|   |   |   \---webhook
+|   |   |           route.ts
+|   |   |           
+|   |   +---simulacoes
+|   |   |   |   route.ts
+|   |   |   |   
+|   |   |   \---[id]
+|   |   |           route.ts
+|   |   |           
+|   |   +---sku
+|   |   |   |   route.ts
+|   |   |   |   
+|   |   |   \---upload
+|   |   |           route.ts
+|   |   |           
+|   |   +---strategies
+|   |   |   |   route.ts
+|   |   |   |   
+|   |   |   +---server
+|   |   |   |       mutations.ts
+|   |   |   |       queries.ts
+|   |   |   |       
+|   |   |   \---[id]
+|   |   |       \---read
+|   |   |               route.ts
+|   |   |               
+|   |   \---upload-planilha
+|   |           route.ts
+|   |           
+|   +---checkout
+|   |       CheckoutPageClient.tsx
+|   |       layout.tsx
+|   |       page.tsx
+|   |       
+|   \---dashboard
+|       |   layout.tsx
+|       |   page.tsx
+|       |   
+|       +---ajuda
+|       |       page.tsx
+|       |       
+|       +---catalogos
+|       |   |   page.tsx
+|       |   |   
+|       |   \---[id]
+|       |           page.tsx
+|       |           
+|       +---conta
+|       |       page.tsx
+|       |       
+|       +---diagnostico
+|       |       page.tsx
+|       |       
+|       +---dre
+|       |       DrePageClient.tsx
+|       |       page.tsx
+|       |       
+|       +---estrategias
+|       |       error.tsx
+|       |       loading.tsx
+|       |       page.tsx
+|       |       StrategiesClient.tsx
+|       |       
+|       +---historico
+|       |       page.tsx
+|       |       
+|       +---inteligencia
+|       |       page.tsx
+|       |       
+|       +---kits
+|       |       page.tsx
+|       |       
+|       +---lucro
+|       |   |   page.tsx
+|       |   |   
+|       |   +---diagnostico
+|       |   |       page.tsx
+|       |   |       
+|       |   +---dre
+|       |   |       page.tsx
+|       |   |       
+|       |   +---fluxo-caixa
+|       |   |       error.tsx
+|       |   |       loading.tsx
+|       |   |       page.tsx
+|       |   |       
+|       |   \---full-vs-flex
+|       |           error.tsx
+|       |           loading.tsx
+|       |           page.tsx
+|       |           
+|       +---operacao
+|       |   |   page.tsx
+|       |   |   
+|       |   +---inteligencia
+|       |   |       page.tsx
+|       |   |       
+|       |   +---kits
+|       |   |       page.tsx
+|       |   |       
+|       |   \---simulador
+|       |           error.tsx
+|       |           loading.tsx
+|       |           page.tsx
+|       |           
+|       \---produtos
+|           |   page.tsx
+|           |   
+|           +---catalogos
+|           |       page.tsx
+|           |       
+|           \---radar
+|                   error.tsx
+|                   loading.tsx
+|                   page.tsx
+|                   
++---components
+|   |   CaixaFiltros.tsx
+|   |   CaixaKpis.tsx
+|   |   CaixaTabela.tsx
+|   |   FluxoCaixaPageClient.tsx
+|   |   HistoricoSimulacoes.tsx
+|   |   Onboarding.tsx
+|   |   
+|   +---auth
+|   |       AuthGoogleButton.tsx
+|   |       
+|   +---catalog
+|   |       CatalogUploadClient.tsx
+|   |       
+|   +---layout
+|   |       AppShall.tsx
+|   |       
+|   +---market
+|   |       DiagnosticoLucroClient.tsx
+|   |       KitsGeneratorClient.tsx
+|   |       MarketIntelligenceClient.tsx
+|   |       RaioXLeadMagnet.tsx
+|   |       
+|   +---paywall
+|   |       PlanGate.tsx
+|   |       
+|   +---pro
+|   |       PlanUpgradeCard.tsx
+|   |       ProUpgradeButton.tsx
+|   |       
+|   +---secure
+|   |       FluxoCaixaPageClient.tsx
+|   |       
+|   \---strategies
+|           StrategyBellBadge.tsx
+|           StrategyFilters.tsx
+|           StrategyHomeCard.tsx
+|           StrategyList.tsx
+|           StrategyNotificationCard.tsx
+|           StrategyReader.tsx
+|           StrategyUpgradeCard.tsx
+|           StrategyWeeklyCard.tsx
+|           
++---core
+|   +---engine
+|   |       engine.calculators.ts
+|   |       engine.ts
+|   |       engine.types.ts
+|   |       
+|   \---radar
+|           radar.engine.ts
+|           
++---data
+|       mockStrategies.ts
+|       
++---features
+|   +---dashboard
+|   |   \---shared
+|   |           dashboard-data.tsx
+|   |           
+|   +---lucro
+|   |   +---dre
+|   |   |   \---components
+|   |   |           DreInsights.tsx
+|   |   |           DreInsightsAI.tsx
+|   |   |           DreResultado.tsx
+|   |   |           DreResumo.tsx
+|   |   |           DreRiskBadge.tsx
+|   |   |           ExportarPDF.tsx
+|   |   |           PriceSuggestAI.tsx
+|   |   |           ProdutosRank.tsx
+|   |   |           
+|   |   \---full-vs-flex
+|   |       +---components
+|   |       |       FullVsFlexAI.tsx
+|   |       |       
+|   |       \---services
+|   +---operacao
+|   |   \---simulador
+|   |       \---components
+|   |               SimuladorEstoqueClient.tsx
+|   |               
+|   +---produtos
+|   |   +---catalogos
+|   |   |   \---components
+|   |   |           CatalogoAnalyzerClient.tsx
+|   |   |           
+|   |   \---radar
+|   |       +---components
+|   |       |       RadarOportunidades.tsx
+|   |       |       
+|   |       \---server
+|   |               saveRadarSearch.ts
+|   |               
+|   +---strategies
+|   |   |   types.ts
+|   |   |   
+|   |   +---components
+|   |   |       StrategiesShell.tsx
+|   |   |       StrategyDetail.tsx
+|   |   |       StrategyFilters.tsx
+|   |   |       StrategyList.tsx
+|   |   |       StrategyRecommendationPanel.tsx
+|   |   |       
+|   |   +---hooks
+|   |   |       useStrategies.ts
+|   |   |       
+|   |   \---server
+|   |           generateRadarRecommendation.ts
+|   |           mutations.ts
+|   |           queries.ts
+|   |           
+|   \---upload
+|       \---components
+|               UploadCaixa.tsx
+|               UploadPlanilha.tsx
+|               UploadSkuCsv.tsx
+|               
++---integrations
+|   +---mercadolivre
+|   +---mercadopago
+|   \---supabase
+|           admin.ts
+|           client.ts
+|           entitlements.ts
+|           salvarSimulacao.ts
+|           server.ts
+|           supabaseClient.ts
+|           
++---lib
+|   |   access.ts
+|   |   dre.ts
+|   |   getUserPlan.ts
+|   |   normalizarPlanilha.ts
+|   |   openai.ts
+|   |   planilha.ts
+|   |   plans.ts
+|   |   strategies.ts
+|   |   supabaseClient.ts
+|   |   upgrade-visibility.ts
+|   |   
+|   +---auth
+|   |       getEntitlementsServer.ts
+|   |       
+|   +---caixa
+|   |       calc.ts
+|   |       normalize.ts
+|   |       
+|   +---catalog
+|   |   |   ai-extractor.ts
+|   |   |   ai-structure.ts
+|   |   |   analyze.ts
+|   |   |   analyzer.ts
+|   |   |   db.ts
+|   |   |   enrich.ml.ts
+|   |   |   hash.ts
+|   |   |   pdf.ts
+|   |   |   process-catalog.ts
+|   |   |   process-job.ts
+|   |   |   types.ts
+|   |   |   validator.ts
+|   |   |   
+|   |   \---upload
+|   |           route.ts
+|   |           
+|   +---dre
+|   |       calcularDre.ts
+|   |       insights.ts
+|   |       
+|   +---market
+|   |       advanced.ts
+|   |       mock.ts
+|   |       
+|   +---mercadolivre
+|   |       client.ts
+|   |       env.ts
+|   |       oauth.ts
+|   |       radar.ts
+|   |       search.ts
+|   |       
+|   +---pdf
+|   |       gerarPdfDre.ts
+|   |       
+|   \---supabase
+|           server.ts
+|           
++---server
+|   \---catalog
+|           cache.ts
+|           
++---services
+|       api.ts
+|       mercadopago.ts
+|       planilhaParser.ts
+|       
++---styles
+|   +---features
+|   |       account.css
+|   |       auth.css
+|   |       catalogos.css
+|   |       checkout.css
+|   |       dashboard-home.css
+|   |       dashboard-layout.css
+|   |       dashboard-pages.css
+|   |       dre.css
+|   |       historico.css
+|   |       inteligencia.css
+|   |       lucro-diagnostico.css
+|   |       lucro-fluxo-caixa.css
+|   |       lucro-full-vs-flex.css
+|   |       lucro-historico.css
+|   |       operacao-inteligencia.css
+|   |       operacao-kits.css
+|   |       operacao-simulador.css
+|   |       pro-upgrade.css
+|   |       produtos-estrategias.css
+|   |       public.css
+|   |       radar.css
+|   |       risk-ai.css
+|   |       seller-market.css
+|   |       sidebar.css
+|   |       strategies.css
+|   |       upgrade-modal.css
+|   |       
+|   +---foundation
+|   |       animations.css
+|   |       base.css
+|   |       tokens.css
+|   |       
+|   \---ui
+|           alerts.css
+|           badges.css
+|           buttons.css
+|           fields.css
+|           layout.css
+|           surfaces.css
+|           tables.css
+|           
++---supabase
++---types
+|       catalog-cache.ts
+|       catalog.ts
+|       dre.ts
+|       index.ts
+|       simulacoes.ts
+|       strategy.ts
+|       vendas.ts
+|       
+\---ui
+        Card.tsx
+        DashboardShell.tsx
+        Header.tsx
+        LockedFeatureTrigger.tsx
+        Sidebar.tsx
+        SidebarNavClient.tsx
+        UpgradeModal.tsx
+        

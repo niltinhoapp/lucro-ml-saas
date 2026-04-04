@@ -80,7 +80,7 @@ const plans: PlanItem[] = [
       "Atendimento para contratação especial",
     ],
     actionLabel: "Solicitar vitalício",
-    actionHref: "/dashboard/ajuda",
+    actionHref: "/dashboard/conta/ajuda",
   },
 ];
 
@@ -245,7 +245,7 @@ export default function CheckoutPageClient({
                   {loadingPlan === item.plan ? "Abrindo checkout..." : item.actionLabel}
                 </button>
               ) : (
-                <Link href={item.actionHref ?? "/dashboard/ajuda"} className="btn btn-primary btn-block">
+                <Link href={item.actionHref ?? "/dashboard/conta/ajuda"} className="btn btn-primary btn-block">
                   {item.actionLabel}
                 </Link>
               )}
@@ -359,6 +359,7 @@ export default function CheckoutPageClient({
     </div>
   );
 }
+
 
 
 

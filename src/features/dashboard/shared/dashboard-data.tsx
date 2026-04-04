@@ -104,7 +104,7 @@ export const moduleCards: ModuleCard[] = [
       {
         label: "Full vs Flex",
         description: "Compare cenários logísticos e entenda o melhor caminho.",
-        href: "/dashboard/lucro/full-vs-flex",
+        href: "/dashboard/lucro",
         requiredPlan: "pro",
       },
     ],
@@ -130,7 +130,7 @@ export const moduleCards: ModuleCard[] = [
       {
         label: "Inteligência de mercado",
         description: "Receba apoio para decidir o que priorizar no negócio.",
-        href: "/dashboard/operacao/inteligencia",
+        href: "/dashboard/inteligencia",
         requiredPlan: "pro",
       },
     ],
@@ -144,7 +144,7 @@ export const moduleCards: ModuleCard[] = [
       {
         label: "Ajuda para seller",
         description: "Veja por onde começar e como usar os módulos.",
-        href: "/dashboard/ajuda",
+        href: "/dashboard/conta/ajuda",
       },
       {
         label: "Planos e upgrade",
@@ -210,6 +210,7 @@ export function getUpgradeHref(targetPlan?: PlanGate) {
   if (targetPlan === "pro") return "/checkout?plan=pro";
   return "/checkout";
 }
+
 
 
 

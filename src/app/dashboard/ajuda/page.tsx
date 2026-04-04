@@ -101,7 +101,7 @@ export default function AjudaPage() {
           </p>
 
           <div className="pro-upgrade-actions" style={{ marginTop: 18 }}>
-            <Link href="/dashboard/diagnostico" className="btn btn-primary">
+            <Link href="/dashboard/lucro/diagnostico" className="btn btn-primary">
               Ver diagnóstico
             </Link>
             <Link href="/dashboard/produtos/catalogos" className="btn btn-ghost">
@@ -133,6 +133,7 @@ export default function AjudaPage() {
     </div>
   );
 }
+
 
 
 

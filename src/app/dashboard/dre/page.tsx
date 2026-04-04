@@ -18,7 +18,7 @@ export default async function Page({
   if (!user) {
     redirect(
       id
-        ? `/auth/login?next=/dashboard/dre?id=${id}`
+        ? `/auth/login?next=/dashboard/lucro/dre?id=${id}`
         : "/auth/login?next=/dashboard/historico"
     );
   }
@@ -49,6 +49,7 @@ if (!ent.canCreateReports) {
 
   return <DrePageClient id={id} />;
 }
+
 
 
 

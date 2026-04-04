@@ -55,7 +55,7 @@ export default function HistoricoSimulacoes({ simulacoes }: Props) {
               </div>
 
               <div className="dash2-hist-actions">
-                <Link href={`/dashboard/dre?id=${sim.id}`} className="btn btn-ghost">
+                <Link href={`/dashboard/lucro/dre?id=${sim.id}`} className="btn btn-ghost">
                   Abrir
                 </Link>
 
@@ -84,6 +84,7 @@ export default function HistoricoSimulacoes({ simulacoes }: Props) {
     </div>
   );
 }
+
 
 
 

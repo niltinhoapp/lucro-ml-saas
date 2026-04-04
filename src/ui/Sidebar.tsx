@@ -50,7 +50,7 @@ const modules: SidebarModule[] = [
       },
       {
         label: "Full vs Flex",
-        href: "/dashboard/lucro/full-vs-flex",
+        href: "/dashboard/lucro",
         requiredPlan: "pro",
       },
     ],
@@ -71,7 +71,7 @@ const modules: SidebarModule[] = [
       },
       {
         label: "Inteligência",
-        href: "/dashboard/operacao/inteligencia",
+        href: "/dashboard/inteligencia",
         requiredPlan: "pro",
       },
     ],
@@ -87,7 +87,7 @@ const modules: SidebarModule[] = [
       },
       {
         label: "Ajuda",
-        href: "/dashboard/ajuda",
+        href: "/dashboard/conta/ajuda",
       },
       {
         label: "Planos",
