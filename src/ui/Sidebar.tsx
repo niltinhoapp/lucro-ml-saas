@@ -48,11 +48,6 @@ const modules: SidebarModule[] = [
         href: "/dashboard/lucro/fluxo-caixa",
         requiredPlan: "pro",
       },
-      {
-        label: "Full vs Flex",
-        href: "/dashboard/lucro",
-        requiredPlan: "pro",
-      },
     ],
   },
   {
@@ -67,11 +62,6 @@ const modules: SidebarModule[] = [
       {
         label: "Kits",
         href: "/dashboard/operacao/kits",
-        requiredPlan: "pro",
-      },
-      {
-        label: "Inteligência",
-        href: "/dashboard/inteligencia",
         requiredPlan: "pro",
       },
     ],
@@ -130,22 +120,24 @@ export default async function Sidebar() {
   }
 
   return (
-    <aside className="sidebar-modular shrink-0">
-      <div className="sidebar-minimal-brand">
-        <span className="sidebar-minimal-brand-mark" />
-        <span className="sidebar-minimal-brand-text">Lucro ML</span>
-      </div>
+    <div className="lm-sidebar-v2">
+      <aside className="sidebar-modular shrink-0">
+        <div className="sidebar-minimal-brand">
+          <span className="sidebar-minimal-brand-mark" />
+          <span className="sidebar-minimal-brand-text">Lucro ML</span>
+        </div>
 
-      <SidebarNavClient modules={modules} currentPlan={currentPlan} />
+        <SidebarNavClient modules={modules} currentPlan={currentPlan} />
 
-      <div className="sidebar-logout-wrap">
-        <form action={logoutAction}>
-          <button type="submit" className="sidebar-logout-btn">
-            <LogOut size={15} />
-            Sair
-          </button>
-        </form>
-      </div>
-    </aside>
+        <div className="sidebar-logout-wrap">
+          <form action={logoutAction}>
+            <button type="submit" className="sidebar-logout-btn">
+              <LogOut size={15} />
+              Sair
+            </button>
+          </form>
+        </div>
+      </aside>
+    </div>
   );
 }

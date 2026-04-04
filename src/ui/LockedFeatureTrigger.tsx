@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useId, useState } from "react";
 import UpgradeModal from "@/ui/UpgradeModal";
 
 type UpgradePlan = "pro" | "plus";
@@ -23,28 +23,32 @@ export default function LockedFeatureTrigger({
   children,
 }: LockedFeatureTriggerProps) {
   const [open, setOpen] = useState(false);
+  const modalTitleId = useId();
+
+  function openModal() {
+    setOpen(true);
+  }
+
+  function closeModal() {
+    setOpen(false);
+  }
 
   return (
     <>
       <button
         type="button"
-        className={className}
-        onClick={() => setOpen(true)}
-        style={{
-          background: "transparent",
-          border: 0,
-          padding: 0,
-          width: "100%",
-          textAlign: "inherit",
-          cursor: "pointer",
-        }}
+        className={["locked-feature-trigger", className].filter(Boolean).join(" ")}
+        onClick={openModal}
+        aria-haspopup="dialog"
+        aria-expanded={open}
+        aria-controls={modalTitleId}
       >
         {children}
       </button>
 
       <UpgradeModal
         open={open}
-        onClose={() => setOpen(false)}
+        onClose={closeModal}
         plan={plan}
         title={title}
         description={description}
@@ -53,7 +57,3 @@ export default function LockedFeatureTrigger({
     </>
   );
 }
-
-
-
-

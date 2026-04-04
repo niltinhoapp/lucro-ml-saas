@@ -22,6 +22,22 @@ function getUpgradeHref(plan: UpgradePlan) {
   return plan === "plus" ? "/checkout?plan=plus" : "/checkout?plan=pro";
 }
 
+function getBenefit(plan: UpgradePlan) {
+  if (plan === "plus") {
+    return "Mais inteligência para decidir antes de comprar ou anunciar.";
+  }
+
+  return "Mais controle para proteger margem e operar com mais segurança.";
+}
+
+function getResult(plan: UpgradePlan) {
+  if (plan === "plus") {
+    return "Mais clareza para encontrar oportunidades reais.";
+  }
+
+  return "Mais visão para decidir com base em lucro e operação.";
+}
+
 export default function UpgradeModal({
   open,
   onClose,
@@ -32,6 +48,9 @@ export default function UpgradeModal({
 }: UpgradeModalProps) {
   if (!open) return null;
 
+  const planLabel = getPlanLabel(plan);
+  const upgradeHref = getUpgradeHref(plan);
+
   return (
     <div
       className="upgrade-modal-backdrop"
@@ -39,6 +58,7 @@ export default function UpgradeModal({
       role="dialog"
       aria-modal="true"
       aria-labelledby="upgrade-modal-title"
+      aria-describedby="upgrade-modal-description"
     >
       <div
         className="upgrade-modal-card"
@@ -56,27 +76,29 @@ export default function UpgradeModal({
         <div className="upgrade-modal-top">
           <span className="upgrade-modal-badge">
             <Crown size={14} />
-            Plano {getPlanLabel(plan)}
+            Plano {planLabel}
           </span>
 
-          <div className="upgrade-modal-icon">
+          <div className="upgrade-modal-icon" aria-hidden="true">
             <Sparkles size={22} />
           </div>
         </div>
 
         <h2 id="upgrade-modal-title" className="upgrade-modal-title">
-          Desbloqueie: {feature}
+          Desbloqueie {feature}
         </h2>
 
-        <p className="upgrade-modal-subtitle">{title}</p>
+        <p id="upgrade-modal-description" className="upgrade-modal-subtitle">
+          {title}
+        </p>
 
         <div className="upgrade-modal-highlight">
-          <div className="upgrade-modal-highlight-icon">
+          <div className="upgrade-modal-highlight-icon" aria-hidden="true">
             <Lock size={16} />
           </div>
 
           <div>
-            <strong>Esse recurso exige o plano {getPlanLabel(plan)}</strong>
+            <strong>Esse recurso exige o plano {planLabel}</strong>
             <p>{description}</p>
           </div>
         </div>
@@ -84,26 +106,18 @@ export default function UpgradeModal({
         <div className="upgrade-modal-points">
           <div className="upgrade-modal-point">
             <span className="upgrade-modal-point-label">Benefício</span>
-            <strong>
-              {plan === "plus"
-                ? "Mais inteligência para encontrar oportunidades"
-                : "Mais controle para proteger sua margem"}
-            </strong>
+            <strong>{getBenefit(plan)}</strong>
           </div>
 
           <div className="upgrade-modal-point">
             <span className="upgrade-modal-point-label">Resultado</span>
-            <strong>
-              {plan === "plus"
-                ? "Decisões melhores antes de comprar ou anunciar"
-                : "Mais clareza financeira antes de investir"}
-            </strong>
+            <strong>{getResult(plan)}</strong>
           </div>
         </div>
 
         <div className="upgrade-modal-actions">
-          <Link href={getUpgradeHref(plan)} className="btn btn-primary">
-            Fazer upgrade para {getPlanLabel(plan)}
+          <Link href={upgradeHref} className="btn btn-primary">
+            Fazer upgrade para {planLabel}
           </Link>
 
           <button type="button" className="btn btn-ghost" onClick={onClose}>
@@ -114,7 +128,3 @@ export default function UpgradeModal({
     </div>
   );
 }
-
-
-
-

@@ -1,12 +1,20 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
 import { createMarketAnalysis } from "@/lib/market/mock";
 import ProUpgradeButton from "@/components/pro/ProUpgradeButton";
 
 type KpiTone = "good" | "warn" | "info";
+type Plan = "free" | "pro" | "plus";
 
-export default function MarketIntelligenceClient() {
+type MarketIntelligenceClientProps = {
+  plan?: Plan;
+};
+
+export default function MarketIntelligenceClient({
+  plan = "pro",
+}: MarketIntelligenceClientProps) {
   const [query, setQuery] = useState("escova secadora profissional");
   const [draft, setDraft] = useState("escova secadora profissional");
 
@@ -20,29 +28,27 @@ export default function MarketIntelligenceClient() {
     setQuery(next);
   }
 
+  const decisionLabel = getDecisionLabel(analysis.opportunityScore);
+  const decisionTone = getDecisionTone(analysis.opportunityScore);
+  const decisionText = getDecisionText({
+    score: analysis.opportunityScore,
+    saturation: analysis.saturation,
+    priceSuggestion: analysis.priceSuggestion,
+  });
+
   return (
     <div className="market-page page-wrap">
       <section className="seller-hero seller-hero-market exec-hero">
         <div className="exec-hero-top">
           <div className="exec-hero-copy">
-            <span className="badge pro">Inteligência de mercado</span>
+            <span className="badge pro">Inteligência</span>
 
-            <h1 className="exec-title">
-              Veja se esse produto ainda tem espaço para entrada
-            </h1>
+            <h1 className="exec-title">Leitura rápida de mercado</h1>
 
             <p className="exec-subtitle">
-              Digite um produto e receba uma leitura rápida de preço, concorrência,
-              saturação e potencial antes de decidir se vale comprar, testar ou ajustar
-              sua estratégia no Mercado Livre.
+              Digite um produto e veja se vale entrar, testar com cautela ou
+              apenas observar.
             </p>
-
-            <div className="exec-hero-proof">
-              <span className="pill good">Preço médio</span>
-              <span className="pill">Concorrência</span>
-              <span className="pill">Saturação</span>
-              <span className="pill">Preço sugerido</span>
-            </div>
           </div>
 
           <div className="market-search-box seller-form-card exec-form-card">
@@ -67,11 +73,6 @@ export default function MarketIntelligenceClient() {
             >
               Atualizar leitura
             </button>
-
-            <div className="alert info">
-              Primeiro entenda o cenário. Depois decida se vale entrar, testar
-              ou ajustar preço e posicionamento.
-            </div>
           </div>
         </div>
       </section>
@@ -79,18 +80,19 @@ export default function MarketIntelligenceClient() {
       <section className="diagnostic-score-card card card-premium">
         <div className="card-head">
           <div className="min-w-0">
-            <h2>Resumo do cenário</h2>
+            <h2>Visão geral</h2>
             <p className="subtitle">
-              Veja rapidamente se esse nicho parece promissor, disputado ou mais arriscado para entrada.
+              Os sinais principais para decidir entrada.
             </p>
           </div>
 
-          <span className="badge ok">{analysis.category}</span>
+          <span className={`badge ${decisionTone}`}>{decisionLabel}</span>
         </div>
 
         <div className="diagnostic-score-grid">
           <div className="diagnostic-score-main tone-good">
-            <div className="diagnostic-score-label">Pontuação de oportunidade</div>
+            <div className="diagnostic-score-label">Oportunidade</div>
+
             <div className="diagnostic-score-value">
               {analysis.opportunityScore}/100
             </div>
@@ -99,15 +101,13 @@ export default function MarketIntelligenceClient() {
               <div
                 className="diagnostic-score-bar-fill tone-good"
                 style={{
-                  width: `${Math.max(0, Math.min(100, analysis.opportunityScore))}%`,
+                  width: `${Math.max(
+                    0,
+                    Math.min(100, analysis.opportunityScore)
+                  )}%`,
                 }}
               />
             </div>
-
-            <p className="diagnostic-score-text">
-              Essa leitura considera concorrência ativa, faixa de preço,
-              saturação e potencial de margem para ajudar você a decidir com mais clareza.
-            </p>
           </div>
 
           <div className="exec-kpi-grid diagnostic-kpis">
@@ -117,26 +117,15 @@ export default function MarketIntelligenceClient() {
             />
 
             <KpiCard
-              label="Anúncios ativos"
-              value={String(analysis.activeAds)}
-            />
-
-            <KpiCard
-              label="Margem alvo"
-              value={`${analysis.estimatedMargin}%`}
-              tone="good"
+              label="Concorrência"
+              value={`${analysis.activeAds} anúncios`}
+              tone={analysis.activeAds > 120 ? "warn" : "info"}
             />
 
             <KpiCard
               label="Saturação"
-              value={analysis.saturation}
+              value={capitalize(analysis.saturation)}
               tone={analysis.saturation === "alta" ? "warn" : "good"}
-            />
-
-            <KpiCard
-              label="Tendência"
-              value={analysis.trend}
-              tone="info"
             />
 
             <KpiCard
@@ -152,41 +141,68 @@ export default function MarketIntelligenceClient() {
         <div className="card card-premium exec-section-card">
           <div className="card-head">
             <div className="min-w-0">
-              <h2>Leitura para decisão</h2>
+              <h2>Decisão sugerida</h2>
               <p className="subtitle">
-                Use esse resumo para decidir se vale entrar, testar ou deixar esse nicho em observação.
+                Direção prática com base na leitura atual.
               </p>
             </div>
 
-            <span className="badge ok">{analysis.category}</span>
+            <span className={`badge ${decisionTone}`}>{analysis.category}</span>
           </div>
 
           <div className="market-summary-list">
-            {analysis.summary.map((item) => (
-              <div className="alert info" key={item}>
-                {item}
-              </div>
-            ))}
+            <div className="alert success">{decisionText}</div>
 
-            <div className="alert success">
-              Preço sugerido para teste: R$ {analysis.priceSuggestion.toFixed(2)}
+            <div className="alert info">
+              Faixa observada: R$ {analysis.minPrice.toFixed(2)} até R${" "}
+              {analysis.maxPrice.toFixed(2)}.
+            </div>
+
+            <div className="alert info">
+              Margem alvo estimada: {analysis.estimatedMargin}% com custo,
+              frete e taxa sob controle.
+            </div>
+
+            <div className="alert info">
+              Tendência atual: {capitalize(analysis.trend)}.
             </div>
           </div>
 
           <div className="market-price-band">
             <div className="ui-subcard">
-              <strong>Faixa de preço observada</strong>
-              <div style={{ marginTop: 8 }}>
-                R$ {analysis.minPrice.toFixed(2)} até R$ {analysis.maxPrice.toFixed(2)}
-              </div>
-            </div>
-
-            <div className="ui-subcard">
-              <strong>Preço sugerido para entrada</strong>
+              <strong>Preço sugerido</strong>
               <div style={{ marginTop: 8 }}>
                 R$ {analysis.priceSuggestion.toFixed(2)}
               </div>
             </div>
+
+            <div className="ui-subcard">
+              <strong>Ação recomendada</strong>
+              <div style={{ marginTop: 8 }}>{decisionLabel}</div>
+            </div>
+          </div>
+
+          <div
+            className="market-price-band"
+            style={{ marginTop: 16, gridTemplateColumns: "repeat(3, 1fr)" }}
+          >
+            <Link href="/dashboard/lucro/diagnostico" className="btn btn-dark">
+              Abrir diagnóstico
+            </Link>
+
+            <Link
+              href="/dashboard/operacao/simulador"
+              className="btn btn-ghost"
+            >
+              Abrir simulador
+            </Link>
+
+            <Link
+              href="/dashboard/produtos/catalogos"
+              className="btn btn-ghost"
+            >
+              Ver catálogos
+            </Link>
           </div>
         </div>
 
@@ -195,7 +211,7 @@ export default function MarketIntelligenceClient() {
             <div className="min-w-0">
               <h2>Concorrência observada</h2>
               <p className="subtitle">
-                Veja preço, reputação, volume e logística dos sellers que já estão disputando esse mercado.
+                Preço, reputação, volume e logística dos sellers já ativos.
               </p>
             </div>
 
@@ -230,40 +246,14 @@ export default function MarketIntelligenceClient() {
         </div>
       </section>
 
-      <section className="market-grid-2">
-        <div className="card card-premium exec-section-card">
-          <div className="card-head">
-            <div className="min-w-0">
-              <h2>Como agir com essa leitura</h2>
-              <p className="subtitle">
-                Transforme essa análise em uma decisão prática para sua operação.
-              </p>
-            </div>
-          </div>
-
-          <div className="market-summary-list">
-            <div className="alert success">
-              Teste o produto com preço próximo de R$ {analysis.priceSuggestion.toFixed(2)}
-              para validar aceitação sem pressionar demais a margem.
-            </div>
-
-            <div className="alert info">
-              Se a saturação estiver alta, sua diferenciação precisa aparecer no kit,
-              na oferta ou no posicionamento percebido.
-            </div>
-
-            <div className="alert info">
-              Nichos com margem alvo saudável costumam dar mais segurança para testar
-              sem travar tanto o caixa.
-            </div>
-          </div>
-        </div>
-
-        <ProUpgradeButton
-          title="Quer cruzar mercado com lucro real e decisão de compra?"
-          subtitle="No PRO você combina leitura de mercado com DRE, catálogos e simulador para decidir melhor onde vale entrar."
-        />
-      </section>
+      {plan === "free" && (
+        <section className="market-grid-2">
+          <ProUpgradeButton
+            title="Quer cruzar mercado com lucro real e decisão de compra?"
+            subtitle="No PRO você combina leitura de mercado com DRE, catálogos e simulador para decidir melhor onde vale entrar."
+          />
+        </section>
+      )}
     </div>
   );
 }
@@ -285,6 +275,49 @@ function KpiCard({
   );
 }
 
+function getDecisionLabel(score: number) {
+  if (score >= 80) return "Entrar";
+  if (score >= 60) return "Testar";
+  if (score >= 40) return "Cautela";
+  return "Evitar";
+}
 
+function getDecisionTone(score: number) {
+  if (score >= 80) return "ok";
+  if (score >= 60) return "pro";
+  if (score >= 40) return "warn";
+  return "danger";
+}
 
+function getDecisionText({
+  score,
+  saturation,
+  priceSuggestion,
+}: {
+  score: number;
+  saturation: string;
+  priceSuggestion: number;
+}) {
+  if (score >= 80) {
+    return `Boa oportunidade de entrada. Teste próximo de R$ ${priceSuggestion.toFixed(
+      2
+    )} e foque em execução forte.`;
+  }
 
+  if (score >= 60) {
+    return `Mercado viável, mas exige diferenciação. Teste próximo de R$ ${priceSuggestion.toFixed(
+      2
+    )} com controle de margem.`;
+  }
+
+  if (score >= 40) {
+    return `Entrada com cautela. A saturação está ${saturation} e o produto precisa de oferta bem ajustada para performar.`;
+  }
+
+  return "Mercado mais apertado neste momento. Melhor observar ou buscar alternativa com menos pressão competitiva.";
+}
+
+function capitalize(value: string) {
+  if (!value) return value;
+  return value.charAt(0).toUpperCase() + value.slice(1);
+}

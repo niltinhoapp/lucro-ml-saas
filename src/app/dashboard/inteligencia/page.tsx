@@ -1,18 +1,22 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
 import { createMarketAnalysis } from "@/lib/market/mock";
 import ProUpgradeButton from "@/components/pro/ProUpgradeButton";
 
+type Plan = "free" | "pro" | "plus";
 type KpiTone = "good" | "warn" | "info";
 
-export default function MarketIntelligenceClient() {
+export default function MarketIntelligenceClient({
+  plan = "pro",
+}: {
+  plan?: Plan;
+}) {
   const [query, setQuery] = useState("escova secadora profissional");
   const [draft, setDraft] = useState("escova secadora profissional");
 
-  const analysis = useMemo(() => {
-    return createMarketAnalysis(query);
-  }, [query]);
+  const analysis = useMemo(() => createMarketAnalysis(query), [query]);
 
   function atualizar() {
     const next = draft.trim();
@@ -20,120 +24,88 @@ export default function MarketIntelligenceClient() {
     setQuery(next);
   }
 
+  const score = analysis.opportunityScore;
+  const decisionLabel = getDecisionLabel(score);
+  const decisionTone = getDecisionTone(score);
+
   return (
     <div className="lm-opintel-page">
+
+      {/* HERO */}
       <section className="lm-opintel-hero">
         <div className="lm-opintel-hero__content">
           <div className="lm-opintel-hero__top">
+
             <div>
-              <span className="lm-opintel-chip">Inteligência de mercado</span>
+              <span className="lm-opintel-chip">Inteligência</span>
 
               <h1 className="lm-opintel-title">
-                Veja se esse produto ainda tem espaço para entrada
+                Decida antes de comprar
               </h1>
 
               <p className="lm-opintel-subtitle">
-                Digite um produto e receba uma leitura rápida de preço,
-                concorrência, saturação e potencial antes de decidir se vale
-                comprar, testar ou ajustar sua estratégia no Mercado Livre.
+                Veja rapidamente se vale entrar, testar ou evitar.
               </p>
-
-              <div className="lm-opintel-proof">
-                <span>Preço médio</span>
-                <span>Concorrência</span>
-                <span>Saturação</span>
-                <span>Preço sugerido</span>
-              </div>
             </div>
 
             <div className="lm-opintel-search-card">
               <div className="lm-opintel-field">
-                <label htmlFor="query" className="lm-opintel-label">
-                  Produto
-                </label>
+                <label className="lm-opintel-label">Produto</label>
 
                 <input
-                  id="query"
                   className="lm-opintel-input"
                   value={draft}
                   onChange={(e) => setDraft(e.target.value)}
-                  placeholder="Ex.: escova secadora profissional"
+                  placeholder="Ex: escova secadora"
                 />
               </div>
 
               <button
-                type="button"
                 className="lm-opintel-submit"
                 onClick={atualizar}
               >
                 Atualizar leitura
               </button>
-
-              <div className="lm-opintel-note">
-                Primeiro entenda o cenário. Depois decida se vale entrar, testar
-                ou ajustar preço e posicionamento.
-              </div>
             </div>
+
           </div>
         </div>
       </section>
 
+      {/* KPIs */}
       <section className="lm-opintel-result-card">
         <div className="lm-opintel-card-head">
-          <div>
-            <h2>Resumo do cenário</h2>
-            <p className="lm-opintel-card-subtitle">
-              Veja rapidamente se esse nicho parece promissor, disputado ou mais
-              arriscado para entrada.
-            </p>
-          </div>
+          <h2>Visão geral</h2>
 
-          <span className="lm-opintel-badge ok">{analysis.category}</span>
+          <span className={`lm-opintel-badge ${decisionTone}`}>
+            {decisionLabel}
+          </span>
         </div>
 
         <div className="lm-opintel-score-grid">
+
           <div className="lm-opintel-score-main">
-            <div className="lm-opintel-score-label">
-              Pontuação de oportunidade
-            </div>
+            <div className="lm-opintel-score-label">Oportunidade</div>
+
             <div className="lm-opintel-score-value">
-              {analysis.opportunityScore}/100
+              {score}/100
             </div>
 
             <div className="lm-opintel-score-bar">
               <div
                 className="lm-opintel-score-bar-fill"
-                style={{
-                  width: `${Math.max(
-                    0,
-                    Math.min(100, analysis.opportunityScore)
-                  )}%`,
-                }}
+                style={{ width: `${score}%` }}
               />
             </div>
-
-            <p className="lm-opintel-score-text">
-              Essa leitura considera concorrência ativa, faixa de preço,
-              saturação e potencial de margem para ajudar você a decidir com
-              mais clareza.
-            </p>
           </div>
 
           <div className="lm-opintel-kpi-grid">
-            <KpiCard
-              label="Preço médio"
-              value={`R$ ${analysis.avgPrice.toFixed(2)}`}
-            />
+            <KpiCard label="Preço médio" value={`R$ ${analysis.avgPrice.toFixed(2)}`} />
 
             <KpiCard
-              label="Anúncios ativos"
-              value={String(analysis.activeAds)}
-            />
-
-            <KpiCard
-              label="Margem alvo"
-              value={`${analysis.estimatedMargin}%`}
-              tone="good"
+              label="Concorrência"
+              value={`${analysis.activeAds}`}
+              tone={analysis.activeAds > 120 ? "warn" : "info"}
             />
 
             <KpiCard
@@ -141,8 +113,6 @@ export default function MarketIntelligenceClient() {
               value={analysis.saturation}
               tone={analysis.saturation === "alta" ? "warn" : "good"}
             />
-
-            <KpiCard label="Tendência" value={analysis.trend} tone="info" />
 
             <KpiCard
               label="Preço sugerido"
@@ -153,60 +123,52 @@ export default function MarketIntelligenceClient() {
         </div>
       </section>
 
+      {/* DECISÃO */}
       <section className="lm-opintel-grid-2">
+
         <div className="lm-opintel-section-card">
           <div className="lm-opintel-card-head">
-            <div>
-              <h2>Leitura para decisão</h2>
-              <p className="lm-opintel-card-subtitle">
-                Use esse resumo para decidir se vale entrar, testar ou deixar
-                esse nicho em observação.
-              </p>
-            </div>
-
-            <span className="lm-opintel-badge ok">{analysis.category}</span>
+            <h2>Decisão sugerida</h2>
           </div>
 
           <div className="lm-opintel-summary-list">
-            {analysis.summary.map((item) => (
-              <div className="lm-opintel-alert info" key={item}>
-                {item}
-              </div>
-            ))}
 
             <div className="lm-opintel-alert success">
-              Preço sugerido para teste: R${" "}
-              {analysis.priceSuggestion.toFixed(2)}
+              {getDecisionText(score, analysis.saturation, analysis.priceSuggestion)}
             </div>
+
+            <div className="lm-opintel-alert info">
+              Faixa: R$ {analysis.minPrice.toFixed(2)} até R$ {analysis.maxPrice.toFixed(2)}
+            </div>
+
+            <div className="lm-opintel-alert info">
+              Margem estimada: {analysis.estimatedMargin}%
+            </div>
+
           </div>
 
-          <div className="lm-opintel-price-band">
-            <div className="lm-opintel-subcard">
-              <strong>Faixa de preço observada</strong>
-              <div>
-                R$ {analysis.minPrice.toFixed(2)} até R${" "}
-                {analysis.maxPrice.toFixed(2)}
-              </div>
-            </div>
+          {/* AÇÕES */}
+          <div className="lm-opintel-actions">
 
-            <div className="lm-opintel-subcard">
-              <strong>Preço sugerido para entrada</strong>
-              <div>R$ {analysis.priceSuggestion.toFixed(2)}</div>
-            </div>
+            <Link href="/dashboard/lucro/diagnostico" className="btn btn-dark">
+              Diagnóstico
+            </Link>
+
+            <Link href="/dashboard/operacao/simulador" className="btn btn-ghost">
+              Simular
+            </Link>
+
+            <Link href="/dashboard/produtos/catalogos" className="btn btn-ghost">
+              Catálogos
+            </Link>
+
           </div>
         </div>
 
+        {/* TABELA */}
         <div className="lm-opintel-section-card">
           <div className="lm-opintel-card-head">
-            <div>
-              <h2>Concorrência observada</h2>
-              <p className="lm-opintel-card-subtitle">
-                Veja preço, reputação, volume e logística dos sellers que já
-                estão disputando esse mercado.
-              </p>
-            </div>
-
-            <span className="lm-opintel-badge pro">Radar seller</span>
+            <h2>Concorrência</h2>
           </div>
 
           <div className="lm-opintel-table-wrap">
@@ -235,44 +197,19 @@ export default function MarketIntelligenceClient() {
             </table>
           </div>
         </div>
+
       </section>
 
-      <section className="lm-opintel-grid-2">
-        <div className="lm-opintel-section-card">
-          <div className="lm-opintel-card-head">
-            <div>
-              <h2>Como agir com essa leitura</h2>
-              <p className="lm-opintel-card-subtitle">
-                Transforme essa análise em uma decisão prática para sua
-                operação.
-              </p>
-            </div>
-          </div>
+      {/* UPGRADE (APENAS FREE) */}
+      {plan === "free" && (
+        <section className="lm-opintel-grid-2">
+          <ProUpgradeButton
+            title="Quer decidir com lucro real?"
+            subtitle="No PRO você combina mercado + DRE + simulador."
+          />
+        </section>
+      )}
 
-          <div className="lm-opintel-summary-list">
-            <div className="lm-opintel-alert success">
-              Teste o produto com preço próximo de R${" "}
-              {analysis.priceSuggestion.toFixed(2)} para validar aceitação sem
-              pressionar demais a margem.
-            </div>
-
-            <div className="lm-opintel-alert info">
-              Se a saturação estiver alta, sua diferenciação precisa aparecer no
-              kit, na oferta ou no posicionamento percebido.
-            </div>
-
-            <div className="lm-opintel-alert info">
-              Nichos com margem alvo saudável costumam dar mais segurança para
-              testar sem travar tanto o caixa.
-            </div>
-          </div>
-        </div>
-
-        <ProUpgradeButton
-          title="Quer cruzar mercado com lucro real e decisão de compra?"
-          subtitle="No PRO você combina leitura de mercado com DRE, catálogos e simulador para decidir melhor onde vale entrar."
-        />
-      </section>
     </div>
   );
 }
@@ -292,4 +229,34 @@ function KpiCard({
       <div className="lm-opintel-kpi-value">{value}</div>
     </div>
   );
+}
+
+function getDecisionLabel(score: number) {
+  if (score >= 80) return "Entrar";
+  if (score >= 60) return "Testar";
+  if (score >= 40) return "Cautela";
+  return "Evitar";
+}
+
+function getDecisionTone(score: number) {
+  if (score >= 80) return "ok";
+  if (score >= 60) return "pro";
+  if (score >= 40) return "warn";
+  return "danger";
+}
+
+function getDecisionText(score: number, saturation: string, price: number) {
+  if (score >= 80) {
+    return `Boa oportunidade. Teste próximo de R$ ${price.toFixed(2)}.`;
+  }
+
+  if (score >= 60) {
+    return `Viável, mas exige execução. Teste próximo de R$ ${price.toFixed(2)}.`;
+  }
+
+  if (score >= 40) {
+    return `Cautela. Saturação ${saturation}. Precisa diferenciação.`;
+  }
+
+  return "Evitar. Mercado pressionado.";
 }

@@ -1,0 +1,28 @@
+/* =========================================================
+   DASHBOARD SHELL — CONTEÚDO / ISOLADO / SEGURO
+   ========================================================= */
+
+.lm-dashboard-shell {
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.lm-dashboard-shell__page {
+  min-width: 0;
+  width: 100%;
+  display: grid;
+  gap: 20px;
+}
+
+/* opcional: se quiser um respiro padrão do conteúdo */
+.lm-dashboard-shell__page > * {
+  min-width: 0;
+}
+
+@media (max-width: 980px) {
+  .lm-dashboard-shell {
+    width: 100%;
+  }
+}

@@ -12,12 +12,12 @@ import {
   LayoutDashboard,
   Lock,
   ShoppingBag,
+  Sparkles,
   Wallet,
 } from "lucide-react";
 import UpgradeModal from "@/ui/UpgradeModal";
 
 export type UserPlan = "free" | "preview" | "pro" | "plus";
-
 type PlanGate = "pro" | "plus";
 
 export type SidebarItem = {
@@ -54,10 +54,14 @@ function isActive(pathname: string, href: string) {
 
 function shouldShowBadge(currentPlan: UserPlan, requiredPlan?: PlanGate) {
   if (!requiredPlan) return false;
-  if (requiredPlan === "pro") {
-    return currentPlan !== "pro" && currentPlan !== "plus";
+
+  if (currentPlan === "plus") return false;
+
+  if (currentPlan === "pro") {
+    return requiredPlan === "plus";
   }
-  return currentPlan !== "plus";
+
+  return true;
 }
 
 function getUpgradeCopy(label: string, plan: PlanGate) {
@@ -91,10 +95,6 @@ function getUpgradeCopy(label: string, plan: PlanGate) {
       description:
         "Organize entradas e saídas para operar com mais controle.",
     },
-    "Full vs Flex": {
-      title: "Desbloqueie Full vs Flex",
-      description: "Compare cenários logísticos antes de decidir.",
-    },
     Simulador: {
       title: "Desbloqueie Simulador",
       description: "Teste a compra antes de colocar dinheiro em estoque.",
@@ -102,10 +102,6 @@ function getUpgradeCopy(label: string, plan: PlanGate) {
     Kits: {
       title: "Desbloqueie Kits",
       description: "Monte combinações para melhorar ticket e giro.",
-    },
-    Inteligência: {
-      title: "Desbloqueie Inteligência",
-      description: "Receba apoio para priorizar ações com mais visão.",
     },
     "Integrações ML": {
       title: "Desbloqueie Integrações ML",
@@ -115,7 +111,7 @@ function getUpgradeCopy(label: string, plan: PlanGate) {
 
   return (
     map[label] ?? {
-      title: `Desbloqueie este recurso no plano ${plan.toUpperCase()}.`,
+      title: `Desbloqueie este recurso no plano ${plan.toUpperCase()}`,
       description: "Faça upgrade para liberar esta funcionalidade.",
     }
   );
@@ -151,7 +147,12 @@ export default function SidebarNavClient({
     }));
 
   const dashboardActive = useMemo(
-    () => isActive(pathname, "/dashboard"),
+    () => pathname === "/dashboard",
+    [pathname]
+  );
+
+  const intelligenceActive = useMemo(
+    () => isActive(pathname, "/dashboard/inteligencia"),
     [pathname]
   );
 
@@ -160,7 +161,11 @@ export default function SidebarNavClient({
       <nav className="sidebar-nav-modular" aria-label="Navegação do dashboard">
         <Link
           href="/dashboard"
-          className={["sidebar-link-main", dashboardActive ? "is-active" : ""].join(" ")}
+          prefetch
+          className={[
+            "sidebar-link-main",
+            dashboardActive ? "is-active" : "",
+          ].join(" ")}
         >
           <div className="sidebar-link-main-icon" aria-hidden="true">
             <LayoutDashboard size={18} />
@@ -220,6 +225,7 @@ export default function SidebarNavClient({
                             "is-locked",
                             active ? "is-active" : "",
                           ].join(" ")}
+                          title={`Disponível no plano ${requiredPlan.toUpperCase()}`}
                           onClick={() =>
                             setModalState({
                               open: true,
@@ -230,7 +236,9 @@ export default function SidebarNavClient({
                             })
                           }
                         >
-                          <span className="sidebar-item-label">{item.label}</span>
+                          <span className="sidebar-item-label">
+                            {item.label}
+                          </span>
 
                           <div className="sidebar-sub-link-side">
                             {showBadge && (
@@ -245,6 +253,7 @@ export default function SidebarNavClient({
                                 {requiredPlan.toUpperCase()}
                               </span>
                             )}
+
                             <Lock size={14} />
                           </div>
                         </button>
@@ -255,6 +264,7 @@ export default function SidebarNavClient({
                       <Link
                         key={item.href}
                         href={item.href}
+                        prefetch
                         className={[
                           "sidebar-sub-link",
                           active ? "is-active" : "",
@@ -262,18 +272,22 @@ export default function SidebarNavClient({
                       >
                         <span className="sidebar-item-label">{item.label}</span>
 
-                        {showBadge && (
-                          <span
-                            className={[
-                              "sidebar-item-badge",
-                              item.requiredPlan === "plus"
-                                ? "is-plus"
-                                : "is-pro",
-                            ].join(" ")}
-                          >
-                            {item.requiredPlan?.toUpperCase()}
-                          </span>
-                        )}
+                        <div className="sidebar-sub-link-side">
+                          {showBadge && item.requiredPlan && (
+                            <span
+                              className={[
+                                "sidebar-item-badge",
+                                item.requiredPlan === "plus"
+                                  ? "is-plus"
+                                  : "is-pro",
+                              ].join(" ")}
+                            >
+                              {item.requiredPlan.toUpperCase()}
+                            </span>
+                          )}
+
+                          <ChevronRight size={14} />
+                        </div>
                       </Link>
                     );
                   })}
@@ -282,6 +296,25 @@ export default function SidebarNavClient({
             );
           })}
         </div>
+
+        <Link
+          href="/dashboard/inteligencia"
+          prefetch
+          className={[
+            "sidebar-link-main",
+            intelligenceActive ? "is-active" : "",
+          ].join(" ")}
+        >
+          <div className="sidebar-link-main-icon" aria-hidden="true">
+            <Sparkles size={18} />
+          </div>
+
+          <div className="sidebar-link-main-copy">
+            <div className="sidebar-link-main-title">Inteligência</div>
+          </div>
+
+          <ChevronRight size={16} className="sidebar-link-main-trailing" />
+        </Link>
       </nav>
 
       <UpgradeModal

@@ -1,16 +1,34 @@
-"use client";
+import type { ReactNode } from "react";
 
-import { ReactNode } from "react";
+type CardProps = {
+  title?: string;
+  subtitle?: string;
+  children: ReactNode;
+  actions?: ReactNode;
+  className?: string;
+};
 
-export default function Header({ children }: { children?: ReactNode }) {
+export default function Card({
+  title,
+  subtitle,
+  children,
+  actions,
+  className,
+}: CardProps) {
   return (
-    <header className="flex justify-between items-center p-4 bg-white shadow mb-4 rounded">
-      <h1 className="text-xl font-bold text-blue-600">Lucro ML Dashboard</h1>
-      <div>{children}</div>
-    </header>
+    <section className={["lm-card", className].filter(Boolean).join(" ")}>
+      {(title || subtitle || actions) && (
+        <div className="lm-card__head">
+          <div className="lm-card__copy">
+            {title ? <h3 className="lm-card__title">{title}</h3> : null}
+            {subtitle ? <p className="lm-card__subtitle">{subtitle}</p> : null}
+          </div>
+
+          {actions ? <div className="lm-card__actions">{actions}</div> : null}
+        </div>
+      )}
+
+      <div className="lm-card__body">{children}</div>
+    </section>
   );
 }
-
-
-
-
