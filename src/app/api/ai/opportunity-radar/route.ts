@@ -5,6 +5,9 @@ import { fetchMlMe, refreshMlToken } from "@/lib/mercadolivre/client";
 import { saveRadarSearch } from "@/features/produtos/radar/server/saveRadarSearch";
 import { generateRadarRecommendation } from "@/features/strategies/server/generateRadarRecommendation";
 
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
 const ML_API_BASE = "https://api.mercadolibre.com";
 const MLB_SITE_ID = "MLB";
 const ML_TIMEOUT_MS = 20_000;
@@ -54,7 +57,6 @@ type ValidMlSession = {
   accessToken: string;
   sellerNickname: string | null;
   sellerMlUserId: number | null;
-  refreshed: boolean;
 };
 
 type RadarOpportunity = {
@@ -114,13 +116,20 @@ type RadarPayload = {
   }[];
 };
 
+type ErrorPayload = {
+  ok: false;
+  error: string;
+  detail?: string;
+  traceId: string;
+  blockedByPolicy?: boolean;
+};
+
 function getTraceId() {
   return `mlrad_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
 }
 
 function safeErrorMessage(error: unknown) {
   if (error instanceof Error) return error.message;
-
   try {
     return JSON.stringify(error);
   } catch {
@@ -128,16 +137,11 @@ function safeErrorMessage(error: unknown) {
   }
 }
 
-function logStep(
-  traceId: string,
-  step: string,
-  data?: Record<string, unknown>
-) {
+function logStep(traceId: string, step: string, data?: Record<string, unknown>) {
   if (data) {
     console.log(`[radar ml][${traceId}] ${step}`, data);
     return;
   }
-
   console.log(`[radar ml][${traceId}] ${step}`);
 }
 
@@ -153,12 +157,31 @@ function logError(
   });
 }
 
+function jsonError(
+  traceId: string,
+  status: number,
+  error: string,
+  detail?: string,
+  extra?: Omit<Partial<ErrorPayload>, "ok" | "error" | "detail" | "traceId">
+) {
+  return NextResponse.json(
+    {
+      ok: false,
+      error,
+      detail,
+      traceId,
+      ...(extra ?? {}),
+    } satisfies ErrorPayload,
+    { status }
+  );
+}
+
 function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value));
 }
 
 function toMoney(value: number) {
-  return Number(value.toFixed(2));
+  return Number((Number.isFinite(value) ? value : 0).toFixed(2));
 }
 
 function normalizeKeyword(value: string) {
@@ -243,7 +266,6 @@ async function mlGet<T>(
 
   logStep(traceId, "calling mercado livre endpoint", {
     path,
-    url: url.toString(),
     hasAccessToken: Boolean(accessToken),
     sendingAuthorization: Boolean(accessToken && isPrivateUsersEndpoint),
   });
@@ -265,7 +287,7 @@ async function mlGet<T>(
       path,
       status: response.status,
       ok: response.ok,
-      bodyPreview: raw.slice(0, 600),
+      bodyPreview: raw.slice(0, 400),
     });
 
     if (!response.ok) {
@@ -289,7 +311,9 @@ async function mlGet<T>(
         );
       }
 
-      throw new Error(`Mercado Livre ${response.status}: ${raw || response.statusText}`);
+      throw new Error(
+        `Mercado Livre ${response.status}: ${raw || response.statusText}`
+      );
     }
 
     return JSON.parse(raw) as T;
@@ -398,7 +422,6 @@ async function ensureValidMlSession(
   connection: MlConnectionRow
 ): Promise<ValidMlSession> {
   let accessToken = connection.access_token;
-  let refreshed = false;
 
   if (!connection.is_active || !connection.access_token) {
     throw new Error("Conexão ML inativa ou sem access_token");
@@ -421,7 +444,6 @@ async function ensureValidMlSession(
       connection
     );
     accessToken = refreshedData.accessToken;
-    refreshed = true;
   }
 
   try {
@@ -463,7 +485,6 @@ async function ensureValidMlSession(
       accessToken,
       sellerNickname,
       sellerMlUserId,
-      refreshed,
     };
   } catch (firstError) {
     logError(traceId, "first ml session validation failed", firstError, {
@@ -478,7 +499,6 @@ async function ensureValidMlSession(
     );
 
     accessToken = refreshedData.accessToken;
-    refreshed = true;
 
     const me = await fetchMlMe(accessToken);
 
@@ -518,7 +538,6 @@ async function ensureValidMlSession(
       accessToken,
       sellerNickname,
       sellerMlUserId,
-      refreshed,
     };
   }
 }
@@ -548,6 +567,7 @@ function buildRadarPayload(params: {
     .map((item) => Number(item.price ?? 0))
     .filter((value) => value > 0);
 
+  const safePrices = prices.length ? prices : [0];
   const solds = searchResults.map((item) => Number(item.sold_quantity ?? 0));
   const freeShippingCount = searchResults.filter(
     (item) => item.shipping?.free_shipping
@@ -604,10 +624,13 @@ function buildRadarPayload(params: {
     ) * 100
   );
 
-  const avgPriceBase = prices.reduce((a, b) => a + b, 0) / prices.length;
+  const avgPriceBase =
+    safePrices.reduce((a, b) => a + b, 0) / Math.max(1, safePrices.length);
 
-  const priceSpreadRatio =
-    (Math.max(...prices) - Math.min(...prices)) / Math.max(1, avgPriceBase);
+  const minPrice = Math.min(...safePrices);
+  const maxPrice = Math.max(...safePrices);
+
+  const priceSpreadRatio = (maxPrice - minPrice) / Math.max(1, avgPriceBase);
 
   const opportunityScore = Math.round(
     clamp(
@@ -684,8 +707,8 @@ function buildRadarPayload(params: {
       activeListings,
       uniqueSellers,
       avgPrice: toMoney(avgPriceBase),
-      minPrice: toMoney(Math.min(...prices)),
-      maxPrice: toMoney(Math.max(...prices)),
+      minPrice: toMoney(minPrice),
+      maxPrice: toMoney(maxPrice),
       avgSoldQuantity: Math.round(
         solds.reduce((a, b) => a + b, 0) / Math.max(1, solds.length)
       ),
@@ -703,9 +726,9 @@ function buildRadarPayload(params: {
     highlights: [
       `${activeListings.toLocaleString("pt-BR")} anúncios ativos encontrados para “${produto}”.`,
       `${uniqueSellers.toLocaleString("pt-BR")} sellers distintos apareceram na amostra principal.`,
-      `Faixa de preço observada: R$ ${toMoney(Math.min(...prices)).toLocaleString("pt-BR", {
+      `Faixa de preço observada: R$ ${toMoney(minPrice).toLocaleString("pt-BR", {
         minimumFractionDigits: 2,
-      })} até R$ ${toMoney(Math.max(...prices)).toLocaleString("pt-BR", {
+      })} até R$ ${toMoney(maxPrice).toLocaleString("pt-BR", {
         minimumFractionDigits: 2,
       })}.`,
       `Frete grátis aparece em ${Math.round(
@@ -726,119 +749,110 @@ function buildRadarPayload(params: {
   };
 }
 
+async function validateRequestContext(traceId: string) {
+  const supabase = await createServerClient();
+
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+
+  if (userError || !user) {
+    logError(traceId, "user not authenticated", userError ?? "No user");
+    return {
+      ok: false as const,
+      response: jsonError(traceId, 401, "Faça login para usar o radar."),
+    };
+  }
+
+  const ent = await getEntitlements(supabase, user.id);
+
+  if (!ent.isPlus) {
+    return {
+      ok: false as const,
+      response: jsonError(
+        traceId,
+        403,
+        "O Radar ML está disponível apenas no plano PLUS."
+      ),
+    };
+  }
+
+  return {
+    ok: true as const,
+    supabase,
+    user,
+  };
+}
+
+async function loadActiveMlConnection(
+  traceId: string,
+  supabase: Awaited<ReturnType<typeof createServerClient>>,
+  userId: string
+) {
+  const { data: connection, error } = await supabase
+    .from("ml_connections")
+    .select(
+      "id, access_token, refresh_token, expires_at, is_active, ml_nickname, ml_user_id, updated_at"
+    )
+    .eq("user_id", userId)
+    .eq("is_active", true)
+    .order("updated_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (error) {
+    logError(traceId, "failed to load ml connection", error, { userId });
+    throw new Error(`ML_CONNECTION_LOAD_FAILED: ${error.message}`);
+  }
+
+  return connection as MlConnectionRow | null;
+}
+
 export async function POST(req: Request) {
   const traceId = getTraceId();
 
   try {
     logStep(traceId, "route started");
 
-    const supabase = await createServerClient();
+    const context = await validateRequestContext(traceId);
+    if (!context.ok) return context.response;
 
-    const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser();
-
-    if (userError || !user) {
-      logError(traceId, "user not authenticated", userError ?? "No user");
-
-      return NextResponse.json(
-        {
-          ok: false,
-          error: "Faça login para usar o radar.",
-          traceId,
-        },
-        { status: 401 }
-      );
-    }
-
-    const ent = await getEntitlements(supabase, user.id);
-
-    if (!ent.isPlus) {
-      return NextResponse.json(
-        {
-          ok: false,
-          error: "O Radar ML está disponível apenas no plano PLUS.",
-          traceId,
-        },
-        { status: 403 }
-      );
-    }
+    const { supabase, user } = context;
 
     const body = await req.json().catch(() => ({}));
     const produto = String(body?.produto ?? "").trim();
 
     if (!produto) {
-      return NextResponse.json(
-        {
-          ok: false,
-          error: "Informe um produto para consultar.",
-          traceId,
-        },
-        { status: 400 }
-      );
+      return jsonError(traceId, 400, "Informe um produto para consultar.");
     }
 
-    const { data: connection, error: connectionError } = await supabase
-      .from("ml_connections")
-      .select(
-        "id, access_token, refresh_token, expires_at, is_active, ml_nickname, ml_user_id, updated_at"
-      )
-      .eq("user_id", user.id)
-      .eq("is_active", true)
-      .order("updated_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
+    const connection = await loadActiveMlConnection(traceId, supabase, user.id);
 
-    const typedConnection = connection as MlConnectionRow | null;
-
-    if (connectionError) {
-      logError(traceId, "failed to load ml connection", connectionError, {
-        userId: user.id,
-      });
-
-      return NextResponse.json(
-        {
-          ok: false,
-          error: "Não foi possível validar a conexão da sua conta Mercado Livre.",
-          detail: connectionError.message,
-          traceId,
-        },
-        { status: 500 }
-      );
-    }
-
-    if (!typedConnection?.is_active || !typedConnection?.access_token) {
-      return NextResponse.json(
-        {
-          ok: false,
-          error: "Conecte sua conta do Mercado Livre antes de usar o Radar ML.",
-          traceId,
-        },
-        { status: 400 }
+    if (!connection?.is_active || !connection?.access_token) {
+      return jsonError(
+        traceId,
+        400,
+        "Conecte sua conta do Mercado Livre antes de usar o Radar ML."
       );
     }
 
     let session: ValidMlSession;
 
     try {
-      session = await ensureValidMlSession(traceId, supabase, typedConnection);
+      session = await ensureValidMlSession(traceId, supabase, connection);
     } catch (error) {
       const detail = safeErrorMessage(error);
 
       logError(traceId, "ml session validation failed", error, {
-        connectionId: typedConnection.id,
+        connectionId: connection.id,
       });
 
-      return NextResponse.json(
-        {
-          ok: false,
-          error:
-            "Não foi possível validar sua conta do Mercado Livre. Reconecte e tente novamente.",
-          detail,
-          traceId,
-        },
-        { status: 403 }
+      return jsonError(
+        traceId,
+        403,
+        "Não foi possível validar sua conta do Mercado Livre. Reconecte e tente novamente.",
+        detail
       );
     }
 
@@ -857,27 +871,20 @@ export async function POST(req: Request) {
       const detail = safeErrorMessage(error);
 
       if (detail.includes("ML_POLICY_BLOCK")) {
-        return NextResponse.json(
-          {
-            ok: false,
-            error:
-              "O Mercado Livre bloqueou esta consulta pela política da API. Essa busca pública não está autorizada no ambiente atual.",
-            detail,
-            traceId,
-            blockedByPolicy: true,
-          },
-          { status: 502 }
+        return jsonError(
+          traceId,
+          502,
+          "O Mercado Livre bloqueou esta consulta pela política da API. Essa busca pública não está autorizada no ambiente atual.",
+          detail,
+          { blockedByPolicy: true }
         );
       }
 
-      return NextResponse.json(
-        {
-          ok: false,
-          error: "Não foi possível consultar os anúncios no Mercado Livre.",
-          detail,
-          traceId,
-        },
-        { status: 502 }
+      return jsonError(
+        traceId,
+        502,
+        "Não foi possível consultar os anúncios no Mercado Livre.",
+        detail
       );
     }
 
@@ -886,13 +893,10 @@ export async function POST(req: Request) {
     );
 
     if (!searchResults.length) {
-      return NextResponse.json(
-        {
-          ok: false,
-          error: "Nenhum anúncio encontrado para essa busca no Mercado Livre.",
-          traceId,
-        },
-        { status: 404 }
+      return jsonError(
+        traceId,
+        404,
+        "Nenhum anúncio encontrado para essa busca no Mercado Livre."
       );
     }
 
@@ -998,16 +1002,11 @@ export async function POST(req: Request) {
 
     console.error(`[radar ml][fatal][${traceId}]`, detail);
 
-    return NextResponse.json(
-      {
-        ok: false,
-        error: "Não foi possível consultar o Mercado Livre agora.",
-        detail,
-        traceId,
-      },
-      { status: 500 }
+    return jsonError(
+      traceId,
+      500,
+      "Não foi possível consultar o Mercado Livre agora.",
+      detail
     );
   }
 }
-
-

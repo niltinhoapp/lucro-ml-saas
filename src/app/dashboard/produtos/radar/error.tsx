@@ -11,9 +11,11 @@ export default function DashboardProdutosRadarError({
 }: RadarErrorPageProps) {
   return (
     <div className="lm-radar-route">
-      <div className="lm-radar-alert is-error">
-        <strong>Não foi possível carregar o Radar ML.</strong>
-        <p>{error.message || "Ocorreu um erro inesperado."}</p>
+      <div className="lm-radar-error-card">
+        <div className="lm-radar-error-card__head">
+          <strong>Não foi possível carregar o Radar ML.</strong>
+          <p>{error.message || "Ocorreu um erro inesperado."}</p>
+        </div>
 
         <button
           type="button"
@@ -26,5 +28,3 @@ export default function DashboardProdutosRadarError({
     </div>
   );
 }
-
-

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Package, Radar, BookOpen, FileText } from "lucide-react";
+import { Radar, BookOpen, FileText } from "lucide-react";
 
 export default function ProdutosPage() {
   return (
@@ -7,31 +7,43 @@ export default function ProdutosPage() {
       <header className="lm-produtos-header">
         <h1>Produtos</h1>
         <p>
-          Escolha o que você quer analisar. Aqui é onde você decide o que comprar,
-          testar ou escalar.
+          Escolha o que você quer analisar. Aqui é onde você decide o que
+          comprar, testar ou escalar.
         </p>
       </header>
 
       <section className="lm-produtos-grid">
         <Link href="/dashboard/produtos/radar" className="lm-produtos-card">
-          <Radar size={22} />
-          <div>
+          <span className="lm-produtos-card__icon">
+            <Radar size={22} />
+          </span>
+
+          <div className="lm-produtos-card__copy">
             <strong>Radar ML</strong>
             <p>Descubra oportunidades com base em dados reais.</p>
           </div>
         </Link>
 
         <Link href="/dashboard/produtos/catalogos" className="lm-produtos-card">
-          <FileText size={22} />
-          <div>
+          <span className="lm-produtos-card__icon">
+            <FileText size={22} />
+          </span>
+
+          <div className="lm-produtos-card__copy">
             <strong>Catálogos</strong>
             <p>Analise PDFs de fornecedores e identifique produtos.</p>
           </div>
         </Link>
 
-        <Link href="/dashboard/produtos/estrategias" className="lm-produtos-card">
-          <BookOpen size={22} />
-          <div>
+        <Link
+          href="/dashboard/produtos/estrategias"
+          className="lm-produtos-card"
+        >
+          <span className="lm-produtos-card__icon">
+            <BookOpen size={22} />
+          </span>
+
+          <div className="lm-produtos-card__copy">
             <strong>Estratégias</strong>
             <p>Decida como vender melhor com base no cenário.</p>
           </div>
@@ -40,5 +52,3 @@ export default function ProdutosPage() {
     </div>
   );
 }
-
-
