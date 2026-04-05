@@ -317,14 +317,16 @@ export async function fetchMlMe(accessToken: string): Promise<MlUserProfile> {
   }
 
 }
-  export async function mlFetch<T = unknown>(
+  export type MlFetchOptions<TBody = unknown> = {
+  accessToken?: string;
+  method?: string;
+  body?: TBody;
+};
+
+export async function mlFetch<TResponse = unknown, TBody = unknown>(
   path: string,
-  options?: {
-    accessToken?: string;
-    method?: string;
-    body?: any;
-  }
-): Promise<T> {
+  options?: MlFetchOptions<TBody>
+): Promise<TResponse> {
   const env = getMlEnv();
 
   const url = `${env.apiBaseUrl}${path}`;
@@ -337,7 +339,7 @@ export async function fetchMlMe(accessToken: string): Promise<MlUserProfile> {
     headers.Authorization = `Bearer ${options.accessToken}`;
   }
 
-  if (options?.body) {
+  if (typeof options?.body !== "undefined") {
     headers["content-type"] = "application/json";
   }
 
@@ -351,11 +353,14 @@ export async function fetchMlMe(accessToken: string): Promise<MlUserProfile> {
     const response = await fetchWithTimeout(url, {
       method: options?.method ?? "GET",
       headers,
-      body: options?.body ? JSON.stringify(options.body) : undefined,
+      body:
+        typeof options?.body !== "undefined"
+          ? JSON.stringify(options.body)
+          : undefined,
       cache: "no-store",
     });
 
-    const data = await ensureOk<T>(
+    const data = await ensureOk<TResponse>(
       response,
       "Mercado Livre API error"
     );
@@ -367,7 +372,6 @@ export async function fetchMlMe(accessToken: string): Promise<MlUserProfile> {
     });
     throw error;
   }
-
 }
 
 

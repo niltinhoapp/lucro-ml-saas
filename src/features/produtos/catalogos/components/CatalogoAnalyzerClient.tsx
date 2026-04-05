@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 type CatalogRow = {
   productName?: string;
@@ -47,6 +47,39 @@ type SavedCatalog = {
 type Props = {
   initialResult?: unknown;
   savedCatalogs?: SavedCatalog[];
+};
+
+type MlValidationStatus = "validated" | "partial" | "not_validated";
+
+type MlPriceResponse = {
+  query?: string;
+  normalizedQuery?: string;
+  validatedPrice?: number | null;
+  medianPrice?: number | null;
+  minPrice?: number | null;
+  maxPrice?: number | null;
+  avgPrice?: number | null;
+  resultsCount?: number;
+  comparableCount?: number;
+  confidence?: number;
+  status?: MlValidationStatus;
+};
+
+type EnrichedCatalogRow = CatalogRow & {
+  productKey: string;
+  supplierCost: number;
+  fallbackMlPrice: number;
+  effectiveMlPrice: number;
+  estimatedMargin: number;
+  demandScore: number;
+  competitionScore: number;
+  opportunityScore: number;
+  semPrecoMl: boolean;
+  lucroEstimado: number;
+  normalizedRisk: "low" | "medium" | "high";
+  mlValidationStatus: MlValidationStatus;
+  mlValidationConfidence: number;
+  mlComparableCount: number;
 };
 
 const EMPTY_SUMMARY: CatalogSummary = {
@@ -111,6 +144,15 @@ function formatDate(value?: string | null) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "Sem data";
   return date.toLocaleString("pt-BR");
+}
+
+function normalizeProductKey(value: string) {
+  return String(value || "")
+    .normalize("NFKD")
+    .replace(/[^\p{L}\p{N}\s/-]/gu, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .toLowerCase();
 }
 
 function normalizeRow(row: any): CatalogRow {
@@ -187,38 +229,129 @@ export default function CatalogoAnalyzerClient({
   );
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [mlMap, setMlMap] = useState<Record<string, MlPriceResponse | null>>({});
+  const [mlLoading, setMlLoading] = useState(false);
 
   const summary = result?.summary ?? EMPTY_SUMMARY;
   const rows = result?.rows ?? [];
 
+  async function fetchMlPrice(productName: string) {
+    try {
+      const response = await fetch("/api/ml/price", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({ productName }),
+      });
+
+      if (!response.ok) {
+        return null;
+      }
+
+      return (await response.json()) as MlPriceResponse;
+    } catch {
+      return null;
+    }
+  }
+
+  useEffect(() => {
+    if (!rows.length) {
+      setMlMap({});
+      return;
+    }
+
+    let cancelled = false;
+
+    async function run() {
+      setMlLoading(true);
+
+      try {
+      const uniqueProducts = Array.from(
+  new Map(
+    rows
+      .map((row) => row.productName || "")
+      .filter(Boolean)
+      .map((name) => [normalizeProductKey(name), name] as const)
+  ).entries()
+);
+
+const entries = await Promise.all(
+  uniqueProducts.map(async ([productKey, originalName]) => {
+    const ml = await fetchMlPrice(originalName);
+    return [productKey, ml] as const;
+  })
+);
+
+        if (!cancelled) {
+          setMlMap(Object.fromEntries(entries));
+        }
+      } finally {
+        if (!cancelled) {
+          setMlLoading(false);
+        }
+      }
+    }
+
+    run();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [rows]);
+
   const grouped = useMemo(() => {
-    const normalizedRows = rows.map((row) => {
+    const normalizedRows: EnrichedCatalogRow[] = rows.map((row) => {
       const supplierCost = toNumber(row.supplierCost);
-      const avgMlPrice = toNumber(row.avgMlPrice);
+      const fallbackMlPrice = toNumber(row.avgMlPrice);
       const estimatedMargin = toNumber(row.estimatedMargin);
       const opportunityScore = toNumber(row.opportunityScore);
       const demandScore = toNumber(row.demandScore);
       const competitionScore = toNumber(row.competitionScore);
       const risk = (row.riskLevel ?? "").toLowerCase();
-      const semPrecoMl = avgMlPrice <= 0;
-      const lucroEstimado = avgMlPrice - supplierCost;
+      const productKey = normalizeProductKey(row.productName ?? "");
+      const ml = mlMap[productKey] ?? null;
+
+      const mlValidationStatus: MlValidationStatus =
+        ml?.status ?? (fallbackMlPrice > 0 ? "partial" : "not_validated");
+
+      const mlValidationConfidence = toNumber(ml?.confidence ?? 0);
+      const mlComparableCount = toNumber(ml?.comparableCount ?? 0);
+
+      const effectiveMlPrice =
+        mlValidationStatus === "validated"
+          ? toNumber(ml?.validatedPrice)
+          : 0;
+
+      const semPrecoMl = mlValidationStatus !== "validated";
+
+      const lucroEstimado = semPrecoMl ? 0 : effectiveMlPrice - supplierCost;
+
+      const normalizedRisk: "low" | "medium" | "high" =
+        mlValidationStatus !== "validated"
+          ? "medium"
+          : risk === "low" || risk === "baixo"
+          ? "low"
+          : risk === "high" || risk === "alto"
+          ? "high"
+          : "medium";
 
       return {
         ...row,
+        productKey,
         supplierCost,
-        avgMlPrice,
+        fallbackMlPrice,
+        effectiveMlPrice,
         estimatedMargin,
         opportunityScore,
         demandScore,
         competitionScore,
         semPrecoMl,
         lucroEstimado,
-        normalizedRisk:
-          risk === "low" || risk === "baixo"
-            ? "low"
-            : risk === "high" || risk === "alto"
-            ? "high"
-            : "medium",
+        normalizedRisk,
+        mlValidationStatus,
+        mlValidationConfidence,
+        mlComparableCount,
       };
     });
 
@@ -235,7 +368,7 @@ export default function CatalogoAnalyzerClient({
       .sort((a, b) => a.opportunityScore - b.opportunityScore);
 
     return { oportunidades, revisar, evitar, normalizedRows };
-  }, [rows]);
+  }, [rows, mlMap]);
 
   const stats = useMemo(() => {
     if (!result) return [];
@@ -246,7 +379,13 @@ export default function CatalogoAnalyzerClient({
       { label: "Revisar", value: String(grouped.revisar.length) },
       { label: "Evitar", value: String(grouped.evitar.length) },
     ];
-  }, [grouped.evitar.length, grouped.oportunidades.length, grouped.revisar.length, result, summary.parsedRows]);
+  }, [
+    grouped.evitar.length,
+    grouped.oportunidades.length,
+    grouped.revisar.length,
+    result,
+    summary.parsedRows,
+  ]);
 
   async function onFileChange(file?: File | null) {
     if (!file) {
@@ -256,6 +395,7 @@ export default function CatalogoAnalyzerClient({
 
     setUploading(true);
     setError(null);
+    setMlMap({});
 
     try {
       const formData = new FormData();
@@ -326,6 +466,12 @@ export default function CatalogoAnalyzerClient({
           <div className="lm-alert info">Analisando catálogo...</div>
         ) : null}
 
+        {mlLoading && result ? (
+          <div className="lm-alert info">
+            Validando preços reais no Mercado Livre...
+          </div>
+        ) : null}
+
         {error ? <div className="lm-alert danger">{error}</div> : null}
       </section>
 
@@ -388,7 +534,10 @@ export default function CatalogoAnalyzerClient({
 
                 <div className="lm-grid">
                   {summary.highlights.map((highlight, index) => (
-                    <div key={`${highlight}-${index}`} className="lm-product-card">
+                    <div
+                      key={`${highlight}-${index}`}
+                      className="lm-product-card"
+                    >
                       <p className="lm-product-summary">{highlight}</p>
                     </div>
                   ))}
@@ -418,7 +567,7 @@ export default function CatalogoAnalyzerClient({
               <div className="lm-grid">
                 {grouped.oportunidades.slice(0, 6).map((row, index) => (
                   <div
-                    key={`${row.productName}-${index}`}
+                    key={`${row.productKey}-${index}`}
                     className={`lm-product-card ${index < 3 ? "top" : ""}`}
                   >
                     <div className="lm-product-top">
@@ -449,7 +598,11 @@ export default function CatalogoAnalyzerClient({
                       <div>
                         <span>Preço ML</span>
                         <strong>
-                          {row.semPrecoMl ? "Não validado" : brl(row.avgMlPrice)}
+                          {row.mlValidationStatus === "validated"
+                            ? brl(row.effectiveMlPrice)
+                            : row.mlValidationStatus === "partial"
+                            ? "Validação parcial"
+                            : "Não validado"}
                         </strong>
                       </div>
 
@@ -464,10 +617,11 @@ export default function CatalogoAnalyzerClient({
                       </div>
                     </div>
 
-                    {row.semPrecoMl ? (
+                    {row.mlValidationStatus !== "validated" ? (
                       <div className="lm-inline-alert warning">
-                        Sem preço validado no Mercado Livre. Revise antes de
-                        comprar.
+                        {row.mlValidationStatus === "partial"
+                          ? `Validação parcial no Mercado Livre. Comparáveis: ${row.mlComparableCount}.`
+                          : "Sem preço validado no Mercado Livre. Revise antes de comprar."}
                       </div>
                     ) : null}
 
@@ -507,7 +661,7 @@ export default function CatalogoAnalyzerClient({
               <div className="lm-grid">
                 {grouped.revisar.slice(0, 6).map((row, index) => (
                   <div
-                    key={`${row.productName}-${index}`}
+                    key={`${row.productKey}-${index}`}
                     className="lm-product-card warn"
                   >
                     <div className="lm-product-top">
@@ -528,10 +682,24 @@ export default function CatalogoAnalyzerClient({
                       </div>
 
                       <div>
-                        <span>Margem</span>
-                        <strong>{row.estimatedMargin.toFixed(1)}%</strong>
+                        <span>Preço ML</span>
+                        <strong>
+                          {row.mlValidationStatus === "validated"
+                            ? brl(row.effectiveMlPrice)
+                            : row.mlValidationStatus === "partial"
+                            ? "Validação parcial"
+                            : "Não validado"}
+                        </strong>
                       </div>
                     </div>
+
+                    {row.mlValidationStatus !== "validated" ? (
+                      <div className="lm-inline-alert warning">
+                        {row.mlValidationStatus === "partial"
+                          ? `Preço com confiança parcial. Comparáveis: ${row.mlComparableCount}.`
+                          : "Sem preço validado no Mercado Livre."}
+                      </div>
+                    ) : null}
 
                     <p className="lm-product-summary">
                       {row.aiSummary ||
@@ -557,7 +725,7 @@ export default function CatalogoAnalyzerClient({
               <div className="lm-grid">
                 {grouped.evitar.slice(0, 6).map((row, index) => (
                   <div
-                    key={`${row.productName}-${index}`}
+                    key={`${row.productKey}-${index}`}
                     className="lm-product-card danger"
                   >
                     <div className="lm-product-top">
@@ -578,8 +746,14 @@ export default function CatalogoAnalyzerClient({
                       </div>
 
                       <div>
-                        <span>Margem</span>
-                        <strong>{row.estimatedMargin.toFixed(1)}%</strong>
+                        <span>Preço ML</span>
+                        <strong>
+                          {row.mlValidationStatus === "validated"
+                            ? brl(row.effectiveMlPrice)
+                            : row.mlValidationStatus === "partial"
+                            ? "Validação parcial"
+                            : "Não validado"}
+                        </strong>
                       </div>
                     </div>
 
@@ -622,7 +796,7 @@ export default function CatalogoAnalyzerClient({
                   </thead>
                   <tbody>
                     {grouped.normalizedRows.map((row, index) => (
-                      <tr key={`${row.productName}-${index}`}>
+                      <tr key={`${row.productKey}-${index}`}>
                         <td>
                           <div>
                             <p className="catalog-product-name">
@@ -637,17 +811,21 @@ export default function CatalogoAnalyzerClient({
                         </td>
                         <td>{brl(row.supplierCost)}</td>
                         <td>
-                          {row.semPrecoMl ? "Não validado" : brl(row.avgMlPrice)}
+                          {row.mlValidationStatus === "validated"
+                            ? brl(row.effectiveMlPrice)
+                            : row.mlValidationStatus === "partial"
+                            ? "Validação parcial"
+                            : "Não validado"}
                         </td>
                         <td>{row.estimatedMargin.toFixed(1)}%</td>
                         <td>{row.demandScore}</td>
                         <td>{row.competitionScore}</td>
                         <td>
-                          <strong>{row.opportunityScore}</strong>
+                                           <strong>{row.opportunityScore}</strong>
                         </td>
                         <td>
-                          <span className={riskClass(row.riskLevel)}>
-                            {riskLabel(row.riskLevel)}
+                          <span className={riskClass(row.normalizedRisk)}>
+                            {riskLabel(row.normalizedRisk)}
                           </span>
                         </td>
                       </tr>
