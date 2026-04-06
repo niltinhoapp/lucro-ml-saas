@@ -220,6 +220,16 @@ function normalizeResult(input: any): CatalogAnalysisResult | null {
   };
 }
 
+function sortByPriority(a: EnrichedCatalogRow, b: EnrichedCatalogRow) {
+  const scoreDiff = b.opportunityScore - a.opportunityScore;
+  if (scoreDiff !== 0) return scoreDiff;
+
+  const marginDiff = b.estimatedMargin - a.estimatedMargin;
+  if (marginDiff !== 0) return marginDiff;
+
+  return b.lucroEstimado - a.lucroEstimado;
+}
+
 export default function CatalogoAnalyzerClient({
   initialResult,
   savedCatalogs = [],
@@ -267,21 +277,21 @@ export default function CatalogoAnalyzerClient({
       setMlLoading(true);
 
       try {
-      const uniqueProducts = Array.from(
-  new Map(
-    rows
-      .map((row) => row.productName || "")
-      .filter(Boolean)
-      .map((name) => [normalizeProductKey(name), name] as const)
-  ).entries()
-);
+        const uniqueProducts = Array.from(
+          new Map(
+            rows
+              .map((row) => row.productName || "")
+              .filter(Boolean)
+              .map((name) => [normalizeProductKey(name), name] as const)
+          ).entries()
+        );
 
-const entries = await Promise.all(
-  uniqueProducts.map(async ([productKey, originalName]) => {
-    const ml = await fetchMlPrice(originalName);
-    return [productKey, ml] as const;
-  })
-);
+        const entries = await Promise.all(
+          uniqueProducts.map(async ([productKey, originalName]) => {
+            const ml = await fetchMlPrice(originalName);
+            return [productKey, ml] as const;
+          })
+        );
 
         if (!cancelled) {
           setMlMap(Object.fromEntries(entries));
@@ -324,7 +334,6 @@ const entries = await Promise.all(
           : 0;
 
       const semPrecoMl = mlValidationStatus !== "validated";
-
       const lucroEstimado = semPrecoMl ? 0 : effectiveMlPrice - supplierCost;
 
       const normalizedRisk: "low" | "medium" | "high" =
@@ -357,17 +366,20 @@ const entries = await Promise.all(
 
     const oportunidades = normalizedRows
       .filter((row) => row.normalizedRisk === "low")
-      .sort((a, b) => b.opportunityScore - a.opportunityScore);
+      .sort(sortByPriority);
 
     const revisar = normalizedRows
       .filter((row) => row.normalizedRisk === "medium")
-      .sort((a, b) => b.opportunityScore - a.opportunityScore);
+      .sort(sortByPriority);
 
     const evitar = normalizedRows
       .filter((row) => row.normalizedRisk === "high")
       .sort((a, b) => a.opportunityScore - b.opportunityScore);
 
-    return { oportunidades, revisar, evitar, normalizedRows };
+    const top = oportunidades.slice(0, 5);
+    const orderedRows = [...oportunidades, ...revisar, ...evitar];
+
+    return { oportunidades, revisar, evitar, top, normalizedRows: orderedRows };
   }, [rows, mlMap]);
 
   const stats = useMemo(() => {
@@ -546,6 +558,95 @@ const entries = await Promise.all(
             ) : null}
           </section>
 
+          {!!grouped.top.length && (
+            <section className="lm-section">
+              <div className="lm-section-head">
+                <div>
+                  <h2>Melhores oportunidades</h2>
+                  <p className="lm-section-subtitle">
+                    Comece por aqui. Maior potencial de margem e score.
+                  </p>
+                </div>
+
+                <Link
+                  href="/dashboard/operacao/simulador"
+                  className="btn btn-primary"
+                >
+                  Simular compra
+                </Link>
+              </div>
+
+              <div className="lm-grid">
+                {grouped.top.map((row, index) => (
+                  <article
+                    key={`${row.productKey}-top-${index}`}
+                    className={`lm-product-card ${index === 0 ? "featured" : ""}`}
+                  >
+                    <div className="lm-product-top">
+                      <div>
+                        <span className="lm-product-rank">
+                          {index === 0 ? "TOP oportunidade" : `Top ${index + 1}`}
+                        </span>
+                        <h3>{row.productName}</h3>
+                      </div>
+
+                      <span className="lm-score-badge">
+                        Score {row.opportunityScore}
+                      </span>
+                    </div>
+
+                    <div className="lm-product-metrics">
+                      <div>
+                        <span>Lucro</span>
+                        <strong>{brl(row.lucroEstimado)}</strong>
+                      </div>
+
+                      <div>
+                        <span>Margem</span>
+                        <strong>{row.estimatedMargin.toFixed(1)}%</strong>
+                      </div>
+
+                      <div>
+                        <span>Preço ML</span>
+                        <strong>
+                          {row.mlValidationStatus === "validated"
+                            ? brl(row.effectiveMlPrice)
+                            : row.mlValidationStatus === "partial"
+                            ? "Validação parcial"
+                            : "Não validado"}
+                        </strong>
+                      </div>
+                    </div>
+
+                    {row.mlValidationStatus !== "validated" ? (
+                      <div className="lm-inline-alert warning">
+                        {row.mlValidationStatus === "partial"
+                          ? `Validação parcial no Mercado Livre. Comparáveis: ${row.mlComparableCount}.`
+                          : "Sem preço validado no Mercado Livre. Revise antes de comprar."}
+                      </div>
+                    ) : null}
+
+                    <p className="lm-product-summary">
+                      {row.aiSummary || "Produto com alto potencial inicial."}
+                    </p>
+
+                    <div className="lm-product-actions">
+                      <button type="button" className="btn btn-secondary">
+                        Ver detalhe
+                      </button>
+                      <Link
+                        href="/dashboard/operacao/simulador"
+                        className="btn btn-primary"
+                      >
+                        Simular
+                      </Link>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            </section>
+          )}
+
           {!!grouped.oportunidades.length && (
             <section className="lm-section">
               <div className="lm-section-head">
@@ -566,7 +667,7 @@ const entries = await Promise.all(
 
               <div className="lm-grid">
                 {grouped.oportunidades.slice(0, 6).map((row, index) => (
-                  <div
+                  <article
                     key={`${row.productKey}-${index}`}
                     className={`lm-product-card ${index < 3 ? "top" : ""}`}
                   >
@@ -641,7 +742,7 @@ const entries = await Promise.all(
                         Simular
                       </Link>
                     </div>
-                  </div>
+                  </article>
                 ))}
               </div>
             </section>
@@ -660,7 +761,7 @@ const entries = await Promise.all(
 
               <div className="lm-grid">
                 {grouped.revisar.slice(0, 6).map((row, index) => (
-                  <div
+                  <article
                     key={`${row.productKey}-${index}`}
                     className="lm-product-card warn"
                   >
@@ -691,6 +792,16 @@ const entries = await Promise.all(
                             : "Não validado"}
                         </strong>
                       </div>
+
+                      <div>
+                        <span>Margem</span>
+                        <strong>{row.estimatedMargin.toFixed(1)}%</strong>
+                      </div>
+
+                      <div>
+                        <span>Lucro</span>
+                        <strong>{brl(row.lucroEstimado)}</strong>
+                      </div>
                     </div>
 
                     {row.mlValidationStatus !== "validated" ? (
@@ -705,7 +816,7 @@ const entries = await Promise.all(
                       {row.aiSummary ||
                         "Validar preço, concorrência e giro antes de avançar."}
                     </p>
-                  </div>
+                  </article>
                 ))}
               </div>
             </section>
@@ -724,7 +835,7 @@ const entries = await Promise.all(
 
               <div className="lm-grid">
                 {grouped.evitar.slice(0, 6).map((row, index) => (
-                  <div
+                  <article
                     key={`${row.productKey}-${index}`}
                     className="lm-product-card danger"
                   >
@@ -755,13 +866,23 @@ const entries = await Promise.all(
                             : "Não validado"}
                         </strong>
                       </div>
+
+                      <div>
+                        <span>Margem</span>
+                        <strong>{row.estimatedMargin.toFixed(1)}%</strong>
+                      </div>
+
+                      <div>
+                        <span>Lucro</span>
+                        <strong>{brl(row.lucroEstimado)}</strong>
+                      </div>
                     </div>
 
                     <p className="lm-product-summary">
                       {row.aiSummary ||
                         "Margem apertada ou risco alto para esse momento."}
                     </p>
-                  </div>
+                  </article>
                 ))}
               </div>
             </section>
@@ -821,7 +942,7 @@ const entries = await Promise.all(
                         <td>{row.demandScore}</td>
                         <td>{row.competitionScore}</td>
                         <td>
-                                           <strong>{row.opportunityScore}</strong>
+                          <strong>{row.opportunityScore}</strong>
                         </td>
                         <td>
                           <span className={riskClass(row.normalizedRisk)}>

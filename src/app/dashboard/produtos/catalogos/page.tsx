@@ -18,10 +18,12 @@ export default async function CatalogosPage() {
       <header className="lm-page-header lm-catalog-page__header">
         <div className="lm-catalog-page__heading">
           <span className="lm-page-eyebrow">Produtos • Catálogos</span>
+
           <h1>Catálogos de fornecedor</h1>
+
           <p>
-            Envie arquivos do fornecedor, organize a leitura e descubra quais
-            produtos merecem atenção antes de comprar.
+            Envie o catálogo do fornecedor, organize a leitura e identifique
+            quais produtos merecem atenção antes de comprar.
           </p>
         </div>
       </header>

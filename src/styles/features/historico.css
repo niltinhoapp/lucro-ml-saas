@@ -1,5 +1,9 @@
 /* =========================================================
-   HISTÓRICO — NOVO MODELO / INDEPENDENTE / PREMIUM
+   HISTÓRICO — LUCRO ML / PREMIUM / DECISÃO
+   ========================================================= */
+
+/* =========================================================
+   BASE
    ========================================================= */
 
 .lm-history-page {
@@ -24,6 +28,7 @@
 }
 
 html.dark .lm-history-hero {
+  border-color: rgba(148, 163, 184, 0.12);
   background:
     radial-gradient(circle at top left, rgba(46, 204, 113, 0.18), transparent 32%),
     radial-gradient(circle at top right, rgba(52, 152, 219, 0.18), transparent 28%),
@@ -99,6 +104,7 @@ html.dark .lm-history-subtitle {
 
 html.dark .lm-history-card {
   background: rgba(15, 27, 45, 0.98);
+  border-color: rgba(148, 163, 184, 0.12);
 }
 
 .lm-history-card__head {
@@ -160,6 +166,14 @@ html.dark .lm-history-card__subtitle {
   color: #b91c1c;
 }
 
+html.dark .lm-history-message.info {
+  color: #93c5fd;
+}
+
+html.dark .lm-history-message.danger {
+  color: #fca5a5;
+}
+
 /* =========================================================
    LIST
    ========================================================= */
@@ -182,17 +196,27 @@ html.dark .lm-history-card__subtitle {
   transition:
     transform 0.18s ease,
     border-color 0.18s ease,
-    box-shadow 0.18s ease;
+    box-shadow 0.18s ease,
+    background 0.18s ease;
+  outline: none;
 }
 
-.lm-history-row:hover {
+.lm-history-row:hover,
+.lm-history-row:focus-visible {
   transform: translateY(-1px);
   border-color: rgba(52, 152, 219, 0.18);
   box-shadow: 0 12px 28px rgba(15, 23, 42, 0.05);
+  background: #ffffff;
 }
 
 html.dark .lm-history-row {
   background: rgba(255, 255, 255, 0.03);
+  border-color: rgba(148, 163, 184, 0.12);
+}
+
+html.dark .lm-history-row:hover,
+html.dark .lm-history-row:focus-visible {
+  background: rgba(255, 255, 255, 0.05);
 }
 
 .lm-history-row__left {
@@ -216,6 +240,11 @@ html.dark .lm-history-row__title {
   color: #64748b;
   font-size: 0.84rem;
   line-height: 1.5;
+  word-break: break-word;
+}
+
+html.dark .lm-history-row__meta {
+  color: #9fb0c5;
 }
 
 .lm-history-row__right {
@@ -242,27 +271,44 @@ html.dark .lm-history-row__title {
   font-size: 0.76rem;
   font-weight: 800;
   letter-spacing: 0.02em;
+  border: 1px solid transparent;
 }
 
 .lm-history-pill.good {
   background: rgba(46, 204, 113, 0.12);
   color: #15803d;
+  border-color: rgba(46, 204, 113, 0.18);
 }
 
 .lm-history-pill.warn {
   background: rgba(245, 158, 11, 0.14);
   color: #b45309;
+  border-color: rgba(245, 158, 11, 0.18);
 }
 
 .lm-history-pill.bad {
   background: rgba(239, 68, 68, 0.12);
   color: #b91c1c;
+  border-color: rgba(239, 68, 68, 0.18);
+}
+
+html.dark .lm-history-pill.good {
+  color: #4ade80;
+}
+
+html.dark .lm-history-pill.warn {
+  color: #fbbf24;
+}
+
+html.dark .lm-history-pill.bad {
+  color: #f87171;
 }
 
 .lm-history-row__link {
   color: #2563eb;
   font-size: 0.84rem;
   font-weight: 700;
+  white-space: nowrap;
 }
 
 /* =========================================================
@@ -298,11 +344,21 @@ html.dark .lm-history-footer {
   .lm-history-pills {
     justify-content: flex-start;
   }
+
+  .lm-history-actions {
+    width: 100%;
+  }
 }
 
 @media (max-width: 720px) {
   .lm-history-hero__top,
   .lm-history-card {
     padding: 20px;
+  }
+
+  .lm-history-actions .btn,
+  .lm-history-actions .btn-dark {
+    width: 100%;
+    justify-content: center;
   }
 }

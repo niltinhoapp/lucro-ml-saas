@@ -15,7 +15,9 @@ const ML_TIMEOUT_MS = 20_000;
 type MlSeller = {
   id?: number;
   nickname?: string;
-  reputation?: { power_seller_status?: string | null };
+  reputation?: {
+    power_seller_status?: string | null;
+  };
 };
 
 type MlSearchItem = {
@@ -25,13 +27,18 @@ type MlSearchItem = {
   available_quantity?: number | string;
   sold_quantity?: number;
   seller?: MlSeller;
-  shipping?: { free_shipping?: boolean; logistic_type?: string | null };
+  shipping?: {
+    free_shipping?: boolean;
+    logistic_type?: string | null;
+  };
   permalink?: string;
   catalog_listing?: boolean;
 };
 
 type MlSearchResponse = {
-  paging?: { total?: number };
+  paging?: {
+    total?: number;
+  };
   results?: MlSearchItem[];
 };
 
@@ -130,6 +137,7 @@ function getTraceId() {
 
 function safeErrorMessage(error: unknown) {
   if (error instanceof Error) return error.message;
+
   try {
     return JSON.stringify(error);
   } catch {
@@ -137,11 +145,16 @@ function safeErrorMessage(error: unknown) {
   }
 }
 
-function logStep(traceId: string, step: string, data?: Record<string, unknown>) {
+function logStep(
+  traceId: string,
+  step: string,
+  data?: Record<string, unknown>
+) {
   if (data) {
     console.log(`[radar ml][${traceId}] ${step}`, data);
     return;
   }
+
   console.log(`[radar ml][${traceId}] ${step}`);
 }
 
@@ -232,7 +245,9 @@ function isConnectionExpired(expiresAt: string | null | undefined) {
   return ts <= Date.now() + 60_000;
 }
 
-function competitionLevelFromScore(score: number): "baixa" | "média" | "alta" {
+function competitionLevelFromScore(
+  score: number
+): "baixa" | "média" | "alta" {
   if (score <= 38) return "baixa";
   if (score <= 68) return "média";
   return "alta";
@@ -243,7 +258,7 @@ async function mlGet<T>(
   path: string,
   params: Record<string, string | number | undefined>,
   accessToken?: string | null
-) {
+): Promise<T> {
   const url = new URL(`${ML_API_BASE}${path}`);
 
   for (const [key, value] of Object.entries(params)) {
@@ -324,7 +339,10 @@ async function discoverCategory(traceId: string, query: string) {
   const rows = await mlGet<MlCategoryPrediction[]>(
     traceId,
     `/sites/${MLB_SITE_ID}/domain_discovery/search`,
-    { q: query, limit: 1 }
+    {
+      q: query,
+      limit: 1,
+    }
   );
 
   return rows?.[0] ?? null;
@@ -437,8 +455,8 @@ async function ensureValidMlSession(
     accessToken = refreshedData.accessToken;
   }
 
-  try {
-    const me = await fetchMlMe(accessToken);
+  async function validateWithCurrentToken(currentToken: string) {
+    const me = await fetchMlMe(currentToken);
 
     if (!me?.id) {
       throw new Error("Perfil /users/me inválido");
@@ -473,10 +491,14 @@ async function ensureValidMlSession(
     }
 
     return {
-      accessToken,
+      accessToken: currentToken,
       sellerNickname,
       sellerMlUserId,
     };
+  }
+
+  try {
+    return await validateWithCurrentToken(accessToken);
   } catch (firstError) {
     logError(traceId, "first ml session validation failed", firstError, {
       connectionId: connection.id,
@@ -491,45 +513,7 @@ async function ensureValidMlSession(
 
     accessToken = refreshedData.accessToken;
 
-    const me = await fetchMlMe(accessToken);
-
-    if (!me?.id) {
-      throw new Error("Perfil /users/me inválido após refresh");
-    }
-
-    if (
-      connection.ml_user_id &&
-      Number(connection.ml_user_id) !== Number(me.id)
-    ) {
-      throw new Error(
-        "A conexão do Mercado Livre não corresponde à conta esperada após refresh"
-      );
-    }
-
-    const sellerNickname = me.nickname ?? connection.ml_nickname ?? null;
-    const sellerMlUserId = Number(me.id);
-
-    const { error: syncError } = await supabase
-      .from("ml_connections")
-      .update({
-        ml_nickname: sellerNickname,
-        ml_user_id: sellerMlUserId,
-        updated_at: new Date().toISOString(),
-        is_active: true,
-      })
-      .eq("id", connection.id);
-
-    if (syncError) {
-      logError(traceId, "failed to sync ml connection after forced refresh", syncError, {
-        connectionId: connection.id,
-      });
-    }
-
-    return {
-      accessToken,
-      sellerNickname,
-      sellerMlUserId,
-    };
+    return validateWithCurrentToken(accessToken);
   }
 }
 
@@ -563,7 +547,9 @@ function buildRadarPayload(params: {
   const freeShippingCount = searchResults.filter(
     (item) => item.shipping?.free_shipping
   ).length;
-  const catalogCount = searchResults.filter((item) => item.catalog_listing).length;
+  const catalogCount = searchResults.filter(
+    (item) => item.catalog_listing
+  ).length;
 
   const sellerCounter = new Map<
     string,
@@ -620,7 +606,6 @@ function buildRadarPayload(params: {
 
   const minPrice = Math.min(...safePrices);
   const maxPrice = Math.max(...safePrices);
-
   const priceSpreadRatio = (maxPrice - minPrice) / Math.max(1, avgPriceBase);
 
   const opportunityScore = Math.round(
