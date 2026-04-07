@@ -1,3 +1,4 @@
+
 import { NextResponse } from "next/server";
 import { analyzeCatalogBuffer } from "@/lib/catalog/analyze";
 import { createServerClient } from "@/integrations/supabase/server";
@@ -7,292 +8,425 @@ import { runRadar } from "@/core/radar/run-radar";
 export const runtime = "nodejs";
 
 type CatalogRow = {
-  productName: string;
-  sku?: string | null;
-  brand?: string | null;
-  category?: string | null;
-  supplierCost?: number | null;
-  unitsPerBox?: number | null;
-  notes?: string | null;
-  model?: string | null;
-  unitPrice?: number | null;
-  boxPrice?: number | null;
-  specs?: unknown;
-  mlPriceAvg?: number | null;
-  mlPriceMin?: number | null;
-  mlPriceMax?: number | null;
-  estimatedMargin?: number | null;
-  estimatedProfit?: number | null;
-  estimatedFees?: number | null;
-  estimatedShipping?: number | null;
-  demandScore?: number | null;
-  competitionScore?: number | null;
-  opportunityScore?: number | null;
-  riskLevel?: string | null;
-  worthBuying?: boolean | string | null;
-  aiSummary?: unknown;
+productName: string;
+sku?: string | null;
+brand?: string | null;
+category?: string | null;
+supplierCost?: number | null;
+unitsPerBox?: number | null;
+notes?: string | null;
+model?: string | null;
+unitPrice?: number | null;
+boxPrice?: number | null;
+specs?: unknown;
+mlPriceAvg?: number | null;
+mlPriceMin?: number | null;
+mlPriceMax?: number | null;
+estimatedMargin?: number | null;
+estimatedProfit?: number | null;
+estimatedFees?: number | null;
+estimatedShipping?: number | null;
+demandScore?: number | null;
+competitionScore?: number | null;
+opportunityScore?: number | null;
+riskLevel?: string | null;
+worthBuying?: boolean | string | null;
+aiSummary?: unknown;
 };
 
 type AnalyzeCatalogResult = {
-  mode: string;
-  rows: CatalogRow[];
-  aiSummary?: {
-    parsedRows?: number;
-    [key: string]: unknown;
-  } | null;
+mode: string;
+rows: CatalogRow[];
+aiSummary?: {
+parsedRows?: number;
+[key: string]: unknown;
+} | null;
 };
 
+type RadarProductInput = {
+nome: string;
+custo: number;
+categoria: string;
+precoSugerido?: number | undefined;
+};
+
+type RadarItem = {
+status?: string;
+[key: string]: unknown;
+};
+
+type RadarResult = Awaited<ReturnType<typeof runRadar>>;
+
 function getFileTitle(fileName: string) {
-  return fileName.replace(/\.[^.]+$/, "");
+return fileName.replace(/.[^.]+$/, "");
 }
 
 function getSourceType(fileName: string) {
-  return fileName.toLowerCase().endsWith(".pdf") ? "pdf" : "spreadsheet";
+return fileName.toLowerCase().endsWith(".pdf") ? "pdf" : "spreadsheet";
 }
 
 function isStructuredResult(result: AnalyzeCatalogResult) {
-  return (
-    result.mode === "structured" &&
-    Array.isArray(result.rows) &&
-    result.rows.length > 0
-  );
+return (
+result.mode === "structured" &&
+Array.isArray(result.rows) &&
+result.rows.length > 0
+);
 }
 
-function mapRowsToRadar(rows: CatalogRow[]) {
-  return rows
-    .filter((row) => row.productName && (row.supplierCost ?? 0) > 0)
-    .map((row) => ({
-      nome: row.productName,
-      custo: Number(row.supplierCost ?? 0),
-      categoria: row.category ?? "",
-      precoSugerido:
-        Number(row.mlPriceAvg ?? 0) ||
-        Number(row.mlPriceMax ?? 0) ||
-        undefined,
-    }));
+function mapRowsToRadar(rows: CatalogRow[]): RadarProductInput[] {
+return rows
+.filter((row) => row.productName && (row.supplierCost ?? 0) > 0)
+.map((row) => ({
+nome: row.productName,
+custo: Number(row.supplierCost ?? 0),
+categoria: row.category ?? "",
+precoSugerido:
+Number(row.mlPriceAvg ?? 0) ||
+Number(row.mlPriceMax ?? 0) ||
+undefined,
+}));
+}
+
+function getRadarSummary(radar: RadarResult | null | undefined) {
+if (!radar || !Array.isArray(radar.ranking)) {
+return undefined;
+}
+
+const ranking = radar.ranking as RadarItem[];
+
+return {
+total: ranking.length,
+oportunidades: ranking.filter(
+(item) => item.status === "oportunidade"
+).length,
+atentos: ranking.filter((item) => item.status === "revisar").length,
+risco: ranking.filter((item) => item.status === "evitar").length,
+};
 }
 
 async function createCatalogRunLog(params: {
-  sb: Awaited<ReturnType<typeof createServerClient>>;
-  catalogId: string;
-  userId: string;
-  status: "success" | "error";
-  message: string;
-  details?: string;
-  mode?: string;
-  parsedRows?: number;
-  radarSummary?: {
-    total?: number;
-    oportunidades?: number;
-    atentos?: number;
-    risco?: number;
-  };
+sb: Awaited<ReturnType<typeof createServerClient>>;
+catalogId: string;
+userId: string;
+status: "success" | "error";
+message: string;
+details?: string;
+mode?: string;
+parsedRows?: number;
+radarSummary?: {
+total?: number;
+oportunidades?: number;
+atentos?: number;
+risco?: number;
+};
 }) {
-  const { sb, catalogId, userId, status, message, details, mode, parsedRows, radarSummary } =
-    params;
+const {
+sb,
+catalogId,
+userId,
+status,
+message,
+details,
+mode,
+parsedRows,
+radarSummary,
+} = params;
 
-  await sb.from("catalog_runs").insert({
-    catalog_id: catalogId,
-    user_id: userId,
-    step: "analyze",
-    status,
-    logs: [
-      {
-        at: new Date().toISOString(),
-        message,
-        details,
-        mode,
-        parsedRows,
-        radarSummary,
-      },
-    ],
-  });
+await sb.from("catalog_runs").insert({
+catalog_id: catalogId,
+user_id: userId,
+step: "analyze",
+status,
+logs: [
+{
+at: new Date().toISOString(),
+message,
+details,
+mode,
+parsedRows,
+radarSummary,
+},
+],
+});
 }
 
 export async function POST(req: Request) {
-  console.log("==================================================");
-  console.log("[api/catalogos/analisar] POST iniciado");
+console.log("==================================================");
+console.log("[api/catalogos/analisar] POST iniciado");
 
-  try {
-    const formData = await req.formData();
-    const file = formData.get("file");
+try {
+const formData = await req.formData();
+const file = formData.get("file");
 
-    console.log("[api/catalogos/analisar] file recebido?", !!file);
+console.log("[api/catalogos/analisar] file recebido?", !!file);
 
-    if (!(file instanceof File)) {
-      console.error("[api/catalogos/analisar] arquivo ausente ou inválido");
-      return NextResponse.json(
-        { error: "Arquivo não enviado corretamente." },
-        { status: 400 }
-      );
-    }
+if (!(file instanceof File)) {
+  console.error("[api/catalogos/analisar] arquivo ausente ou inválido");
+  return NextResponse.json(
+    { error: "Arquivo não enviado corretamente." },
+    { status: 400 }
+  );
+}
 
-    const fileName = file.name || "catalogo.pdf";
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
+const fileName = file.name || "catalogo.pdf";
+const bytes = await file.arrayBuffer();
+const buffer = Buffer.from(bytes);
 
-    console.log("[api/catalogos/analisar] fileName:", fileName);
-    console.log("[api/catalogos/analisar] buffer.length:", buffer.length);
+console.log("[api/catalogos/analisar] fileName:", fileName);
+console.log("[api/catalogos/analisar] buffer.length:", buffer.length);
 
-    if (!buffer.length) {
-      console.error("[api/catalogos/analisar] arquivo vazio");
-      return NextResponse.json(
-        { error: "Arquivo vazio ou inválido." },
-        { status: 400 }
-      );
-    }
+if (!buffer.length) {
+  console.error("[api/catalogos/analisar] arquivo vazio");
+  return NextResponse.json(
+    { error: "Arquivo vazio ou inválido." },
+    { status: 400 }
+  );
+}
 
-    const sb = await createServerClient();
+const sb = await createServerClient();
 
-    const {
-      data: { user },
-      error: authError,
-    } = await sb.auth.getUser();
+const {
+  data: { user },
+  error: authError,
+} = await sb.auth.getUser();
 
-    if (authError) {
-      console.error("[api/catalogos/analisar] erro auth.getUser:", authError);
-      return NextResponse.json(
-        { error: "Não foi possível validar o usuário." },
-        { status: 401 }
-      );
-    }
+if (authError) {
+  console.error("[api/catalogos/analisar] erro auth.getUser:", authError);
+  return NextResponse.json(
+    { error: "Não foi possível validar o usuário." },
+    { status: 401 }
+  );
+}
 
-    if (!user) {
-      console.error("[api/catalogos/analisar] usuário não autenticado");
-      return NextResponse.json(
-        { error: "Usuário não autenticado." },
-        { status: 401 }
-      );
-    }
+if (!user) {
+  console.error("[api/catalogos/analisar] usuário não autenticado");
+  return NextResponse.json(
+    { error: "Usuário não autenticado." },
+    { status: 401 }
+  );
+}
 
-    console.log("[api/catalogos/analisar] user.id:", user.id);
+console.log("[api/catalogos/analisar] user.id:", user.id);
 
-    const ent = await getEntitlements(sb, user.id);
+const ent = await getEntitlements(sb, user.id);
 
-    console.log("[api/catalogos/analisar] plan:", ent.plan);
-    console.log("[api/catalogos/analisar] isPlus:", ent.isPlus);
+console.log("[api/catalogos/analisar] plan:", ent.plan);
+console.log("[api/catalogos/analisar] isPlus:", ent.isPlus);
 
-    if (!ent.isPlus) {
-      console.error(
-        "[api/catalogos/analisar] acesso negado. plano atual:",
-        ent.plan
-      );
-      return NextResponse.json(
-        { error: "Essa funcionalidade está disponível apenas no plano PLUS." },
-        { status: 403 }
-      );
-    }
+if (!ent.isPlus) {
+  console.error(
+    "[api/catalogos/analisar] acesso negado. plano atual:",
+    ent.plan
+  );
+  return NextResponse.json(
+    { error: "Essa funcionalidade está disponível apenas no plano PLUS." },
+    { status: 403 }
+  );
+}
 
-    console.log("[api/catalogos/analisar] iniciando analyzeCatalogBuffer...");
-    const result = (await analyzeCatalogBuffer(
-      fileName,
-      buffer
-    )) as AnalyzeCatalogResult;
+console.log("[api/catalogos/analisar] iniciando analyzeCatalogBuffer...");
+const result = (await analyzeCatalogBuffer(
+  fileName,
+  buffer
+)) as AnalyzeCatalogResult;
 
-    console.log("[api/catalogos/analisar] análise concluída");
+console.log("[api/catalogos/analisar] análise concluída");
+console.log(
+  "[api/catalogos/analisar] parsedRows:",
+  result.aiSummary?.parsedRows ?? 0
+);
+console.log("[api/catalogos/analisar] mode:", result.mode);
+
+const title = getFileTitle(fileName);
+const sourceType = getSourceType(fileName);
+const structured = isStructuredResult(result);
+
+let radar: RadarResult | null = null;
+
+if (structured) {
+  const radarProducts = mapRowsToRadar(result.rows);
+
+  if (radarProducts.length > 0) {
+    radar = await runRadar({ produtos: radarProducts });
     console.log(
-      "[api/catalogos/analisar] parsedRows:",
-      result.aiSummary?.parsedRows ?? 0
+      "[api/catalogos/analisar] radar gerado:",
+      Array.isArray(radar?.ranking) ? radar.ranking.length : 0,
+      "itens"
     );
-    console.log("[api/catalogos/analisar] mode:", result.mode);
+  } else {
+    console.log(
+      "[api/catalogos/analisar] radar não gerado: sem itens válidos"
+    );
+  }
+}
 
-    const title = getFileTitle(fileName);
-    const sourceType = getSourceType(fileName);
-    const structured = isStructuredResult(result);
+const radarSummary = getRadarSummary(radar);
 
-    let radar: ReturnType<typeof runRadar> | null = null;
+console.log("[api/catalogos/analisar] salvando supplier_catalogs...");
+const { data: catalog, error: catalogError } = await sb
+  .from("supplier_catalogs")
+  .insert({
+    user_id: user.id,
+    title,
+    file_name: fileName,
+    source_type: sourceType,
+    status: structured ? "analyzed" : "parsed",
+    items_count: structured ? result.rows.length : 0,
+    parsed_at: structured ? new Date().toISOString() : null,
+  })
+  .select("id")
+  .single();
 
-    if (structured) {
-      const radarProducts = mapRowsToRadar(result.rows);
+if (catalogError || !catalog) {
+  console.error(
+    "[api/catalogos/analisar] erro ao salvar supplier_catalogs:",
+    catalogError
+  );
+  return NextResponse.json(
+    { error: "Falha ao salvar catálogo no histórico." },
+    { status: 500 }
+  );
+}
 
-      if (radarProducts.length > 0) {
-        radar = runRadar({ produtos: radarProducts });
-        console.log(
-          "[api/catalogos/analisar] radar gerado:",
-          radar.ranking.length,
-          "itens"
-        );
-      } else {
-        console.log(
-          "[api/catalogos/analisar] radar não gerado: sem itens válidos"
-        );
-      }
-    }
+console.log("[api/catalogos/analisar] catalog.id:", catalog.id);
 
-    console.log("[api/catalogos/analisar] salvando supplier_catalogs...");
-    const { data: catalog, error: catalogError } = await sb
-      .from("supplier_catalogs")
-      .insert({
-        user_id: user.id,
-        title,
-        file_name: fileName,
-        source_type: sourceType,
-        status: structured ? "analyzed" : "parsed",
-        items_count: structured ? result.rows.length : 0,
-        parsed_at: structured ? new Date().toISOString() : null,
+if (structured) {
+  console.log("[api/catalogos/analisar] salvando supplier_catalog_items...");
+
+  const itemPayload = result.rows.map((row) => ({
+    catalog_id: catalog.id,
+    user_id: user.id,
+    raw_name: row.productName,
+    normalized_name: row.productName,
+    supplier_sku: row.sku,
+    brand: row.brand,
+    category: row.category,
+    supplier_cost: row.supplierCost ?? 0,
+    min_qty: row.unitsPerBox,
+    unit: row.unitsPerBox ? "caixa" : "un",
+    notes: row.notes,
+    raw_data: {
+      model: row.model,
+      unitPrice: row.unitPrice,
+      boxPrice: row.boxPrice,
+      unitsPerBox: row.unitsPerBox,
+      specs: row.specs,
+      mlPriceAvg: row.mlPriceAvg,
+      mlPriceMin: row.mlPriceMin,
+      mlPriceMax: row.mlPriceMax,
+      estimatedMargin: row.estimatedMargin,
+      estimatedProfit: row.estimatedProfit,
+      estimatedFees: row.estimatedFees,
+      estimatedShipping: row.estimatedShipping,
+      demandScore: row.demandScore,
+      competitionScore: row.competitionScore,
+      opportunityScore: row.opportunityScore,
+      riskLevel: row.riskLevel,
+      worthBuying: row.worthBuying,
+      aiSummary: row.aiSummary,
+    },
+  }));
+
+  const { data: insertedItems, error: itemsError } = await sb
+    .from("supplier_catalog_items")
+    .insert(itemPayload)
+    .select("id, raw_name, normalized_name, supplier_sku");
+
+  if (itemsError) {
+    console.error(
+      "[api/catalogos/analisar] erro ao salvar supplier_catalog_items:",
+      itemsError
+    );
+
+    await createCatalogRunLog({
+      sb,
+      catalogId: catalog.id,
+      userId: user.id,
+      status: "error",
+      message: "Catálogo salvo, mas houve falha ao salvar os itens.",
+      details: String(itemsError.message || "unknown_error"),
+      mode: result.mode,
+      parsedRows: result.aiSummary?.parsedRows ?? 0,
+      radarSummary,
+    });
+
+    return NextResponse.json(
+      {
+        ok: true,
+        warning:
+          "Catálogo salvo, mas houve falha ao salvar os itens analisados.",
+        savedCatalogId: catalog.id,
+        result,
+        radar,
+      },
+      { status: 200 }
+    );
+  }
+
+  console.log(
+    "[api/catalogos/analisar] total supplier_catalog_items salvos:",
+    insertedItems?.length ?? 0
+  );
+
+  if (insertedItems?.length) {
+    console.log(
+      "[api/catalogos/analisar] salvando catalog_item_analysis..."
+    );
+
+    const analysisPayload = insertedItems
+      .map((item) => {
+        const row =
+          result.rows.find(
+            (r) =>
+              (item.supplier_sku || null) === (r.sku || null) &&
+              (item.normalized_name || item.raw_name) === r.productName
+          ) ||
+          result.rows.find(
+            (r) => (item.normalized_name || item.raw_name) === r.productName
+          );
+
+        if (!row) return null;
+
+        return {
+          item_id: item.id,
+          user_id: user.id,
+          ml_search_term: row.productName,
+          ml_price_avg: row.mlPriceAvg ?? 0,
+          ml_price_min: row.mlPriceMin ?? 0,
+          ml_price_max: row.mlPriceMax ?? 0,
+          estimated_fees: row.estimatedFees ?? 0,
+          estimated_shipping: row.estimatedShipping ?? 0,
+          estimated_margin: row.estimatedMargin ?? 0,
+          estimated_profit: row.estimatedProfit ?? 0,
+          demand_score: row.demandScore ?? 0,
+          competition_score: row.competitionScore ?? 0,
+          opportunity_score: row.opportunityScore ?? 0,
+          risk_level: row.riskLevel,
+          analysis: {
+            aiSummary: row.aiSummary,
+            source: "catalog-analysis-v2",
+            worthBuying: row.worthBuying,
+            specs: row.specs,
+            notes: row.notes,
+            supplierSku: row.sku,
+            model: row.model,
+            brand: row.brand,
+            category: row.category,
+          },
+          ai_summary: row.aiSummary ?? null,
+        };
       })
-      .select("id")
-      .single();
+      .filter((item): item is NonNullable<typeof item> => item != null);
 
-    if (catalogError || !catalog) {
-      console.error(
-        "[api/catalogos/analisar] erro ao salvar supplier_catalogs:",
-        catalogError
-      );
-      return NextResponse.json(
-        { error: "Falha ao salvar catálogo no histórico." },
-        { status: 500 }
-      );
-    }
+    if (analysisPayload.length) {
+      const { error: analysisError } = await sb
+        .from("catalog_item_analysis")
+        .insert(analysisPayload);
 
-    console.log("[api/catalogos/analisar] catalog.id:", catalog.id);
-
-    if (structured) {
-      console.log("[api/catalogos/analisar] salvando supplier_catalog_items...");
-
-      const itemPayload = result.rows.map((row) => ({
-        catalog_id: catalog.id,
-        user_id: user.id,
-        raw_name: row.productName,
-        normalized_name: row.productName,
-        supplier_sku: row.sku,
-        brand: row.brand,
-        category: row.category,
-        supplier_cost: row.supplierCost ?? 0,
-        min_qty: row.unitsPerBox,
-        unit: row.unitsPerBox ? "caixa" : "un",
-        notes: row.notes,
-        raw_data: {
-          model: row.model,
-          unitPrice: row.unitPrice,
-          boxPrice: row.boxPrice,
-          unitsPerBox: row.unitsPerBox,
-          specs: row.specs,
-          mlPriceAvg: row.mlPriceAvg,
-          mlPriceMin: row.mlPriceMin,
-          mlPriceMax: row.mlPriceMax,
-          estimatedMargin: row.estimatedMargin,
-          estimatedProfit: row.estimatedProfit,
-          estimatedFees: row.estimatedFees,
-          estimatedShipping: row.estimatedShipping,
-          demandScore: row.demandScore,
-          competitionScore: row.competitionScore,
-          opportunityScore: row.opportunityScore,
-          riskLevel: row.riskLevel,
-          worthBuying: row.worthBuying,
-          aiSummary: row.aiSummary,
-        },
-      }));
-
-      const { data: insertedItems, error: itemsError } = await sb
-        .from("supplier_catalog_items")
-        .insert(itemPayload)
-        .select("id, raw_name, normalized_name, supplier_sku");
-
-      if (itemsError) {
+      if (analysisError) {
         console.error(
-          "[api/catalogos/analisar] erro ao salvar supplier_catalog_items:",
-          itemsError
+          "[api/catalogos/analisar] erro ao salvar catalog_item_analysis:",
+          analysisError
         );
 
         await createCatalogRunLog({
@@ -300,17 +434,19 @@ export async function POST(req: Request) {
           catalogId: catalog.id,
           userId: user.id,
           status: "error",
-          message: "Catálogo salvo, mas houve falha ao salvar os itens.",
-          details: String(itemsError.message || "unknown_error"),
+          message:
+            "Catálogo e itens salvos, mas houve falha ao salvar a análise detalhada.",
+          details: String(analysisError.message || "unknown_error"),
           mode: result.mode,
           parsedRows: result.aiSummary?.parsedRows ?? 0,
+          radarSummary,
         });
 
         return NextResponse.json(
           {
             ok: true,
             warning:
-              "Catálogo salvo, mas houve falha ao salvar os itens analisados.",
+              "Catálogo e itens salvos, mas houve falha ao salvar a análise detalhada.",
             savedCatalogId: catalog.id,
             result,
             radar,
@@ -320,170 +456,77 @@ export async function POST(req: Request) {
       }
 
       console.log(
-        "[api/catalogos/analisar] total supplier_catalog_items salvos:",
-        insertedItems?.length ?? 0
-      );
-
-      if (insertedItems?.length) {
-        console.log(
-          "[api/catalogos/analisar] salvando catalog_item_analysis..."
-        );
-
-        const analysisPayload = insertedItems
-          .map((item) => {
-            const row =
-              result.rows.find(
-                (r) =>
-                  (item.supplier_sku || null) === (r.sku || null) &&
-                  (item.normalized_name || item.raw_name) === r.productName
-              ) ||
-              result.rows.find(
-                (r) => (item.normalized_name || item.raw_name) === r.productName
-              );
-
-            if (!row) return null;
-
-            return {
-              item_id: item.id,
-              user_id: user.id,
-              ml_search_term: row.productName,
-              ml_price_avg: row.mlPriceAvg ?? 0,
-              ml_price_min: row.mlPriceMin ?? 0,
-              ml_price_max: row.mlPriceMax ?? 0,
-              estimated_fees: row.estimatedFees ?? 0,
-              estimated_shipping: row.estimatedShipping ?? 0,
-              estimated_margin: row.estimatedMargin ?? 0,
-              estimated_profit: row.estimatedProfit ?? 0,
-              demand_score: row.demandScore ?? 0,
-              competition_score: row.competitionScore ?? 0,
-              opportunity_score: row.opportunityScore ?? 0,
-              risk_level: row.riskLevel,
-              analysis: {
-                aiSummary: row.aiSummary,
-                source: "catalog-analysis-v2",
-                worthBuying: row.worthBuying,
-                specs: row.specs,
-                notes: row.notes,
-                supplierSku: row.sku,
-                model: row.model,
-                brand: row.brand,
-                category: row.category,
-              },
-              ai_summary: row.aiSummary ?? null,
-            };
-          })
-          .filter(Boolean);
-
-        if (analysisPayload.length) {
-          const { error: analysisError } = await sb
-            .from("catalog_item_analysis")
-            .insert(analysisPayload);
-
-          if (analysisError) {
-            console.error(
-              "[api/catalogos/analisar] erro ao salvar catalog_item_analysis:",
-              analysisError
-            );
-
-            await createCatalogRunLog({
-              sb,
-              catalogId: catalog.id,
-              userId: user.id,
-              status: "error",
-              message:
-                "Catálogo e itens salvos, mas houve falha ao salvar a análise detalhada.",
-              details: String(analysisError.message || "unknown_error"),
-              mode: result.mode,
-              parsedRows: result.aiSummary?.parsedRows ?? 0,
-            });
-
-            return NextResponse.json(
-              {
-                ok: true,
-                warning:
-                  "Catálogo e itens salvos, mas houve falha ao salvar a análise detalhada.",
-                savedCatalogId: catalog.id,
-                result,
-                radar,
-              },
-              { status: 200 }
-            );
-          }
-
-          console.log(
-            "[api/catalogos/analisar] catalog_item_analysis salvo com sucesso"
-          );
-        }
-      }
-    } else {
-      console.log(
-        "[api/catalogos/analisar] catálogo em manual_review/parsed; itens não serão salvos"
+        "[api/catalogos/analisar] catalog_item_analysis salvo com sucesso"
       );
     }
-
-    await createCatalogRunLog({
-      sb,
-      catalogId: catalog.id,
-      userId: user.id,
-      status: "success",
-      message: structured
-        ? `Análise concluída com ${result.rows.length} itens estruturados.`
-        : "Análise concluída sem estrutura confiável. Catálogo mantido em revisão.",
-      mode: result.mode,
-      parsedRows: result.aiSummary?.parsedRows ?? 0,
-      radarSummary: radar
-        ? {
-            total: radar.ranking.length,
-            oportunidades: radar.oportunidades.length,
-            atentos: radar.atentos.length,
-            risco: radar.risco.length,
-          }
-        : undefined,
-    });
-
-    console.log("[api/catalogos/analisar] finalizado com sucesso");
-    console.log("==================================================");
-
-    return NextResponse.json({
-      ok: true,
-      savedCatalogId: catalog.id,
-      result,
-      radar,
-    });
-  } catch (error) {
-    console.error("[api/catalogos/analisar] erro fatal:", error);
-
-    const message =
-      error instanceof Error ? error.message : "Erro interno ao analisar catálogo.";
-
-    if (message.includes("OPENAI_INSUFFICIENT_QUOTA")) {
-      return NextResponse.json(
-        {
-          ok: false,
-          code: "analysis_package_required",
-          message:
-            "Você atingiu o limite de análises disponível no seu pacote atual. Adquira um pacote adicional para continuar.",
-        },
-        { status: 402 }
-      );
-    }
-
-    if (message.includes("Missing OPENAI_API_KEY")) {
-      return NextResponse.json(
-        {
-          ok: false,
-          message: "A análise está temporariamente indisponível no momento.",
-        },
-        { status: 503 }
-      );
-    }
-
-    return NextResponse.json(
-      {
-        ok: false,
-        message: "Erro interno ao analisar catálogo.",
-      },
-      { status: 500 }
-    );
   }
+} else {
+  console.log(
+    "[api/catalogos/analisar] catálogo em manual_review/parsed; itens não serão salvos"
+  );
+}
+
+await createCatalogRunLog({
+  sb,
+  catalogId: catalog.id,
+  userId: user.id,
+  status: "success",
+  message: structured
+    ? `Análise concluída com ${result.rows.length} itens estruturados.`
+    : "Análise concluída sem estrutura confiável. Catálogo mantido em revisão.",
+  mode: result.mode,
+  parsedRows: result.aiSummary?.parsedRows ?? 0,
+  radarSummary,
+});
+
+console.log("[api/catalogos/analisar] finalizado com sucesso");
+console.log("==================================================");
+
+return NextResponse.json({
+  ok: true,
+  savedCatalogId: catalog.id,
+  result,
+  radar,
+});
+
+
+} catch (error) {
+console.error("[api/catalogos/analisar] erro fatal:", error);
+
+
+const message =
+  error instanceof Error
+    ? error.message
+    : "Erro interno ao analisar catálogo.";
+
+if (message.includes("OPENAI_INSUFFICIENT_QUOTA")) {
+  return NextResponse.json(
+    {
+      ok: false,
+      code: "analysis_package_required",
+      message:
+        "Você atingiu o limite de análises disponível no seu pacote atual. Adquira um pacote adicional para continuar.",
+    },
+    { status: 402 }
+  );
+}
+
+if (message.includes("Missing OPENAI_API_KEY")) {
+  return NextResponse.json(
+    {
+      ok: false,
+      message: "A análise está temporariamente indisponível no momento.",
+    },
+    { status: 503 }
+  );
+}
+
+return NextResponse.json(
+  {
+    ok: false,
+    message: "Erro interno ao analisar catálogo.",
+  },
+  { status: 500 }
+);
+}
 }
