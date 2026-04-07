@@ -11,6 +11,7 @@ D:.
 |   package.json
 |   postcss.config.mjs
 |   rc
+|   reestruturar-lucro-ml.ps1
 |   reorganizar-lucro-ml.ps1
 |   REWRITE_NOTES.md
 |   tailwind.config.js
@@ -1239,8 +1240,8 @@ D:.
 |   |   |   |   [root-of-the-server]__febeddd6._.js.map
 |   |   |   |   [turbopack]_runtime.js
 |   |   |   |   [turbopack]_runtime.js.map
-|   |   |   |   _7459e50c._.js
-|   |   |   |   _7459e50c._.js.map
+|   |   |   |   _198abf82._.js
+|   |   |   |   _198abf82._.js.map
 |   |   |   |   _fa7d9f53._.js
 |   |   |   |   _fa7d9f53._.js.map
 |   |   |   |   _next-internal_server_app_(public)_auth_callback_route_actions_113c02c4.js
@@ -1345,14 +1346,10 @@ D:.
 |   |   |           node_modules_next_dist_fb290741._.js.map
 |   |   |           src_155a31c1._.js
 |   |   |           src_155a31c1._.js.map
-|   |   |           src_397a0f56._.js
-|   |   |           src_397a0f56._.js.map
-|   |   |           src_48c831db._.js
-|   |   |           src_48c831db._.js.map
-|   |   |           src_595b672d._.js
-|   |   |           src_595b672d._.js.map
-|   |   |           src_98e574c6._.js
-|   |   |           src_98e574c6._.js.map
+|   |   |           src_65884f67._.js
+|   |   |           src_65884f67._.js.map
+|   |   |           src_71186d43._.js
+|   |   |           src_71186d43._.js.map
 |   |   |           src_app_checkout_layout_tsx_9475e10c._.js
 |   |   |           src_app_checkout_layout_tsx_9475e10c._.js.map
 |   |   |           src_app_dashboard_lucro_fluxo-caixa_error_tsx_4d11e7e9._.js
@@ -1379,14 +1376,18 @@ D:.
 |   |   |           src_app_dashboard_produtos_radar_error_tsx_46110b54._.js.map
 |   |   |           src_app_dashboard_produtos_radar_loading_tsx_4567580c._.js
 |   |   |           src_app_dashboard_produtos_radar_loading_tsx_4567580c._.js.map
-|   |   |           src_components_6a2ddb51._.js
-|   |   |           src_components_6a2ddb51._.js.map
-|   |   |           src_components_7581536b._.js
-|   |   |           src_components_7581536b._.js.map
+|   |   |           src_features_37bd9f52._.js
+|   |   |           src_features_37bd9f52._.js.map
+|   |   |           src_features_a0a4f206._.js
+|   |   |           src_features_a0a4f206._.js.map
+|   |   |           src_features_dab29b5f._.js
+|   |   |           src_features_dab29b5f._.js.map
 |   |   |           src_features_produtos_catalogos_components_CatalogoAnalyzerClient_tsx_50206add._.js
 |   |   |           src_features_produtos_catalogos_components_CatalogoAnalyzerClient_tsx_50206add._.js.map
 |   |   |           src_features_produtos_radar_components_RadarOportunidades_tsx_ab0a4684._.js
 |   |   |           src_features_produtos_radar_components_RadarOportunidades_tsx_ab0a4684._.js.map
+|   |   |           src_ffa7c98b._.js
+|   |   |           src_ffa7c98b._.js.map
 |   |   |           [root-of-the-server]__013b4d4c._.js
 |   |   |           [root-of-the-server]__013b4d4c._.js.map
 |   |   |           [root-of-the-server]__02a5d50c._.js
@@ -1397,6 +1398,8 @@ D:.
 |   |   |           [root-of-the-server]__1690ee0d._.js.map
 |   |   |           [root-of-the-server]__245a95ea._.js
 |   |   |           [root-of-the-server]__245a95ea._.js.map
+|   |   |           [root-of-the-server]__27092e64._.js
+|   |   |           [root-of-the-server]__27092e64._.js.map
 |   |   |           [root-of-the-server]__284c8b14._.js
 |   |   |           [root-of-the-server]__284c8b14._.js.map
 |   |   |           [root-of-the-server]__29eb0cc8._.js
@@ -1411,28 +1414,30 @@ D:.
 |   |   |           [root-of-the-server]__5a954529._.js.map
 |   |   |           [root-of-the-server]__5d1e201c._.js
 |   |   |           [root-of-the-server]__5d1e201c._.js.map
-|   |   |           [root-of-the-server]__5f1e173d._.js
-|   |   |           [root-of-the-server]__5f1e173d._.js.map
+|   |   |           [root-of-the-server]__60847a68._.js
+|   |   |           [root-of-the-server]__60847a68._.js.map
 |   |   |           [root-of-the-server]__60be48d9._.js
 |   |   |           [root-of-the-server]__60be48d9._.js.map
-|   |   |           [root-of-the-server]__6257c9cc._.js
-|   |   |           [root-of-the-server]__6257c9cc._.js.map
 |   |   |           [root-of-the-server]__64d94c98._.js
 |   |   |           [root-of-the-server]__64d94c98._.js.map
 |   |   |           [root-of-the-server]__686c5447._.js
 |   |   |           [root-of-the-server]__686c5447._.js.map
-|   |   |           [root-of-the-server]__689b01dd._.js
-|   |   |           [root-of-the-server]__689b01dd._.js.map
 |   |   |           [root-of-the-server]__699ea3ba._.js
 |   |   |           [root-of-the-server]__699ea3ba._.js.map
+|   |   |           [root-of-the-server]__6d2bb422._.js
+|   |   |           [root-of-the-server]__6d2bb422._.js.map
 |   |   |           [root-of-the-server]__74d1089f._.js
 |   |   |           [root-of-the-server]__74d1089f._.js.map
+|   |   |           [root-of-the-server]__79053e53._.js
+|   |   |           [root-of-the-server]__79053e53._.js.map
+|   |   |           [root-of-the-server]__80a390d4._.js
+|   |   |           [root-of-the-server]__80a390d4._.js.map
 |   |   |           [root-of-the-server]__8c099b22._.js
 |   |   |           [root-of-the-server]__8c099b22._.js.map
-|   |   |           [root-of-the-server]__a7e45dd2._.js
-|   |   |           [root-of-the-server]__a7e45dd2._.js.map
 |   |   |           [root-of-the-server]__a80b15e7._.js
 |   |   |           [root-of-the-server]__a80b15e7._.js.map
+|   |   |           [root-of-the-server]__a932ee06._.js
+|   |   |           [root-of-the-server]__a932ee06._.js.map
 |   |   |           [root-of-the-server]__a98b9263._.js
 |   |   |           [root-of-the-server]__a98b9263._.js.map
 |   |   |           [root-of-the-server]__ab24dad5._.js
@@ -1441,12 +1446,14 @@ D:.
 |   |   |           [root-of-the-server]__b2d7a8d3._.js.map
 |   |   |           [root-of-the-server]__b8a39f65._.js
 |   |   |           [root-of-the-server]__b8a39f65._.js.map
-|   |   |           [root-of-the-server]__b8daecd0._.js
-|   |   |           [root-of-the-server]__b8daecd0._.js.map
 |   |   |           [root-of-the-server]__b9356576._.js
 |   |   |           [root-of-the-server]__b9356576._.js.map
 |   |   |           [root-of-the-server]__b961ac62._.js
 |   |   |           [root-of-the-server]__b961ac62._.js.map
+|   |   |           [root-of-the-server]__c012e963._.js
+|   |   |           [root-of-the-server]__c012e963._.js.map
+|   |   |           [root-of-the-server]__c56bba2d._.js
+|   |   |           [root-of-the-server]__c56bba2d._.js.map
 |   |   |           [root-of-the-server]__c7e00504._.js
 |   |   |           [root-of-the-server]__c7e00504._.js.map
 |   |   |           [root-of-the-server]__cca46b98._.js
@@ -1455,28 +1462,22 @@ D:.
 |   |   |           [root-of-the-server]__db17e724._.js.map
 |   |   |           [root-of-the-server]__e0a07927._.js
 |   |   |           [root-of-the-server]__e0a07927._.js.map
-|   |   |           [root-of-the-server]__eca78cd1._.js
-|   |   |           [root-of-the-server]__eca78cd1._.js.map
-|   |   |           [root-of-the-server]__f4dd3287._.js
-|   |   |           [root-of-the-server]__f4dd3287._.js.map
 |   |   |           [root-of-the-server]__f7004f6d._.js
 |   |   |           [root-of-the-server]__f7004f6d._.js.map
 |   |   |           [root-of-the-server]__f80810da._.js
 |   |   |           [root-of-the-server]__f80810da._.js.map
 |   |   |           [root-of-the-server]__f8629383._.js
 |   |   |           [root-of-the-server]__f8629383._.js.map
-|   |   |           [root-of-the-server]__ff39dc5a._.js
-|   |   |           [root-of-the-server]__ff39dc5a._.js.map
 |   |   |           [turbopack]_runtime.js
 |   |   |           [turbopack]_runtime.js.map
 |   |   |           _012cc442._.js
 |   |   |           _012cc442._.js.map
+|   |   |           _0578727d._.js
+|   |   |           _0578727d._.js.map
 |   |   |           _06f55d61._.js
 |   |   |           _06f55d61._.js.map
 |   |   |           _0bda03e5._.js
 |   |   |           _0bda03e5._.js.map
-|   |   |           _0f7cdb6b._.js
-|   |   |           _0f7cdb6b._.js.map
 |   |   |           _1ec86768._.js
 |   |   |           _1ec86768._.js.map
 |   |   |           _20a52876._.js
@@ -1615,43 +1616,43 @@ D:.
 |   |           
 |   +---static
 |   |   +---chunks
+|   |   |       06a132e106880120.js
+|   |   |       0c12ebcb2cae6b40.js
 |   |   |       0c8e8b7ae5e942e4.js
+|   |   |       13b87f1d8fe7f2fd.js
 |   |   |       1aae2f915e202bc0.js
 |   |   |       1ea5d34344a9d98b.js
 |   |   |       22da3619bf683f8e.js
+|   |   |       28133915c19fc4e4.js
 |   |   |       2e997115868c8b4e.js
-|   |   |       31c33ebaa3aa11e3.css
 |   |   |       3d818d208e28f20e.js
 |   |   |       3e62561191663c0b.js
 |   |   |       44e09f8c2d993378.js
 |   |   |       48b5efa64330ab34.js
-|   |   |       51918c16d27fd183.js
-|   |   |       67359b83b4cab16e.js
+|   |   |       582a4a59467e20f6.js
+|   |   |       5f33772041259a31.js
 |   |   |       72e142f30eb8f380.js
-|   |   |       7d3a7f6331d361dd.js
 |   |   |       80a82c0f5882830d.js
+|   |   |       8161c50269e12157.js
 |   |   |       82abf2d65f5428ae.js
-|   |   |       8e9aed8cea4aa4a2.js
+|   |   |       898f4dc0e4a87777.js
 |   |   |       95043ba96bbd7d19.js
-|   |   |       99461722abfc694f.js
-|   |   |       a47645f7f59ebb12.js
 |   |   |       a5ef9d606c3f7719.js
 |   |   |       a6dad97d9634a72d.js
 |   |   |       a6dad97d9634a72d.js.map
-|   |   |       ab892ba45e3e0edb.js
 |   |   |       adabfc2d4bff09a9.js
 |   |   |       c0d70aef6a72be77.js
+|   |   |       c1a1774ee0c6a802.css
 |   |   |       c54f14f898535533.js
-|   |   |       c9ed84cea97cfafd.js
 |   |   |       d2be314c3ece3fbe.js
 |   |   |       d3e36b585cd187ea.js
+|   |   |       d9724dc18d26630a.js
 |   |   |       ead30f0590726b74.js
-|   |   |       eb61080f462e9780.js
 |   |   |       f2f58a7e93290fbb.js
 |   |   |       ff1a16fafef87110.js
 |   |   |       turbopack-39c869ddcb56dba1.js
 |   |   |       
-|   |   \---nXThMVMHSgk8R1nMBdCtF
+|   |   \---OX8NGvD8ApbIYCvKqTX9f
 |   |           _buildManifest.js
 |   |           _clientMiddlewareManifest.json
 |   |           _ssgManifest.js
@@ -1660,6 +1661,16 @@ D:.
 |           routes.d.ts
 |           validator.ts
 |           
++---app
+|   \---api
+|       \---radar
+|           +---favorites
+|           +---history
+|           +---ranking
+|           +---run
+|           |       route.ts
+|           |       
+|           \---score
 +---docs
 |       HANDOFF_CATALOGOS_PLUS.md
 |       HANDOFF_CATALOGOS_SUPABASE_STEP2.md
@@ -44594,7 +44605,6 @@ D:.
 |   |       |   |       error.tsx
 |   |       |   |       loading.tsx
 |   |       |   |       page.tsx
-|   |       |   |       StrategiesClient.tsx
 |   |       |   |       
 |   |       |   \---radar
 |   |       |           error.tsx
@@ -44605,71 +44615,63 @@ D:.
 |   |           \---operacao-inteligencia
 |   |                   page.tsx
 |   |                   
-|   +---components
-|   |   |   CaixaFiltros.tsx
-|   |   |   CaixaKpis.tsx
-|   |   |   CaixaTabela.tsx
-|   |   |   FluxoCaixaPageClient.tsx
-|   |   |   HistoricoSimulacoes.tsx
-|   |   |   Onboarding.tsx
-|   |   |   
-|   |   +---auth
-|   |   |       AuthGoogleButton.tsx
-|   |   |       
-|   |   +---catalog
-|   |   |       CatalogUploadClient.tsx
-|   |   |       
-|   |   +---layout
-|   |   |       AppShall.tsx
-|   |   |       
-|   |   +---market
-|   |   |       DiagnosticoLucroClient.tsx
-|   |   |       KitsGeneratorClient.tsx
-|   |   |       MarketIntelligenceClient.tsx
-|   |   |       RaioXLeadMagnet.tsx
-|   |   |       
-|   |   +---paywall
-|   |   |       PlanGate.tsx
-|   |   |       
-|   |   +---pro
-|   |   |       PlanUpgradeCard.tsx
-|   |   |       ProUpgradeButton.tsx
-|   |   |       
-|   |   +---secure
-|   |   |       FluxoCaixaPageClient.tsx
-|   |   |       
-|   |   \---strategies
-|   |           StrategyBellBadge.tsx
-|   |           StrategyFilters.tsx
-|   |           StrategyHomeCard.tsx
-|   |           StrategyList.tsx
-|   |           StrategyNotificationCard.tsx
-|   |           StrategyReader.tsx
-|   |           StrategyUpgradeCard.tsx
-|   |           StrategyWeeklyCard.tsx
-|   |           
 |   +---core
-|   |   +---engine
+|   |   |   README.md
+|   |   |   
+|   |   +---billing
+|   |   +---catalog
+|   |   +---ml
+|   |   +---radar
 |   |   |       engine.calculators.ts
 |   |   |       engine.ts
 |   |   |       engine.types.ts
+|   |   |       ml-client.ts
+|   |   |       run-radar.ts
+|   |   |       scoring.ts
+|   |   |       strategy-engine.ts
 |   |   |       
-|   |   \---radar
-|   |           radar.engine.ts
-|   |           
+|   |   \---shared
 |   +---data
 |   |       mockStrategies.ts
 |   |       
 |   +---features
-|   |   +---conta
-|   |   |   +---ajuda
-|   |   |   +---assinatura
-|   |   |   \---integracoes
+|   |   |   README.md
+|   |   |   
+|   |   +---auth
+|   |   |   \---components
+|   |   |           AuthGoogleButton.tsx
+|   |   |           
+|   |   +---catalogos
+|   |   |   \---components
 |   |   +---dashboard
 |   |   |   \---shared
-|   |   |           dashboard-data.tsx
+|   |   |       |   dashboard-data.tsx
+|   |   |       |   
+|   |   |       +---layout
+|   |   |       |       AppShall.tsx
+|   |   |       |       
+|   |   |       +---paywall
+|   |   |       |       PlanGate.tsx
+|   |   |       |       
+|   |   |       +---pro
+|   |   |       |       PlanUpgradeCard.tsx
+|   |   |       |       ProUpgradeButton.tsx
+|   |   |       |       
+|   |   |       \---secure
+|   |   |               FluxoCaixaPageClient.tsx
+|   |   |               
+|   |   +---estrategies
+|   |   |   \---components
+|   |   |           StrategyFilters.tsx
+|   |   |           StrategyList.tsx
+|   |   |           StrategyReader.tsx
+|   |   |           StrategyWeeklyCard.tsx
 |   |   |           
 |   |   +---lucro
+|   |   |   +---components
+|   |   |   |       DiagnosticoLucroClient.tsx
+|   |   |   |       KitsGeneratorClient.tsx
+|   |   |   |       
 |   |   |   +---diagnostico
 |   |   |   +---dre
 |   |   |   |   \---components
@@ -44683,6 +44685,9 @@ D:.
 |   |   |   |           ProdutosRank.tsx
 |   |   |   |           
 |   |   |   \---fluxo-caixa
+|   |   +---market
+|   |   |       RaioXLeadMagnet.tsx
+|   |   |       
 |   |   +---operacao
 |   |   |   +---kits
 |   |   |   \---simulador
@@ -44703,6 +44708,8 @@ D:.
 |   |   |               saveRadarCache.ts
 |   |   |               saveRadarSearch.ts
 |   |   |               
+|   |   +---radar
+|   |   |   \---components
 |   |   +---strategies
 |   |   |   |   types.ts
 |   |   |   |   
@@ -44711,7 +44718,9 @@ D:.
 |   |   |   |       StrategyDetail.tsx
 |   |   |   |       StrategyFilters.tsx
 |   |   |   |       StrategyList.tsx
+|   |   |   |       StrategyReader.tsx
 |   |   |   |       StrategyRecommendationPanel.tsx
+|   |   |   |       StrategyWeeklyCard.tsx
 |   |   |   |       
 |   |   |   +---hooks
 |   |   |   |       useStrategies.ts
@@ -44734,6 +44743,13 @@ D:.
 |   |               |       FullVsFlexAI.tsx
 |   |               |       
 |   |               \---services
+|   +---infra
+|   |   |   README.md
+|   |   |   
+|   |   +---cache
+|   |   +---ml
+|   |   \---supabase
+|   |       \---repositories
 |   +---integrations
 |   |   +---mercadolivre
 |   |   +---mercadopago
@@ -44811,6 +44827,12 @@ D:.
 |   |       mercadopago.ts
 |   |       planilhaParser.ts
 |   |       
+|   +---shared
+|   |   |   README.md
+|   |   |   
+|   |   +---config
+|   |   +---types
+|   |   \---utils
 |   +---styles
 |   |   +---features
 |   |   |       account.css
