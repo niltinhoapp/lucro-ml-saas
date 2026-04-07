@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { createMarketAnalysis } from "@/lib/market/mock";
-import ProUpgradeButton from "@/components/pro/ProUpgradeButton";
+import ProUpgradeButton from "@/features/dashboard/shared/pro/ProUpgradeButton";
 
 type Plan = "free" | "pro" | "plus";
 type KpiTone = "good" | "warn" | "info";

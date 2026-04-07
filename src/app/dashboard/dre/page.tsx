@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { createServerClient } from "@/integrations/supabase/server";
 import { getEntitlements } from "@/integrations/supabase/entitlements";
 import DrePageClient from "./DrePageClient";
-import PlanGate from "@/components/paywall/PlanGate";
+import PlanGate from "@/features/dashboard/shared/paywall/PlanGate";
 
 export default async function Page({
   searchParams,
@@ -49,6 +49,7 @@ if (!ent.canCreateReports) {
 
   return <DrePageClient id={id} />;
 }
+
 
 
 

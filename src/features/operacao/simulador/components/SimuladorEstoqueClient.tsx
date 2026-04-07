@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import ProUpgradeButton from "@/components/pro/ProUpgradeButton";
+import ProUpgradeButton from "@/features/dashboard/shared/pro/ProUpgradeButton";
 
 type SimResponse = {
   investimento: number;
@@ -302,6 +302,7 @@ export default function SimuladorEstoqueClient() {
     </div>
   );
 }
+
 
 
 

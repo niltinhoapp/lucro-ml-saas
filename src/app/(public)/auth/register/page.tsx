@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createServerClient } from "@/integrations/supabase/server";
-import AuthGoogleButton from "@/components/auth/AuthGoogleButton";
+import AuthGoogleButton from "@/features/auth/components/AuthGoogleButton";
 import { registerAction } from "./actions";
 
 type Props = {
@@ -107,3 +107,8 @@ export default async function RegisterPage(props: Props) {
     </div>
   );
 }
+
+
+
+
+

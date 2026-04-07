@@ -11,7 +11,7 @@ import DreInsightsAI from "@/features/lucro/dre/components/DreInsightsAI";
 import PriceSuggestAI from "@/features/lucro/dre/components/PriceSuggestAI";
 import DreRiskBadge from "@/features/lucro/dre/components/DreRiskBadge";
 import ProdutosRank from "@/features/lucro/dre/components/ProdutosRank";
-import ProUpgradeButton from "@/components/pro/ProUpgradeButton";
+import ProUpgradeButton from "@/features/dashboard/shared/pro/ProUpgradeButton";
 
 import { gerarInsightsDre } from "@/lib/dre/insights";
 import { LinhaVenda } from "@/types/vendas";
@@ -229,6 +229,7 @@ export default function DrePageClient({ id }: { id: string }) {
     </div>
   );
 }
+
 
 
 

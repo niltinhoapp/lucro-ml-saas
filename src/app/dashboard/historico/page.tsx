@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { SimulacaoRow } from "@/types/simulacoes";
-import ProUpgradeButton from "@/components/pro/ProUpgradeButton";
+import ProUpgradeButton from "@/features/dashboard/shared/pro/ProUpgradeButton";
 
 function getErrorMessage(err: unknown) {
   if (err instanceof Error) return err.message;

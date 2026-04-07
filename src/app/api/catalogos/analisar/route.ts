@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { analyzeCatalogBuffer } from "@/lib/catalog/analyze";
 import { createServerClient } from "@/integrations/supabase/server";
 import { getEntitlements } from "@/integrations/supabase/entitlements";
-import { runRadar } from "@/core/radar/radar.engine";
+import { runRadar } from "@/core/radar/run-radar";
 
 export const runtime = "nodejs";
 
