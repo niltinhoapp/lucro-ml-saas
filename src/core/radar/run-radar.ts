@@ -9,73 +9,85 @@ export type RadarProductInput = {
   precoSugerido?: number;
 };
 
-export type RadarQueryInput = {
-  query: string;
-};
-
-export type RadarProdutosInput = {
-  produtos: RadarProductInput[];
-};
-
-export type RadarInput = RadarQueryInput | RadarProdutosInput;
+export type RadarInput =
+  | string
+  | { query: string }
+  | { produtos: RadarProductInput[] };
 
 export type RadarRankingItem = RadarProductInput & {
-  score: number;
+  precoVenda: number;
+  custoProduto: number;
+  taxaPercentual: number;
+  taxaValor: number;
+  freteEstimado: number;
+  lucroLiquido: number;
   margem: number;
+  score: number;
   risco: string;
   status: "oportunidade" | "revisar" | "evitar";
+  motivo: string;
 };
 
 export type RadarResult = {
   ranking: RadarRankingItem[];
   total: number;
+  resumo: {
+    oportunidades: number;
+    revisar: number;
+    evitar: number;
+  };
 };
 
-function isQueryInput(input: RadarInput): input is RadarQueryInput {
-  return "query" in input;
-}
-
-function isProdutosInput(input: RadarInput): input is RadarProdutosInput {
-  return "produtos" in input;
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
 }
 
 export async function runRadar(input: RadarInput): Promise<RadarResult> {
   let items: RadarProductInput[] = [];
 
-  if (isQueryInput(input)) {
-    const mlItems = await fetchMl(input.query);
+  if (typeof input === "string") {
+    const mlItems = await fetchMl(input);
 
-    items = (mlItems || []).map((item: any) => ({
+    items = (mlItems ?? []).map((item: any) => ({
       nome: String(item.title ?? ""),
-      custo: Number(item.price ?? 0),
+      custo: Number(item.price ?? 0) * 0.55,
       categoria: String(item.category_id ?? ""),
-      precoSugerido:
-        item.price != null ? Number(item.price) : undefined,
+      precoSugerido: item.price != null ? Number(item.price) : undefined,
     }));
-  }
+  } else if (isPlainObject(input) && "query" in input) {
+    const query = typeof input.query === "string" ? input.query : "";
+    const mlItems = await fetchMl(query);
 
-  if (isProdutosInput(input)) {
-    items = input.produtos;
+    items = (mlItems ?? []).map((item: any) => ({
+      nome: String(item.title ?? ""),
+      custo: Number(item.price ?? 0) * 0.55,
+      categoria: String(item.category_id ?? ""),
+      precoSugerido: item.price != null ? Number(item.price) : undefined,
+    }));
+  } else if (isPlainObject(input) && "produtos" in input) {
+    items = Array.isArray(input.produtos) ? input.produtos : [];
   }
 
   const ranking: RadarRankingItem[] = items.map((item) => {
     const scoreData = calculateScore(item);
-    const strategyData = classifyItem({
-      ...item,
-      ...scoreData,
-    });
+    const strategyData = classifyItem(scoreData);
 
     return {
       ...item,
-      score: Number(scoreData.score ?? 0),
-      margem: Number(scoreData.margem ?? 0),
-      risco: String(scoreData.risco ?? "medio"),
-      status: strategyData.status,
+      ...scoreData,
+      ...strategyData,
     };
   });
+
+  ranking.sort((a, b) => b.score - a.score);
 
   return {
     ranking,
     total: ranking.length,
+    resumo: {
+      oportunidades: ranking.filter((item) => item.status === "oportunidade").length,
+      revisar: ranking.filter((item) => item.status === "revisar").length,
+      evitar: ranking.filter((item) => item.status === "evitar").length,
+    },
   };
 }

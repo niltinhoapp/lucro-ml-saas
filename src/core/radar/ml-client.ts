@@ -1,13 +1,23 @@
 export async function fetchMl(query: string) {
-  const url = `https://api.mercadolibre.com/sites/MLB/search?q=${encodeURIComponent(query)}`;
+  const q = String(query ?? "").trim();
 
-  const res = await fetch(url);
+  if (!q) return [];
+
+  const url = `https://api.mercadolibre.com/sites/MLB/search?q=${encodeURIComponent(q)}&limit=20`;
+
+  const res = await fetch(url, {
+    method: "GET",
+    headers: {
+      Accept: "application/json",
+    },
+    cache: "no-store",
+  });
 
   if (!res.ok) {
-    throw new Error("Erro ao buscar no Mercado Livre");
+    throw new Error(`Mercado Livre ${res.status}`);
   }
 
   const json = await res.json();
 
-  return json.results || [];
+  return Array.isArray(json?.results) ? json.results : [];
 }
