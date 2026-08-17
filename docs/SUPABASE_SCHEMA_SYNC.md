@@ -18,9 +18,9 @@ Alinhar o schema real do Supabase de produção com o repositório `niltinhoapp/
 4. Primeiro capturar o schema real; depois comparar; só então consolidar migrations.
 5. Alterações em produção devem ocorrer somente depois de validação em ambiente separado ou dry-run.
 
-## Estado conhecido pelo código
+## Estado confirmado do banco vivo
 
-O código atual usa, entre outras, as seguintes tabelas:
+O banco de produção contém, entre outras, as seguintes tabelas e estruturas relevantes:
 
 - `profiles`
 - `subscriptions`
@@ -28,54 +28,84 @@ O código atual usa, entre outras, as seguintes tabelas:
 - `supplier_catalog_items`
 - `catalog_item_analysis`
 - `catalog_runs`
+- `catalog_ai_cache`
 - `radar_searches`
 - `radar_favorites`
 - `ml_connections`
+- `ml_sync_logs`
+- `dre_ai_insights`
+- `ai_cache`
+- `ai_usage`
+- `caixa_relatorios`
+- `caixa_lancamentos`
+- `simulacoes`
+- `sku_custos`
+- `usage_counters`
 
-As migrations atuais do repositório não representam completamente o schema esperado pelo código. Exemplos:
+Também existem tabelas de backup/órfãos com prefixo `_backup_`. Elas não devem ser removidas até a validação de uso, volume e necessidade de retenção.
 
-- `catalog_item_analysis` e `catalog_runs` são usadas pela aplicação, mas não constam nas migrations versionadas encontradas.
+## Divergências confirmadas
+
+As migrations atuais do repositório não representam completamente o schema real esperado pelo código.
+
+- `catalog_item_analysis` e `catalog_runs` são usadas pela aplicação e existem no banco vivo, mas não constam nas três migrations atualmente versionadas.
 - `supplier_catalog_items` possui divergência entre as colunas da migration antiga e as colunas usadas pela API atual.
 - `ml_connections` possui divergência entre a migration antiga e os campos usados pelo OAuth atual.
+- O histórico remoto de migrations está vazio para `20260308`, `20260314` e `20260315`, embora os objetos correspondentes já existam no banco.
+- Há políticas RLS antigas e novas coexistindo em algumas tabelas, incluindo versões `{public}` e `{authenticated}`.
+
+## Funções confirmadas
+
+O schema `public` possui:
+
+- `handle_new_user()` — cria `profiles` automaticamente para novos usuários.
+- `is_plus_user(uuid)` — valida plano PLUS a partir de `profiles.plan`.
+- `set_updated_at()` — função genérica para `updated_at`.
+- `set_updated_at_catalog_ai_cache()` — funcionalmente redundante com `set_updated_at()`.
+- `update_updated_at_column()` — funcionalmente redundante com `set_updated_at()`.
+
+As duas últimas são candidatas a consolidação posterior, mas não devem ser removidas antes de migrar todos os triggers dependentes.
+
+## Triggers confirmados
+
+- `catalog_ai_cache.trg_set_updated_at_catalog_ai_cache`
+- `catalog_item_analysis.trg_catalog_item_analysis_updated_at`
+- `catalog_runs.trg_catalog_runs_updated_at`
+- `ml_connections.trg_ml_connections_set_updated_at`
+- `ml_connections.trg_ml_connections_updated_at`
+- `subscriptions.update_subscriptions_updated_at`
+- `supplier_catalog_items.trg_supplier_catalog_items_updated_at`
+- `supplier_catalogs.trg_supplier_catalogs_updated_at`
+
+`ml_connections` possui dois triggers BEFORE UPDATE executando `set_updated_at()`. Isso é redundante e deve ser consolidado após validação.
+
+## RLS
+
+Foram confirmadas policies por usuário em módulos financeiros, catálogos, Radar, Mercado Livre e uso de IA. Há duplicidade de policies em algumas tabelas, especialmente nos módulos de catálogo e em objetos mais antigos. O saneamento deve preservar o isolamento por `auth.uid()` e reduzir políticas redundantes sem ampliar acesso.
 
 ## Extração do schema vivo
 
-Executar no checkout local do projeto, sem copiar segredos para o GitHub.
+A tentativa de `supabase db dump --linked` falhou por ausência de Docker no ambiente Windows. O inventário está sendo feito via consultas somente-leitura no SQL Editor do Supabase.
 
-### Opção recomendada — Supabase CLI
+## Antes da migration consolidada
 
-```powershell
-cd "D:\usuario1\niltinho\webcenter\lucro-ml-saas-atual"
+Ainda capturar:
 
-supabase --version
-supabase login
-supabase link --project-ref rkxexvstpatmetaoypgb
+1. índices de `public`;
+2. trigger de `auth.users` que chama `handle_new_user()`;
+3. confirmação de RLS habilitado/desabilitado por tabela;
+4. opcionalmente sequences/views, caso existam.
 
-New-Item -ItemType Directory -Force -Path supabase\snapshot | Out-Null
-supabase db dump --linked --schema public -f supabase\snapshot\production-public-schema.sql
-```
+## Estratégia de versionamento
 
-Se a versão instalada da CLI não aceitar `--linked`, consultar `supabase db dump --help` e usar a sintaxe equivalente da versão instalada.
+Não reescrever migrations históricas de forma destrutiva. O plano é:
 
-### Inventário complementar
-
-Além do schema `public`, registrar migrations remotas e estado de conexão:
-
-```powershell
-supabase migration list
-supabase projects list
-```
-
-Não commitar saída contendo credenciais.
-
-## Próxima etapa após o dump
-
-1. Adicionar `supabase/snapshot/production-public-schema.sql` na branch de saneamento.
-2. Comparar esse snapshot com `supabase/migrations/*`.
-3. Criar migration consolidada/fix-forward, sem reescrever migrations já aplicadas de forma destrutiva.
-4. Identificar objetos órfãos e código morto.
-5. Testar banco limpo criado apenas pelas migrations versionadas.
-6. Somente depois remover artefatos antigos e promover a versão estável para `main`.
+1. criar uma baseline/snapshot documentado do estado real de produção;
+2. criar migration fix-forward que torne um banco novo reproduzível;
+3. reconciliar o histórico remoto de migrations somente depois da comparação final;
+4. testar em banco separado;
+5. aplicar saneamento de policies, triggers e objetos redundantes em migrations próprias;
+6. remover legado apenas depois de confirmar ausência de dependências.
 
 ## CI/CD Supabase
 
