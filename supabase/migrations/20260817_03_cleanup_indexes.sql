@@ -1,0 +1,70 @@
+-- Saneamento 3/3 — PREPARAÇÃO de limpeza de índices duplicados.
+-- Branch: chore/supabase-schema-sync-2026-08-17
+--
+-- STATUS: NÃO EXECUTAR. Este arquivo é preparatório/rascunho.
+-- Nenhum DROP INDEX real incluído ainda. Apenas mapeamento de candidatos,
+-- conforme docs/SUPABASE_CLEANUP_PLAN.md e o baseline de 2026-08-17.
+--
+-- Regras desta etapa:
+--   - não remover índices ligados a PK/UNIQUE constraints sem entender a constraint;
+--   - não alterar as regras de unicidade de ml_connections;
+--   - não remover o índice uq_caixa_lanc_unico_por_relatorio;
+--   - gerar comentários explicando cada candidato antes de qualquer DROP real.
+
+-- ============================================================
+-- caixa_lancamentos — duplicatas exatas identificadas (mesmas colunas)
+-- ============================================================
+-- Candidatos (mesma definição funcional, nomes diferentes):
+--   caixa_lancamentos_categoria_idx  ~  idx_caixa_lanc_categoria            -> ambos em (categoria)
+--   caixa_lancamentos_relatorio_idx  ~  idx_caixa_lanc_relatorio
+--                                     ~  idx_caixa_lancamentos_relatorio    -> todos em (relatorio_id)
+--   caixa_lancamentos_relatorio_data_idx ~ idx_caixa_lanc_relatorio_data    -> ambos em (relatorio_id, release_date)
+-- Ação proposta (NÃO aplicada aqui): manter o índice de nomenclatura mais nova/consistente
+-- de cada grupo e descartar o(s) duplicado(s), SOMENTE após confirmar via EXPLAIN
+-- que nenhuma query depende do nome específico do índice (nomes de índice não afetam
+-- planner, então o risco real é operacional/replicação, não de correção de query).
+-- MANTER: uq_caixa_lanc_unico_por_relatorio (unique com regra funcional própria — não tocar).
+
+-- ============================================================
+-- catalog_ai_cache — candidatos a revisão (não duplicação óbvia)
+-- ============================================================
+-- Índices simples em file_hash e cache_key coexistem com unique indexes que
+-- começam pelas mesmas colunas. NÃO remover sem antes rodar EXPLAIN ANALYZE
+-- nas queries reais de cache-hit (ver src/server/catalog/cache.ts e
+-- src/features/produtos/radar/server/getRadarCache.ts) comparando os planos
+-- com e sem o índice simples.
+
+-- ============================================================
+-- ml_connections — forte duplicidade confirmada
+-- ============================================================
+-- idx_ml_connections_ml_user_id        ~ ml_connections_ml_user_id_idx
+-- ml_connections_ml_user_id_key        ~ ml_connections_ml_user_id_unique_idx   -> unique em (ml_user_id)
+-- idx_ml_connections_user_active       -> cobre parte de (user_id, is_active)
+-- ml_connections_one_active_per_user_idx ~ ux_ml_connections_user_active       -> unique parcial (user_id) where is_active
+-- ml_connections_user_id_key           ~ ml_connections_user_id_unique_idx     -> unique em (user_id)
+-- Regra de negócio: uma conta ML por usuário, conta ML não compartilhada entre usuários.
+-- NÃO remover nenhum destes antes de validar o fluxo OAuth completo
+-- (src/app/api/ml/oauth/start, src/app/api/ml/oauth/callback) contra as constraints
+-- reais — a unicidade é regra de negócio crítica, um DROP incorreto pode permitir
+-- duas contas ML ativas para o mesmo usuário.
+
+-- ============================================================
+-- subscriptions
+-- ============================================================
+-- subscriptions_provider_id_idx ~ subscriptions_provider_id_key -> unique equivalentes em (provider_id)
+-- Candidato a consolidação em migration futura, após confirmar qual dos dois
+-- é referenciado por FK ou por lógica de upsert em
+-- src/app/api/mp/webhook/route.ts e src/app/api/mp/create-subscription/route.ts.
+
+-- ============================================================
+-- user_strategy_reads
+-- ============================================================
+-- user_strategy_reads_user_id_strategy_id_key ~ user_strategy_reads_user_strategy_unique
+--   -> unique equivalentes em (user_id, strategy_id).
+-- Candidato a consolidação futura.
+
+-- ============================================================
+-- Nenhum DROP INDEX incluído nesta etapa.
+-- Próximo passo: confirmar via pg_indexes + EXPLAIN real qual nome de cada
+-- grupo é o "canônico" (mais recente/mais usado) antes de gerar DDL executável.
+-- ============================================================
