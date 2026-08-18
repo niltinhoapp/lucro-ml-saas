@@ -4,46 +4,32 @@
 -- revertida depois de aplicada em produção.
 --
 -- ==========================================================================
--- AVISO CRÍTICO DE FIDELIDADE — LEIA ANTES DE CONFIAR NESTE ARQUIVO
+-- FIDELIDADE CONFIRMADA — pre-check real rodado em produção em 17/08/2026
 -- ==========================================================================
--- Nunca conseguimos um dump completo do banco (supabase db dump --linked
--- falhou por falta de Docker no Windows). Isso significa que os bindings
--- ORIGINAIS de alguns triggers (qual função cada um chamava antes da
--- migration 01) vêm de inferência documental, não de captura direta.
+-- supabase/audit/20260817_01_pre_check.sql foi executado contra produção
+-- (rkxexvstpatmetaoypgb) via `supabase db query --linked` ANTES de aplicar
+-- a migration 01. Saída completa arquivada em
+-- supabase/audit/20260817_01_pre_check_output.md. Todos os bindings
+-- abaixo vêm dessa captura real (pg_get_triggerdef / pg_get_functiondef),
+-- não de suposição.
 --
--- CERTO (confirmado em docs/SUPABASE_CLEANUP_PLAN.md, texto explícito):
---   - ml_connections.trg_ml_connections_set_updated_at  -> chamava set_updated_at()
---   - ml_connections.trg_ml_connections_updated_at      -> chamava set_updated_at()
---     ("Existem dois triggers BEFORE UPDATE executando set_updated_at()")
+-- Confirmado por captura real:
+--   - catalog_ai_cache.trg_set_updated_at_catalog_ai_cache  -> set_updated_at_catalog_ai_cache()
+--   - catalog_item_analysis.trg_catalog_item_analysis_updated_at -> set_updated_at()
+--   - catalog_runs.trg_catalog_runs_updated_at -> set_updated_at()
+--   - ml_connections.trg_ml_connections_set_updated_at -> set_updated_at()
+--   - ml_connections.trg_ml_connections_updated_at -> set_updated_at()
+--   - subscriptions.update_subscriptions_updated_at -> update_updated_at_column()
+--     (DIVERGIU da suposição original deste arquivo, que era set_updated_at();
+--     corrigido abaixo com o binding real)
+--   - supplier_catalog_items.trg_supplier_catalog_items_updated_at -> set_updated_at()
+--   - supplier_catalogs.trg_supplier_catalogs_updated_at -> set_updated_at()
 --
--- MUITO PROVÁVEL, MAS INFERIDO POR CONVENÇÃO DE NOME (não confirmado por
--- dump literal):
---   - catalog_ai_cache.trg_set_updated_at_catalog_ai_cache
---     -> assumido chamando set_updated_at_catalog_ai_cache()
---
--- DESCONHECIDO — assumido set_updated_at() por ser a função canônica mais
--- provável, mas SEM confirmação direta:
---   - catalog_item_analysis.trg_catalog_item_analysis_updated_at
---   - catalog_runs.trg_catalog_runs_updated_at
---   - subscriptions.update_subscriptions_updated_at
---   - supplier_catalog_items.trg_supplier_catalog_items_updated_at
---   - supplier_catalogs.trg_supplier_catalogs_updated_at
---
--- AÇÃO OBRIGATÓRIA ANTES DE CONFIAR NESTE ROLLBACK:
---   Rodar supabase/audit/20260817_01_pre_check.sql ANTES de aplicar a
---   migration 01 e guardar a saída completa (especialmente os blocos 1 e
---   2, que trazem pg_get_functiondef e pg_get_triggerdef reais). Se algum
---   binding real capturado divergir do que este arquivo assume abaixo,
---   corrigir este arquivo com o texto real ANTES de precisar rodá-lo de
---   verdade. Este rollback é o melhor esforço com a evidência documental
---   disponível — não uma cópia literal garantida do estado anterior.
---
--- Os corpos das funções set_updated_at_catalog_ai_cache() e
--- update_updated_at_column() abaixo usam o MESMO idioma de
--- set_updated_at() (new.updated_at = now(); return new;), porque os docs
--- as descrevem como "funcionalmente redundantes/equivalentes" — mas os
--- corpos literais originais nunca foram capturados. Se o pre_check
--- revelar um corpo diferente, usar o corpo real capturado aqui.
+-- Os corpos das 3 funções (set_updated_at, set_updated_at_catalog_ai_cache,
+-- update_updated_at_column) foram capturados e são LITERALMENTE idênticos
+-- (new.updated_at = now(); return new;) — confirmando que a suposição de
+-- equivalência funcional estava correta. Os corpos abaixo usam o texto
+-- real capturado.
 -- ==========================================================================
 --
 -- Este rollback NÃO altera dados, RLS, policies, índices ou colunas —
@@ -86,8 +72,8 @@ begin
 end;
 $function$;
 
--- 2. Restaura os 5 triggers de tabela única para os bindings assumidos
---    (set_updated_at() — ver aviso de incerteza acima).
+-- 2. Restaura os 5 triggers de tabela única para os bindings confirmados
+--    pelo pre-check real (ver aviso acima).
 drop trigger if exists trg_catalog_item_analysis_updated_at on public.catalog_item_analysis;
 create trigger trg_catalog_item_analysis_updated_at
   before update on public.catalog_item_analysis
@@ -100,11 +86,13 @@ create trigger trg_catalog_runs_updated_at
   for each row
   execute function public.set_updated_at();
 
+-- subscriptions: binding real confirmado é update_updated_at_column(),
+-- NÃO set_updated_at() (corrigido após o pre-check real de 17/08/2026).
 drop trigger if exists update_subscriptions_updated_at on public.subscriptions;
 create trigger update_subscriptions_updated_at
   before update on public.subscriptions
   for each row
-  execute function public.set_updated_at();
+  execute function public.update_updated_at_column();
 
 drop trigger if exists trg_supplier_catalog_items_updated_at on public.supplier_catalog_items;
 create trigger trg_supplier_catalog_items_updated_at
@@ -118,8 +106,8 @@ create trigger trg_supplier_catalogs_updated_at
   for each row
   execute function public.set_updated_at();
 
--- 3. Restaura catalog_ai_cache para o binding inferido por convenção de
---    nome (set_updated_at_catalog_ai_cache()) — ver aviso acima.
+-- 3. Restaura catalog_ai_cache para o binding confirmado pelo pre-check
+--    real (set_updated_at_catalog_ai_cache()).
 drop trigger if exists trg_set_updated_at_catalog_ai_cache on public.catalog_ai_cache;
 create trigger trg_set_updated_at_catalog_ai_cache
   before update on public.catalog_ai_cache
@@ -127,7 +115,7 @@ create trigger trg_set_updated_at_catalog_ai_cache
   execute function public.set_updated_at_catalog_ai_cache();
 
 -- 4. Restaura ml_connections para os DOIS triggers duplicados originais
---    (binding confirmado em docs — ambos chamavam set_updated_at()).
+--    (binding confirmado pelo pre-check real — ambos chamavam set_updated_at()).
 drop trigger if exists trg_ml_connections_set_updated_at on public.ml_connections;
 create trigger trg_ml_connections_set_updated_at
   before update on public.ml_connections
