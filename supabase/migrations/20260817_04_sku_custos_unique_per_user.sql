@@ -21,12 +21,44 @@
 --
 -- Esta migration é auto-protegida contra perda de dados: se já existirem
 -- linhas duplicadas em (user_id, sku), o CREATE UNIQUE INDEX falha e nada
--- é alterado (a transação inteira é revertida). Antes disso, um bloco de
--- verificação explícita já aborta com uma mensagem clara.
+-- é alterado (a transação inteira é revertida). Antes disso, dois blocos
+-- de verificação explícita já abortam com mensagens claras: um para
+-- user_id nulo, outro para duplicatas.
+--
+-- IMPORTANTE: esta migration NÃO corrige nem apaga dados automaticamente.
+-- Se alguma das verificações abaixo abortar, os registros problemáticos
+-- devem ser inspecionados e corrigidos manualmente antes de tentar
+-- aplicar esta migration novamente.
 
 begin;
 
--- 1. Verificação explícita de duplicidade em (user_id, sku) antes de
+-- 1. Verificação explícita de user_id nulo. Um índice único em
+--    (user_id, sku) trata múltiplos NULLs como valores distintos (não
+--    conflitam entre si no Postgres), então linhas com user_id nulo
+--    passariam pelo CREATE UNIQUE INDEX sem erro — mas indicam dado
+--    órfão/incompleto que não deveria existir em uma tabela com RLS
+--    baseada em auth.uid() = user_id. Aborta cedo para forçar inspeção
+--    manual em vez de deixar essas linhas silenciosamente sem dono.
+do $migration$
+declare
+  v_null_count integer;
+begin
+  select count(*) into v_null_count
+  from public.sku_custos
+  where user_id is null;
+
+  if v_null_count > 0 then
+    raise exception
+      'sku_custos possui % linha(s) com user_id NULL. '
+      'Inspecione manualmente esses registros (select * from public.sku_custos '
+      'where user_id is null) e decida se devem ser corrigidos ou removidos '
+      'antes de aplicar esta migration. Nenhuma correção automática foi feita.',
+      v_null_count;
+  end if;
+end;
+$migration$;
+
+-- 2. Verificação explícita de duplicidade em (user_id, sku) antes de
 --    tentar criar o índice. Falha cedo com mensagem legível em vez de
 --    depender só do erro genérico do Postgres.
 do $migration$
@@ -50,7 +82,7 @@ begin
 end;
 $migration$;
 
--- 2. Cria o unique composto de forma idempotente. NÃO remove nem altera
+-- 3. Cria o unique composto de forma idempotente. NÃO remove nem altera
 --    o unique global existente em (sku).
 create unique index if not exists sku_custos_user_id_sku_key
   on public.sku_custos (user_id, sku);
