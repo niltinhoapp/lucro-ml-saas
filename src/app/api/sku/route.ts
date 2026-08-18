@@ -67,17 +67,19 @@ export async function POST(req: Request) {
       ativo: body?.ativo ?? true,
     };
 
-    // NOTA: o índice único de produção hoje é global em `sku` (não em
-    // `user_id, sku`), então dois usuários não conseguem cadastrar o mesmo
-    // código de SKU. A migration supabase/migrations/20260817_04_sku_custos_unique_per_user.sql
-    // prepara a troca para unicidade composta (user_id, sku), mas NÃO foi
-    // aplicada em produção ainda. Trocar `onConflict` para "user_id,sku"
-    // antes de aplicar essa migration quebra este endpoint (Postgres exige
-    // um unique/exclusion constraint real correspondente ao ON CONFLICT).
-    // Só alterar a linha abaixo depois que a migration 04 for aplicada.
+    // ATENÇÃO — dependência de migration ainda não aplicada em produção:
+    // este onConflict usa o índice composto (user_id, sku) criado por
+    // supabase/migrations/20260817_04_sku_custos_unique_per_user.sql.
+    // Essa migration ainda NÃO foi aplicada em produção. Não fazer deploy
+    // deste arquivo antes de aplicar a migration 04, ou todo POST vai
+    // falhar (Postgres exige um unique/exclusion constraint real
+    // correspondente às colunas do ON CONFLICT).
+    // Ordem de rollout: aplicar migration 04 -> publicar este código ->
+    // validar GET/POST -> aplicar migration 05 (remove o unique antigo
+    // em `sku` isolado, mantido intacto até lá).
     const { data, error } = await supabase
       .from("sku_custos")
-      .upsert(payload, { onConflict: "sku" })
+      .upsert(payload, { onConflict: "user_id,sku" })
       .select()
       .single();
 
